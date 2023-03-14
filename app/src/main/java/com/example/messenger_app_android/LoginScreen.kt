@@ -50,7 +50,6 @@ class LoginScreen : AppCompatActivity() {
 
     private fun signIn() {
         val signInIntent = googleSignInClient.signInIntent
-        startActivity(intent)
         startActivityForResult(signInIntent, RC_SIGN_IN)
     }
 

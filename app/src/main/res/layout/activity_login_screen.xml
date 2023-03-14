@@ -35,8 +35,7 @@
             <ImageView
                 android:layout_width="100dp"
                 android:layout_height="100dp"
-                android:layout_gravity="center"
-                android:src="@drawable/ic_baseline_person_pin_24" />
+                android:layout_gravity="center" />
 
 
             <androidx.cardview.widget.CardView
