@@ -1,8 +1,10 @@
 package com.example.messenger_app_android
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toolbar
 import com.google.firebase.auth.FirebaseAuth
@@ -23,6 +25,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
     private lateinit var toolbar: androidx.appcompat.widget.Toolbar
     private  lateinit var toolbarTitle: TextView
+    private lateinit var signOutView: ImageView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,12 +34,21 @@ class MainActivity : AppCompatActivity() {
         toolbar = findViewById(R.id.toolbar)
         toolbarTitle = findViewById(R.id.toolbar_title)
         textView = findViewById(R.id.text_view)
+        signOutView = findViewById(R.id.sign_out)
 
 
         textView.text = auth.currentUser?.displayName
 
+        signOutView.setOnClickListener {
+            auth.signOut()
+            val intent = Intent(this, LoginScreen::class.java)
+            startActivity(intent)
+        }
+
         val database = Firebase.database
         val myRef = database.getReference("message")
+
+
 
         myRef.setValue("Hello, World!")
 

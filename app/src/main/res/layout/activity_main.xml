@@ -33,6 +33,7 @@
             android:textSize="24sp" />
 
         <ImageView
+            android:id="@+id/drawer"
             android:layout_width="25dp"
             android:layout_height="25dp"
 
@@ -43,6 +44,7 @@
             android:clickable="true"/>
 
         <ImageView
+            android:id="@+id/sign_out"
             android:layout_width="25dp"
             android:layout_height="25dp"
             android:layout_centerHorizontal="true"
