@@ -1,4 +1,5 @@
 package com.example.messenger_app_android
+
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -19,6 +20,7 @@ class LoginScreen : AppCompatActivity() {
     private lateinit var googleSignInClient: GoogleSignInClient
     private lateinit var googleSignInCV: CardView
     private lateinit var auth: FirebaseAuth
+
     val TAG = "!!!"
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,16 +31,22 @@ class LoginScreen : AppCompatActivity() {
         auth = Firebase.auth
 
         val googleSignInOptions = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestIdToken(getString(R.string.SHA1_key))
-            .requestEmail()
-            .build()
+            .requestIdToken(getString(R.string.SHA1_key)).requestEmail().build()
 
-        googleSignInClient = GoogleSignIn.getClient(this,googleSignInOptions)
-        
+        googleSignInClient = GoogleSignIn.getClient(this, googleSignInOptions)
+
         googleSignInCV.setOnClickListener {
-           signIn()
+            signIn()
         }
     }
+
+
+    override fun onStart() {
+        super.onStart()
+        val currentUser = auth.currentUser
+        updateUI(currentUser)
+    }
+
 
     private fun signIn() {
         val signInIntent = googleSignInClient.signInIntent
@@ -77,24 +85,16 @@ class LoginScreen : AppCompatActivity() {
 
     private fun updateUI(user: FirebaseUser?) {
         user?.let {
-            val intent = Intent(applicationContext, MainActivity::class.java)
-            intent.putExtra(EXTRA_NAME, user.displayName)
+            val intent = Intent(this, MainActivity::class.java)
             startActivity((intent))
         }
     }
 
     companion object {
         const val RC_SIGN_IN = 1001
-        const val EXTRA_NAME = "EXTRA NAME"
+
     }
 
-    override fun onStart() {
-        super.onStart()
-        if (GoogleSignIn.getLastSignedInAccount(this) != null) {
-            startActivity(Intent(this, MainActivity::class.java))
-            finish()
-        }
-    }
 }
 
 

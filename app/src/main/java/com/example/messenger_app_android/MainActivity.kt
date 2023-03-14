@@ -3,6 +3,9 @@ package com.example.messenger_app_android
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.widget.TextView
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ValueEventListener
@@ -14,10 +17,16 @@ class MainActivity : AppCompatActivity() {
 
     val TAG = "!!!"
 
+    private lateinit var textView: TextView
+    private lateinit var auth: FirebaseAuth
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        auth = Firebase.auth
 
+        textView = findViewById(R.id.text_view)
+        textView.text = auth.currentUser?.displayName
 
 
         val database = Firebase.database
@@ -41,8 +50,6 @@ class MainActivity : AppCompatActivity() {
             }
 
         })
-
-
 
     }
 }
