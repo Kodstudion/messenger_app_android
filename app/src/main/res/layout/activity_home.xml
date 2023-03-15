@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    tools:context=".HomeActivity">
 
     <TextView
         android:id="@+id/text_view"
@@ -36,12 +36,12 @@
             android:id="@+id/drawer"
             android:layout_width="25dp"
             android:layout_height="25dp"
-
             android:layout_centerHorizontal="true"
             android:layout_centerVertical="true"
             android:layout_gravity="start"
-            android:src="@drawable/ic_baseline_list_24"
-            android:clickable="true"/>
+            android:clickable="true"
+            android:contextClickable="true"
+            android:src="@drawable/ic_baseline_list_24" />
 
         <ImageView
             android:id="@+id/sign_out"
@@ -51,11 +51,31 @@
             android:layout_centerVertical="true"
             android:layout_gravity="end"
             android:layout_marginRight="12dp"
-            android:src="@drawable/ic_baseline_input_24"
-            android:clickable="true"/>
+            android:clickable="true"
+            android:src="@drawable/ic_baseline_input_24" />
 
 
     </androidx.appcompat.widget.Toolbar>
+
+    <RelativeLayout
+        android:id="@+id/relative_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toTopOf="@+id/toolbar">
+
+
+    </RelativeLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/horizontal_recyclerview"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar">
+
+    </androidx.recyclerview.widget.RecyclerView>
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
