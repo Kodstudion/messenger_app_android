@@ -1,4 +1,4 @@
-package adapters
+package com.example.messenger_app_android.adapters
 
 import android.view.LayoutInflater
 import android.view.View
@@ -6,7 +6,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.messenger_app_android.R
 import kotlinx.android.synthetic.main.item_vertical_recyclerview.view.*
-import models.Message
+import com.example.messenger_app_android.models.Message
 
 class MessageAdapter(private val messages: MutableList<Message>): RecyclerView.Adapter<MessageAdapter.MessageViewHolder>() {
     class MessageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)

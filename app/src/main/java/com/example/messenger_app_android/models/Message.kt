@@ -1,9 +1,11 @@
-package models
+package com.example.messenger_app_android.models
 
 import com.google.firebase.database.Exclude
 
 data class Message(
-    val message: String? = null,
+    val userID: String? = null,
+    val body: String? = null,
+    val displayName: String? = null,
     val fromUser: User? = null,
     val title: String? = null,
     val recentMessage: String? = null,
@@ -13,11 +15,13 @@ data class Message(
     @Exclude
     fun toMap(): Map<String, Any?> {
         return  mapOf(
-            "message" to message,
+            "userID" to userID,
+            "body" to body,
+            "displayName" to displayName,
             "fromUser" to fromUser,
             "title" to title,
             "recentMessage" to recentMessage,
-            "messagePicture" to message
+            "messagePicture" to messagePicture
         )
     }
 }
