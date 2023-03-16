@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".LoginScreen">
+    tools:context=".activities.LoginActivity">
 
     <View
         android:id="@+id/view"
@@ -36,7 +36,7 @@
                 android:layout_width="100dp"
                 android:layout_height="100dp"
                 android:layout_gravity="center"
-                android:src="@drawable/ic_baseline_person_pin_24" />
+                android:src="@drawable/ic_baseline_person_pin_24"/>
 
 
             <androidx.cardview.widget.CardView

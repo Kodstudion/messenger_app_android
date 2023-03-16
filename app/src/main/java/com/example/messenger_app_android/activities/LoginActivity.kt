@@ -1,10 +1,11 @@
-package com.example.messenger_app_android
+package com.example.messenger_app_android.activities
 
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import androidx.cardview.widget.CardView
+import com.example.messenger_app_android.R
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -15,17 +16,18 @@ import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 
-class LoginScreen : AppCompatActivity() {
+class LoginActivity : AppCompatActivity() {
 
     private lateinit var googleSignInClient: GoogleSignInClient
     private lateinit var googleSignInCV: CardView
     private lateinit var auth: FirebaseAuth
 
+
     val TAG = "!!!"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_login_screen)
+        setContentView(R.layout.activity_login)
 
         googleSignInCV = findViewById(R.id.google_sign_in_cv)
         auth = Firebase.auth
@@ -50,7 +52,6 @@ class LoginScreen : AppCompatActivity() {
 
     private fun signIn() {
         val signInIntent = googleSignInClient.signInIntent
-        startActivity(intent)
         startActivityForResult(signInIntent, RC_SIGN_IN)
     }
 
@@ -85,7 +86,7 @@ class LoginScreen : AppCompatActivity() {
 
     private fun updateUI(user: FirebaseUser?) {
         user?.let {
-            val intent = Intent(this, MainActivity::class.java)
+            val intent = Intent(this, HomeActivity::class.java)
             startActivity((intent))
         }
     }
