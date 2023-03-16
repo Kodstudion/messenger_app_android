@@ -5,7 +5,7 @@ import com.google.firebase.database.Exclude
 data class User(
     val displayName: String? = null,
     val email: String? = null,
-    val profilePicture: Int? = null
+    val profilePicture: Int? = null,
 ) {
     @Exclude
     fun toMap(): Map<String, Any?> {

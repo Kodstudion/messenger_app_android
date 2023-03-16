@@ -32,8 +32,8 @@ class ProfileViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
       return profiles.size
     }
 
-    fun addProfile(profile: User) {
-        profiles.add(profile)
+    fun addProfile(profile: String) {
+        profiles.add(User(profile))
         notifyItemChanged(profiles.size - 1)
     }
 }
