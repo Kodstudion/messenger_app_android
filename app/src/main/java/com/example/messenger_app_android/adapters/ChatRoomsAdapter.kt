@@ -1,22 +1,20 @@
 package com.example.messenger_app_android.adapters
 
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.messenger_app_android.R
 import com.example.messenger_app_android.fragments.ChatRoomFragment
 import kotlinx.android.synthetic.main.item_vertical_recyclerview.view.*
-import com.example.messenger_app_android.models.Message
+import com.example.messenger_app_android.models.Post
 import com.example.messenger_app_android.utilities.Utilities
 
 val utilities = Utilities()
 
 class ChatRoomAdapter(
-    private val messages: MutableList<Message>,
+    private val messages: MutableList<Post>,
     private val fragmentManager: FragmentManager
 ) : RecyclerView.Adapter<ChatRoomAdapter.MessageViewHolder>() {
     class MessageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
@@ -51,7 +49,7 @@ class ChatRoomAdapter(
     }
 
     fun addMessage(displayName: String, recentMessage: String) {
-        messages.add(Message(null,null,displayName,null,null,recentMessage))
+        messages.add(Post(null,null,displayName,null,null,recentMessage, null, PostType.SENT))
         notifyItemInserted(messages.size - 1)
     }
 

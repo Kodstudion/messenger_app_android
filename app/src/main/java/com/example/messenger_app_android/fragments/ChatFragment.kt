@@ -9,9 +9,10 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.messenger_app_android.activities.LoginActivity
 import com.example.messenger_app_android.adapters.ChatRoomAdapter
+import com.example.messenger_app_android.adapters.PostType
 import com.example.messenger_app_android.adapters.ProfileAdapter
 import com.example.messenger_app_android.databinding.FragmentChatBinding
-import com.example.messenger_app_android.models.Message
+import com.example.messenger_app_android.models.Post
 import com.example.messenger_app_android.models.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
@@ -37,8 +38,14 @@ class ChatFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val TAG = "!!!"
+        binding = FragmentChatBinding.inflate(layoutInflater,container,false)
+        return binding.root
 
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+
+        val TAG = "!!!"
 
         database = Firebase.database.reference
         auth = Firebase.auth
@@ -47,7 +54,6 @@ class ChatFragment : Fragment() {
         profileAdapter = ProfileAdapter(mutableListOf())
         chatroomAdapter = ChatRoomAdapter(mutableListOf(),fragmentManager)
 
-        binding = FragmentChatBinding.inflate(layoutInflater,container,false)
 
         binding.horizontalRecyclerview.layoutManager =
             LinearLayoutManager(activity, LinearLayoutManager.HORIZONTAL, false)
@@ -63,11 +69,10 @@ class ChatFragment : Fragment() {
 
         binding.signOut.setOnClickListener {
             auth.signOut()
-            Log.d(TAG, "onCreateView: ADASd")
             val intent = Intent(activity, LoginActivity::class.java)
             startActivity(intent)
         }
-        
+
 
 
         if (userID != null && displayName != null && email != null) {
@@ -94,7 +99,7 @@ class ChatFragment : Fragment() {
 
         val messagesListener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                val name = snapshot.getValue<Message>()?.displayName
+                val name = snapshot.getValue<Post>()?.displayName
 
                 Log.d(TAG, "onDataChange: $name")
                 chatroomAdapter.addMessage(name ?: "", "Bajen är bäst")
@@ -105,9 +110,7 @@ class ChatFragment : Fragment() {
             }
         }
         database.child("users").child(userID.toString()).child("message").addValueEventListener(messagesListener)
-
-        return binding.root
-
+        super.onViewCreated(view, savedInstanceState)
     }
 
     private fun saveUserToFb(userId: String, displayName: String, email: String) {
@@ -117,7 +120,7 @@ class ChatFragment : Fragment() {
     }
 
     private fun messageToFb(userId: String, displayName: String) {
-        val message = Message(userId, null,displayName,null,null)
+        val message = Post(userId, null,displayName,null,null, null, null, PostType.SENT)
 
         database.child("users").child(userId).child("message").setValue(message)
     }
