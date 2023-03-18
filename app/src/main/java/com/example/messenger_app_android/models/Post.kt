@@ -5,7 +5,7 @@ import com.google.firebase.database.Exclude
 
 data class Post(
     val userID: String? = null,
-    val body: String? = null,
+    var body: String? = null,
     val displayName: String? = null,
     val fromUser: User? = null,
     val title: String? = null,

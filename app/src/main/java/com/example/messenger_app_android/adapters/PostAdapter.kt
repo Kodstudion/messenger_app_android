@@ -1,6 +1,6 @@
 package com.example.messenger_app_android.adapters
 
-import android.os.Message
+
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -8,75 +8,95 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.messenger_app_android.R
 import com.example.messenger_app_android.models.Post
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.ktx.database
+import com.google.firebase.database.ktx.getValue
+import com.google.firebase.ktx.Firebase
+import kotlinx.android.synthetic.main.item_recived_post.view.*
 import kotlinx.android.synthetic.main.item_sent_post.view.*
 
 enum class PostType {
     SENT, RECIVED
 }
 
-class PostAdapter(private val posts: MutableList<Post>) :
-    RecyclerView.Adapter<PostAdapter.PostViewHolder>() {
-    class PostViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
+class PostAdapter(var posts: MutableList<Post>) :
+    RecyclerView.Adapter<PostAdapter.BaseViewHolder>() {
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PostViewHolder {
-//        when (viewType) {
-//            1 -> {
-//                return MessageViewHolder(
-//                    LayoutInflater.from(parent.context).inflate(
-//                        R.layout.item_sent_message, parent, false
-//                    )
-//                )
-//            }
-//            2 -> {
-//                return MessageViewHolder(
-//                    LayoutInflater.from(parent.context).inflate(
-//                        R.layout.item_recived_message, parent, false
-//                    )
-//                )
-//            }
-//            else -> {
-//                return MessageViewHolder(
-//                    LayoutInflater.from(parent.context).inflate(
-//                        R.layout.item_sent_message, parent, false
-//                    )
-//                )
-//            }
-//        }
-        return PostViewHolder(
-            LayoutInflater.from(parent.context).inflate(
-                R.layout.item_sent_post, parent, false
-            )
-        )
+    abstract class BaseViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        abstract fun bindItem(post: Post)
     }
 
-    override fun onBindViewHolder(holder: PostViewHolder, position: Int) {
-        val post = posts[position]
-        holder.itemView.apply {
-//            recived_message_textview.text = message.body
-            sent_post_textview.text = post.body
 
+    inner class SentPostHolder(itemView: View) : BaseViewHolder(itemView) {
+        override fun bindItem(post: Post) {
+            itemView.apply {
+                sent_post_textview.text = post.body
+            }
+        }
+
+    }
+
+    inner class ReceivedPostHolder(itemView: View) : BaseViewHolder(itemView) {
+        override fun bindItem(post: Post) {
+            itemView.apply {
+                recived_post_textview.text = post.body
+            }
         }
     }
 
-//    override fun getItemViewType(position: Int): Int {
-//        return when (messages[position].messageType) {
-//            MessageType.SENT -> 1
-//            MessageType.RECIVED -> 2
-//            else -> throw AssertionError()
-//        }
-//    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseViewHolder {
+        when (viewType) {
+            1 -> {
+                return SentPostHolder(
+                    LayoutInflater.from(parent.context).inflate(
+                        R.layout.item_sent_post, parent, false
+                    )
+                )
+            }
+            2 -> {
+                return ReceivedPostHolder(
+                    LayoutInflater.from(parent.context).inflate(
+                        R.layout.item_recived_post, parent, false
+                    )
+                )
+            }
+            else -> {
+                return SentPostHolder(
+                    LayoutInflater.from(parent.context).inflate(
+                        R.layout.item_sent_post, parent, false
+                    )
+                )
+            }
+        }
+
+    }
+
+    override fun onBindViewHolder(holder: BaseViewHolder, position: Int) {
+        holder.bindItem(posts[position])
+
+    }
+
+    override fun getItemViewType(position: Int): Int {
+        return when (posts[position].messageType) {
+            PostType.SENT -> 1
+            PostType.RECIVED -> 2
+            else -> return 0
+        }
+    }
 
     override fun getItemCount(): Int {
         return posts.size
     }
 
-    fun addPost(postBody: Post) {
-        val TAG = "!!!"
-        posts.add(Post(null,postBody.body))
-        notifyItemInserted(posts.size - 1)
-
-        Log.d(TAG, "addPost: ${postBody.body}")
-    }
-
 }
+
+
+
+
 
