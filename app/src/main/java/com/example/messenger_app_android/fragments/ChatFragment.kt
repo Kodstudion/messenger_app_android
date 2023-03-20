@@ -1,4 +1,5 @@
 package com.example.messenger_app_android.fragments
+
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -9,7 +10,6 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.messenger_app_android.activities.LoginActivity
 import com.example.messenger_app_android.adapters.ChatRoomAdapter
-import com.example.messenger_app_android.adapters.PostType
 import com.example.messenger_app_android.adapters.ProfileAdapter
 import com.example.messenger_app_android.databinding.FragmentChatBinding
 import com.example.messenger_app_android.models.Chatroom
@@ -39,7 +39,7 @@ class ChatFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        binding = FragmentChatBinding.inflate(layoutInflater,container,false)
+        binding = FragmentChatBinding.inflate(layoutInflater, container, false)
         return binding.root
 
     }
@@ -53,8 +53,8 @@ class ChatFragment : Fragment() {
         auth = Firebase.auth
 
         val fragmentManager = requireActivity().supportFragmentManager
-        profileAdapter = ProfileAdapter(mutableListOf(),fragmentManager)
-        chatroomAdapter = ChatRoomAdapter(mutableListOf(),fragmentManager)
+        profileAdapter = ProfileAdapter(mutableListOf(), fragmentManager)
+        chatroomAdapter = ChatRoomAdapter(mutableListOf(), fragmentManager)
 
 
         binding.horizontalRecyclerview.layoutManager =
@@ -76,22 +76,21 @@ class ChatFragment : Fragment() {
         }
 
 
-
-
-//
-//        if (userID != null && displayName != null && email != null) {
-//            saveUserToFb(userID, displayName, email)
-//            chatRoom(userID,displayName)
-//        }
+        if (userID != null && displayName != null && email != null) {
+           saveUser(userID, displayName, email)
+            //chatRoom(userID,displayName)
+        }
 
 
         val userListener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                for (user in snapshot.children) {
-                    val users = user.getValue<User>()?.displayName
-                    profileAdapter.addProfile(users ?: "")
 
-                }
+                val users = snapshot.getValue<User>()?.displayName ?: return
+                profileAdapter.addProfile(User(null,users))
+                profileAdapter.profiles.add(User(null, displayName))
+                Log.d(TAG, "onDataChange: $users")
+
+
             }
 
             override fun onCancelled(error: DatabaseError) {
@@ -100,12 +99,10 @@ class ChatFragment : Fragment() {
         }
         database.child("users").addValueEventListener(userListener)
 
-
         val chatRoomListener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val name = snapshot.getValue<Post>()?.displayName
 
-                Log.d(TAG, "onDataChange: $name")
                 chatroomAdapter.addMessage(name ?: "", "Bajen är bäst")
             }
 
@@ -113,33 +110,36 @@ class ChatFragment : Fragment() {
 
             }
         }
-        database.child("users").child(userID.toString()).addValueEventListener(chatRoomListener)
+        database.child("users").addValueEventListener(chatRoomListener)
 
     }
 
 
-    private fun createChatroom(firstUser: String, secondUser: String) {
-        val chatroomRef = database.child("users").child(auth.uid.toString()).child("chatroom").push()
+    //    private fun createChatroom(firstUser: String, secondUser: String) {
+//        val chatroomRef = database.child("users").child(auth.uid.toString()).child("chatroom").push()
+//
+//        val newChatroom = Chatroom(firstUser, secondUser)
+//        val chatValues = newChatroom.toMap()
+//
+//        chatroomRef.setValue(chatValues)
+//
+//    }
+//
+    private fun saveUser(uid: String, displayName: String, email: String) {
+        val userRef = database.child("users")
+        val newUser = User(uid, displayName, email)
 
-        val newChatroom = Chatroom(firstUser, secondUser)
-        val chatValues = newChatroom.toMap()
+        val userValue = newUser.toMap()
+        userRef.setValue(userValue)
 
-        chatroomRef.setValue(chatValues)
 
     }
-
-    private fun saveUserToFb(userId: String, displayName: String, email: String) {
-        val user = User(displayName, email)
-        database.child("users").child(userId).setValue(user)
-
-    }
-
-    private fun chatRoom(userId: String, displayName: String) {
-        val chatRoom = Post(userId, null,displayName,null,null, null, null, PostType.SENT)
-
-        database.child("users").child(userId).child("message").setValue(chatRoom)
-    }
-
+//
+//    private fun chatRoom(userId: String, displayName: String) {
+//        val chatRoom = Post(userId, null,displayName,null,null, null, null, PostType.SENT)
+//
+//        database.child("users").child(userId).child("message").setValue(chatRoom)
+//    }
 
 
 }

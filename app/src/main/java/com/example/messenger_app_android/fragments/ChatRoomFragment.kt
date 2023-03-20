@@ -15,11 +15,7 @@ import com.example.messenger_app_android.models.User
 import com.example.messenger_app_android.utilities.Utilities
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
-import com.google.firebase.database.ChildEventListener
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.*
 import com.google.firebase.database.ktx.database
 import com.google.firebase.database.ktx.getValue
 import com.google.firebase.ktx.Firebase
@@ -46,6 +42,7 @@ class ChatRoomFragment(var title: String) : Fragment() {
 
         val TAG = "!!!"
 
+
         database = Firebase.database.reference
         auth = Firebase.auth
 
@@ -62,24 +59,28 @@ class ChatRoomFragment(var title: String) : Fragment() {
         }
 
         binding.sendMessageButton.setOnClickListener {
-           val addPost = binding.sendMessageEditText.text.toString()
+            val addPost = binding.sendMessageEditText.text.toString()
             val post = Post(null, addPost)
             binding.sendMessageEditText.text.clear()
-            writeNewPost(post, auth.currentUser?.displayName.toString())
+            writeNewPost(post)
         }
 
 
         val postListener = object : ChildEventListener {
             override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
                 val body = snapshot.getValue<Post>()?.body ?: return
-                val post = Post(null,body)
+                val post = Post(null, body)
                 postAdapter.posts.add(post)
                 postAdapter.notifyItemInserted(postAdapter.posts.size - 1)
 
             }
 
             override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
-                TODO("Not yet implemented")
+//                val body = snapshot.getValue<Post>()?.body ?: return
+//                val post = Post(null, body)
+//                postAdapter.posts.add(post)
+//                postAdapter.notifyItemInserted(postAdapter.posts.size - 1)
+
             }
 
             override fun onChildRemoved(snapshot: DataSnapshot) {
@@ -94,40 +95,54 @@ class ChatRoomFragment(var title: String) : Fragment() {
                 Log.w(TAG, "loadPost:onCancelled", error.toException())
             }
         }
-        database.child("users").child(auth.uid.toString()).child("message").addChildEventListener(postListener)
+        database.child("users").child(auth.uid.toString()).child("chatroom").child("participants").child("conversation").child(auth.currentUser?.displayName.toString()).addChildEventListener(postListener)
 
     }
 
-    private fun writeNewPost(postBody: Post, displayName: String) {
-       val newPostRef = database.child("users").child(auth.uid.toString()).child("message").push()
+    private fun writeNewPost(postBody: Post) {
+        val newPostRef = database.child("users").child(auth.uid.toString()).child("chatroom").child("participants").child("conversation").child(auth.currentUser?.displayName.toString()).push()
 
-        val newPost = Post(null, postBody.body, displayName)
+        val newPost = Post(null, postBody.body)
         val postValues = newPost.toMap()
+        newPostRef.updateChildren(postValues)
 
-        newPostRef.setValue(postValues)
     }
 
-    private fun createChatroom(firstUser: String, secondUser: String) {
+    private fun createChatroom(participants: MutableList<User>) {
         val chatroomRef =
-            database.child("users").child(auth.uid.toString()).child("chatroom").push()
+            database.child("chatrooms")
 
-        val newChatroom = Chatroom(firstUser, secondUser)
+        val newChatroom = Chatroom(participants)
+        newChatroom.participants?.add(User(auth.currentUser?.displayName))
+        newChatroom.participants?.add(User(title))
+
         val chatValues = newChatroom.toMap()
 
-        chatroomRef.setValue(chatValues)
+        val nodeRef = database.child("chatrooms")
 
+        nodeRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            val TAG = "!!!"
+            override fun onDataChange(snapshot: DataSnapshot) {
+                if (snapshot.exists()) {
+                    return
+                } else {
+                    chatroomRef.setValue(chatValues)
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.w(TAG, "onCancelled: ${error.toException()}")
+            }
+        })
     }
-
-
 
 
     override fun onStart() {
-        createChatroom(auth.currentUser?.displayName.toString(), title)
+        createChatroom(mutableListOf())
         super.onStart()
         binding.toolbarTitleChatroom.text = title
     }
 }
-
 
 
 //private fun writePost(postBody: Post) {
