@@ -17,17 +17,16 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.*
 import com.google.firebase.database.ktx.database
-import com.google.firebase.database.ktx.getValue
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-
 
 class ChatRoomFragment(var title: String) : Fragment() {
 
     private lateinit var postAdapter: PostAdapter
     private lateinit var binding: FragmentChatRoomBinding
     private lateinit var auth: FirebaseAuth
-    private lateinit var database: DatabaseReference
-
+    private lateinit var db: FirebaseFirestore
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -43,7 +42,7 @@ class ChatRoomFragment(var title: String) : Fragment() {
         val TAG = "!!!"
 
 
-        database = Firebase.database.reference
+        db = Firebase.firestore
         auth = Firebase.auth
 
         postAdapter = PostAdapter(mutableListOf())
@@ -62,93 +61,32 @@ class ChatRoomFragment(var title: String) : Fragment() {
             val addPost = binding.sendMessageEditText.text.toString()
             val post = Post(null, addPost)
             binding.sendMessageEditText.text.clear()
-            writeNewPost(post)
+            //writeNewPost(post, auth.currentUser?.displayName.toString())
         }
 
-
-        val postListener = object : ChildEventListener {
-            override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
-                val body = snapshot.getValue<Post>()?.body ?: return
-                val post = Post(null, body)
-                postAdapter.posts.add(post)
-                postAdapter.notifyItemInserted(postAdapter.posts.size - 1)
-
-            }
-
-            override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
-//                val body = snapshot.getValue<Post>()?.body ?: return
-//                val post = Post(null, body)
-//                postAdapter.posts.add(post)
-//                postAdapter.notifyItemInserted(postAdapter.posts.size - 1)
-
-            }
-
-            override fun onChildRemoved(snapshot: DataSnapshot) {
-                TODO("Not yet implemented")
-            }
-
-            override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {
-                TODO("Not yet implemented")
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                Log.w(TAG, "loadPost:onCancelled", error.toException())
-            }
-        }
-        database.child("users").child(auth.uid.toString()).child("chatroom").child("participants").child("conversation").child(auth.currentUser?.displayName.toString()).addChildEventListener(postListener)
+        createChatroom(Chatroom("", mutableListOf(auth.currentUser?.displayName.toString(), title), "", null,auth.currentUser?.displayName, title))
 
     }
 
-    private fun writeNewPost(postBody: Post) {
-        val newPostRef = database.child("users").child(auth.uid.toString()).child("chatroom").child("participants").child("conversation").child(auth.currentUser?.displayName.toString()).push()
 
-        val newPost = Post(null, postBody.body)
-        val postValues = newPost.toMap()
-        newPostRef.updateChildren(postValues)
+    private fun createChatroom(chatroom: Chatroom) {
+        db.collection("chatrooms").add(chatroom.toMap()).addOnSuccessListener { result ->
+            Log.d("!!!", "DocumentSnapshot added with ID: ${result}")
+        }
 
-    }
 
-    private fun createChatroom(participants: MutableList<User>) {
-        val chatroomRef =
-            database.child("chatrooms")
-
-        val newChatroom = Chatroom(participants)
-        newChatroom.participants?.add(User(auth.currentUser?.displayName))
-        newChatroom.participants?.add(User(title))
-
-        val chatValues = newChatroom.toMap()
-
-        val nodeRef = database.child("chatrooms")
-
-        nodeRef.addListenerForSingleValueEvent(object : ValueEventListener {
-            val TAG = "!!!"
-            override fun onDataChange(snapshot: DataSnapshot) {
-                if (snapshot.exists()) {
-                    return
-                } else {
-                    chatroomRef.setValue(chatValues)
-                }
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                Log.w(TAG, "onCancelled: ${error.toException()}")
-            }
-        })
     }
 
 
     override fun onStart() {
-        createChatroom(mutableListOf())
         super.onStart()
         binding.toolbarTitleChatroom.text = title
     }
+
+
 }
 
 
-//private fun writePost(postBody: Post) {
-//    postAdapter.posts.add(post)
-//    database.child("users").child(auth.uid.toString()).child("message").setValue(post)
-//
-//
-//    postAdapter.notifyItemInserted(postAdapter.posts.size - 1)
+
+
 

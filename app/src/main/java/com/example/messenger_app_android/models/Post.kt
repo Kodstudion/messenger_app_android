@@ -7,7 +7,7 @@ data class Post(
     val userID: String? = null,
     var body: String? = null,
     val displayName: String? = null,
-    val fromUser: User? = null,
+    val fromUser: String? = null,
     val title: String? = null,
     val recentMessage: String? = null,
     val messagePicture: Int? = null,

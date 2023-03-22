@@ -10,16 +10,12 @@ import com.example.messenger_app_android.fragments.ChatRoomFragment
 import kotlinx.android.synthetic.main.item_horizontal_recyclerview.view.*
 import com.example.messenger_app_android.models.User
 import com.example.messenger_app_android.utilities.Utilities
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DatabaseReference
 
-private lateinit var database: DatabaseReference
-private lateinit var auth: FirebaseAuth
 
-class ProfileAdapter(
-    val profiles: MutableList<User>,
+class UserAdapter(
+    val users: MutableList<User>,
     private val fragmentManager: FragmentManager
-) : RecyclerView.Adapter<ProfileAdapter.ProfileViewHolder>() {
+) : RecyclerView.Adapter<UserAdapter.ProfileViewHolder>() {
     class ProfileViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ProfileViewHolder {
@@ -32,27 +28,23 @@ class ProfileAdapter(
 
     override fun onBindViewHolder(holder: ProfileViewHolder, position: Int) {
         val utilities = Utilities()
-        val profile = profiles[position]
+        val user = users[position]
         holder.itemView.apply {
-            display_name.text = profile.displayName
+            display_name.text = user.displayName
 
-            profile.profilePicture?.let { profile_picture.setImageResource(it) }
+            user.profilePicture?.let { profile_picture.setImageResource(it) }
             profile_picture.setOnClickListener {
                 utilities.loadFragment(
-                    ChatRoomFragment(profile.displayName.toString()), fragmentManager)
+                    ChatRoomFragment(user.displayName.toString()), fragmentManager)
 
             }
         }
     }
 
     override fun getItemCount(): Int {
-        return profiles.size
+        return users.size
     }
 
-    fun addProfile(user: User) {
-        profiles.add(User(user.displayName))
-        notifyItemInserted(profiles.size - 1)
-    }
 }
 
 

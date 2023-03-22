@@ -76,8 +76,8 @@
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/vertical_recyclerview"
-        android:layout_width="wrap_content"
-        android:layout_height="300dp"
+        android:layout_width="match_parent"
+        android:layout_height="450dp"
         android:scrollbars="vertical"
         app:layout_constraintStart_toStartOf="parent"
         android:layout_marginTop="20dp"
