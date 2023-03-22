@@ -3,9 +3,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import com.example.messenger_app_android.R
 import com.example.messenger_app_android.databinding.ActivityHomeBinding
-import com.example.messenger_app_android.fragments.ChatFragment
-import com.example.messenger_app_android.fragments.PersonsFragment
-import com.example.messenger_app_android.fragments.SettingsFragment
+import com.example.messenger_app_android.fragments.*
 import com.example.messenger_app_android.utilities.Utilities
 
 
@@ -20,13 +18,13 @@ class HomeActivity : AppCompatActivity() {
 
         super.onCreate(savedInstanceState)
         binding = ActivityHomeBinding.inflate(layoutInflater)
-        utilities.loadFragment(ChatFragment(), supportFragmentManager)
+        utilities.loadFragment(ChatroomsFragment(), supportFragmentManager)
         setContentView(binding.root)
 
         binding.bottomNavigationView.setOnItemSelectedListener {
             when (it.itemId) {
                 R.id.chat_fragment -> {
-                   utilities.loadFragment(ChatFragment(), supportFragmentManager)
+                   utilities.loadFragment(ChatroomsFragment(), supportFragmentManager)
                     true
                 }
                 R.id.persons_fragment -> {
