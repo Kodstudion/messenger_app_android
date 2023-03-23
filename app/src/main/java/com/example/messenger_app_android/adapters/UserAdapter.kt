@@ -18,7 +18,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 
 class UserAdapter(
     var users: MutableList<User>,
-    private val fragmentManager: FragmentManager
+    private val fragmentManager: FragmentManager? = null,
 ) : RecyclerView.Adapter<UserAdapter.ProfileViewHolder>() {
     class ProfileViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
 
