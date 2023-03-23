@@ -11,17 +11,15 @@ import com.example.messenger_app_android.adapters.PostAdapter
 import com.example.messenger_app_android.databinding.FragmentChatRoomBinding
 import com.example.messenger_app_android.models.Chatroom
 import com.example.messenger_app_android.models.Post
-import com.example.messenger_app_android.models.User
 import com.example.messenger_app_android.utilities.Utilities
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
-import com.google.firebase.database.*
-import com.google.firebase.database.ktx.database
+import com.google.firebase.firestore.DocumentId
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 
-class ChatRoomFragment(var title: String) : Fragment() {
+class ChatRoomFragment(var title: String ,var documentId: String) : Fragment() {
 
     private lateinit var postAdapter: PostAdapter
     private lateinit var binding: FragmentChatRoomBinding
@@ -61,19 +59,7 @@ class ChatRoomFragment(var title: String) : Fragment() {
             val addPost = binding.sendMessageEditText.text.toString()
             val post = Post(null, addPost)
             binding.sendMessageEditText.text.clear()
-            //writeNewPost(post, auth.currentUser?.displayName.toString())
         }
-
-        createChatroom(Chatroom("", mutableListOf(auth.currentUser?.displayName.toString(), title), "", null,auth.currentUser?.displayName, title))
-
-    }
-
-
-    private fun createChatroom(chatroom: Chatroom) {
-        db.collection("chatrooms").add(chatroom.toMap()).addOnSuccessListener { result ->
-            Log.d("!!!", "DocumentSnapshot added with ID: ${result}")
-        }
-
 
     }
 

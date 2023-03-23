@@ -1,5 +1,6 @@
 package com.example.messenger_app_android.adapters
 
+
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,11 +12,12 @@ import com.example.messenger_app_android.models.Chatroom
 import kotlinx.android.synthetic.main.item_vertical_recyclerview.view.*
 import com.example.messenger_app_android.utilities.Utilities
 
+
 val utilities = Utilities()
 
 class ChatRoomAdapter(
     val chatrooms: MutableList<Chatroom>,
-    private val fragmentManager: FragmentManager
+    private val fragmentManager: FragmentManager? = null,
 ) : RecyclerView.Adapter<ChatRoomAdapter.MessageViewHolder>() {
     class MessageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
 
@@ -23,6 +25,8 @@ class ChatRoomAdapter(
         return MessageViewHolder(
             LayoutInflater.from(parent.context).inflate(
                 R.layout.item_vertical_recyclerview, parent, false
+
+
             )
         )
     }
@@ -35,7 +39,7 @@ class ChatRoomAdapter(
             chatroom.chatroomPicture?.let { message_picture.setImageResource(it) }
 
             message_picture.setOnClickListener {
-                utilities.loadFragment(ChatRoomFragment(chatroom.fromUser.toString()),fragmentManager)
+                utilities.loadFragment(ChatRoomFragment(chatroom.toUser.toString(),""),fragmentManager)
             }
         }
     }

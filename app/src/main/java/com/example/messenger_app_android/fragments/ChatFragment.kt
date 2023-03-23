@@ -7,6 +7,8 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.messenger_app_android.activities.LoginActivity
 import com.example.messenger_app_android.adapters.ChatRoomAdapter
@@ -14,23 +16,26 @@ import com.example.messenger_app_android.adapters.UserAdapter
 import com.example.messenger_app_android.databinding.FragmentChatBinding
 import com.example.messenger_app_android.models.Chatroom
 import com.example.messenger_app_android.models.User
+import com.example.messenger_app_android.viewmodels.ChatFragmentViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
-import com.google.firebase.database.*
-import com.google.firebase.database.ktx.database
-import com.google.firebase.database.ktx.getValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
 
-class ChatFragment : Fragment() {
+interface ChatFragmentView {
+    fun setChatroom(chatroom: Chatroom)
+}
+
+class ChatFragment : Fragment(), ChatFragmentView {
 
     private lateinit var auth: FirebaseAuth
     private lateinit var db: FirebaseFirestore
     private lateinit var binding: FragmentChatBinding
     private lateinit var userAdapter: UserAdapter
     private lateinit var chatroomAdapter: ChatRoomAdapter
+    private lateinit var chatFragmentViewModel: ChatFragmentViewModel
 
 
     override fun onCreateView(
@@ -38,6 +43,10 @@ class ChatFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+
+        chatFragmentViewModel = ViewModelProvider(this)[ChatFragmentViewModel::class.java]
+        chatFragmentViewModel.attach(this)
+
         binding = FragmentChatBinding.inflate(layoutInflater, container, false)
         return binding.root
 
@@ -80,33 +89,12 @@ class ChatFragment : Fragment() {
 
         db.collection("users").get().addOnSuccessListener { result ->
             for (document in result) {
-                Log.d(TAG, "${document.id} => ${document.data}")
                 val user = document.toObject(User::class.java)
                 val newUser = User(document.id, user.displayName, user.email)
                 userAdapter.users.add(newUser)
-                userAdapter.users.add(User(null, "Janne", null))
-                userAdapter.users.add(User(null, "Berra", null))
+                userAdapter.users.add(User("x1bqJmyNPnPYzQ2ePi3p0hkGyK93", "Janne", null))
+                userAdapter.users.add(User("x1bqJmyNPnPYzQ2ePi3p0hkGyK93", "Berra", null))
                 userAdapter.notifyDataSetChanged()
-            }
-        }
-
-        db.collection("chatrooms").addSnapshotListener { snapshot, error ->
-            snapshot?.let { querySnapshot ->
-                try {
-                    for (document in querySnapshot.documents) {
-                        val chatroom = document.toObject<Chatroom>()
-                        chatroom?.documentId = document.id
-                        if (chatroom != null) {
-                            chatroomAdapter.chatrooms.add(Chatroom(chatroom.documentId,null,null,null,chatroom.fromUser,chatroom.toUser))
-                        }
-                    }
-                    chatroomAdapter.notifyDataSetChanged()
-                } catch (e: Exception) {
-                    Log.d(TAG, "listenForItemUpdates: $e")
-                }
-            }
-         error?.let {
-                Log.d(TAG, "listenForItemUpdates: $it")
             }
         }
 
@@ -123,6 +111,13 @@ class ChatFragment : Fragment() {
             }
     }
 
+    override fun setChatroom(chatroom: Chatroom) {
+        chatroomAdapter.chatrooms.add(chatroom)
+        chatroomAdapter.notifyDataSetChanged()
+    }
+
 
 }
+
+
 

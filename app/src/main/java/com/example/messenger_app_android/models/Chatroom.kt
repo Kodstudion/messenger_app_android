@@ -6,7 +6,7 @@ import com.google.firebase.firestore.DocumentId
 
 @IgnoreExtraProperties
 data class Chatroom(
-    @DocumentId var documentId: String? = null,
+    @DocumentId var documentId: String = "",
     var participants: MutableList<String>? = null,
     val text: String? = null,
     val timestamp: Long? = null,
