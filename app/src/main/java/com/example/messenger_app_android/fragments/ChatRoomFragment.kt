@@ -39,7 +39,6 @@ class ChatRoomFragment(var title: String ,var documentId: String) : Fragment() {
 
         val TAG = "!!!"
 
-
         db = Firebase.firestore
         auth = Firebase.auth
 
