@@ -32,29 +32,26 @@ class UserAdapter(
     override fun onBindViewHolder(holder: ProfileViewHolder, position: Int) {
         val TAG = "!!!"
         val auth = FirebaseAuth.getInstance()
-        val db = FirebaseFirestore.getInstance()
         val user = users[position]
         holder.itemView.apply {
             display_name.text = user.displayName
 
             user.profilePicture?.let { profile_picture.setImageResource(it) }
             profile_picture.setOnClickListener {
-
                 chatroomHandler(
                     Chatroom(
                         "",
                         mutableListOf(
                             auth.currentUser?.uid.toString(),
-                            "x1bqJmyNPnPYzQ2ePi3p0hkGyK93"
+                            user.uid.toString()
                         ),
                         "Hej",
                         null,
                         null,
                         user.displayName.toString()
                     ),
-                    user.displayName.toString()
+                    user.displayName.toString(),position
                 )
-
             }
         }
     }
@@ -63,7 +60,7 @@ class UserAdapter(
         return users.size
     }
 
-    private fun chatroomHandler(chatroom: Chatroom, titleOfChat: String) {
+    private fun chatroomHandler(chatroom: Chatroom, titleOfChat: String, position: Int) {
         val TAG = "!!!"
         val db = FirebaseFirestore.getInstance()
         val auth = FirebaseAuth.getInstance()
@@ -74,7 +71,7 @@ class UserAdapter(
                     var foundChatroom = false
                     for (document in snapshot.documents) {
                         val participants = document.get("participants") as List<*>
-                        if (participants.contains("x1bqJmyNPnPYzQ2ePi3p0hkGyK93")) {
+                        if (participants.contains(users[position].uid.toString())) {
                             val chatroomId = document.id
                             joinChatroom(chatroomId, titleOfChat)
                             foundChatroom = true
