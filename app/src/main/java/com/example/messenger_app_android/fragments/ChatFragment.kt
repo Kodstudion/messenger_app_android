@@ -7,51 +7,72 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.messenger_app_android.R
 import com.example.messenger_app_android.activities.LoginActivity
-import com.example.messenger_app_android.adapters.MessageAdapter
-import com.example.messenger_app_android.adapters.ProfileAdapter
+import com.example.messenger_app_android.adapters.ChatRoomAdapter
+import com.example.messenger_app_android.adapters.UserAdapter
 import com.example.messenger_app_android.databinding.FragmentChatBinding
+import com.example.messenger_app_android.models.Chatroom
 import com.example.messenger_app_android.models.User
+import com.example.messenger_app_android.viewmodels.ChatFragmentViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.ValueEventListener
-import com.google.firebase.database.ktx.database
-import com.google.firebase.database.ktx.getValue
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 
-class ChatFragment : Fragment() {
+interface ChatFragmentChatroomsView {
+    fun setChatrooms(chatroom: Chatroom)
+}
+
+interface ChatFragmentUsersView {
+    fun setUsers(user: User)
+}
+
+class ChatFragment : Fragment(), ChatFragmentChatroomsView, ChatFragmentUsersView {
 
     private lateinit var auth: FirebaseAuth
-    private lateinit var database: DatabaseReference
+    private lateinit var db: FirebaseFirestore
     private lateinit var binding: FragmentChatBinding
-    private lateinit var profileAdapter: ProfileAdapter
-    private lateinit var messageAdapter: MessageAdapter
+    private lateinit var userAdapter: UserAdapter
+    private lateinit var chatroomAdapter: ChatRoomAdapter
+    private lateinit var chatFragmentViewModel: ChatFragmentViewModel
+
 
     override fun onCreateView(
 
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val TAG = "!!!"
-        database = Firebase.database.reference
-        auth = Firebase.auth
-        profileAdapter = ProfileAdapter(mutableListOf())
-        messageAdapter = MessageAdapter(mutableListOf())
 
-        binding = FragmentChatBinding.inflate(layoutInflater,container,false)
+        chatFragmentViewModel = ViewModelProvider(this)[ChatFragmentViewModel::class.java]
+        chatFragmentViewModel.attachChatrooms(this)
+        chatFragmentViewModel.attachUsers(this)
+
+        binding = FragmentChatBinding.inflate(layoutInflater, container, false)
+        return binding.root
+
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        val TAG = "!!!"
+        db = Firebase.firestore
+        auth = Firebase.auth
+
+        val fragmentManager = requireActivity().supportFragmentManager
+        userAdapter = UserAdapter(mutableListOf(), fragmentManager)
+        chatroomAdapter = ChatRoomAdapter(mutableListOf(), fragmentManager)
+
 
         binding.horizontalRecyclerview.layoutManager =
             LinearLayoutManager(activity, LinearLayoutManager.HORIZONTAL, false)
-        binding.horizontalRecyclerview.adapter = profileAdapter
+        binding.horizontalRecyclerview.adapter = userAdapter
 
         binding.verticalRecyclerview.layoutManager =
             LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
-        binding.verticalRecyclerview.adapter = messageAdapter
+        binding.verticalRecyclerview.adapter = chatroomAdapter
 
         val displayName = auth.currentUser?.displayName
         val email = auth.currentUser?.email
@@ -59,42 +80,39 @@ class ChatFragment : Fragment() {
 
         binding.signOut.setOnClickListener {
             auth.signOut()
-            Log.d(TAG, "onCreateView: ADASd")
             val intent = Intent(activity, LoginActivity::class.java)
             startActivity(intent)
         }
-        
 
 
         if (userID != null && displayName != null && email != null) {
-            saveUserToFb(userID, displayName, email)
+            saveUser(userID, displayName, email)
+
         }
-
-
-        val userListener = object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                for (user in snapshot.children) {
-                    val users = user.getValue<User>()?.displayName
-                    profileAdapter.addProfile(users ?: "")
-                    messageAdapter.addMessage(users ?: "")
-                }
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                Log.w(TAG, "onCancelled: ${error.toException()}")
-            }
-        }
-        database.child("users").addValueEventListener(userListener)
-
-        return binding.root
-
     }
 
-    private fun saveUserToFb(userId: String, displayName: String, email: String) {
-        val user = User(displayName, email)
-        database.child("users").child(userId).setValue(user)
+    override fun setChatrooms(chatroom: Chatroom) {
+        chatroomAdapter.chatrooms.add(chatroom)
+        chatroomAdapter.notifyDataSetChanged()
+    }
 
+    override fun setUsers(user: User) {
+        userAdapter.users.add(user)
+        userAdapter.notifyDataSetChanged()
+    }
+
+    private fun saveUser(uid: String, displayName: String, email: String) {
+        val user = User(uid, displayName, email)
+        db.collection("users").document(uid).set(user)
+            .addOnSuccessListener {
+                Log.d("!!!", "DocumentSnapshot successfully written!")
+            }
+            .addOnFailureListener { e ->
+                Log.w("!!!", "Error writing document", e)
+            }
     }
 
 }
+
+
 
