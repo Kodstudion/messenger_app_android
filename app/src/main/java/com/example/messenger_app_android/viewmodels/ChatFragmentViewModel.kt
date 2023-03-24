@@ -75,14 +75,14 @@ class ChatFragmentViewModel : ViewModel() {
 
     private fun getUsers() {
         db.collection("users").get().addOnSuccessListener { result ->
+            val TAG = "!!!"
             for (document in result) {
                 val user = document.toObject(User::class.java)
                 val newUser = User(document.id, user.displayName, user.email)
-                userAdapter.users.add(newUser)
-                usersView?.setUsers(user)
-                usersView?.setUsers(User("x1bqJmyNPnPYzQ2ePi3p0hkGyK93", "Janne", null))
-                usersView?.setUsers(User("x1bqJmyNPnPYzQ2ePi3p0hkGyK93", "Berra", null))
-
+                userAdapter.users.clear()
+                userAdapter.users.add(User(newUser.uid))
+                Log.d(TAG, "getUsers: ${userAdapter.users}")
+                usersView?.setUsers(newUser)
                 userAdapter.notifyDataSetChanged()
             }
         }
