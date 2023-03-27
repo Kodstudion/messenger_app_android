@@ -13,6 +13,7 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
 
+
 class ChatFragmentViewModel : ViewModel() {
 
     private var chatroomsView: ChatFragmentChatroomsView? = null
@@ -31,13 +32,12 @@ class ChatFragmentViewModel : ViewModel() {
     fun attachUsers(usersChatFragmentView: ChatFragmentUsersView) {
         usersView = usersChatFragmentView
         getUsers()
-
     }
 
     private fun listenForChatroomUpdates() {
         val TAG = "!!!"
-        chatroomAdapter = ChatRoomAdapter(mutableListOf(), null)
-        userAdapter = UserAdapter(mutableListOf(), null)
+        chatroomAdapter = ChatRoomAdapter(mutableListOf())
+        userAdapter = UserAdapter(mutableListOf())
 
         db.collection("chatrooms")
             .whereArrayContains("participants", auth.currentUser?.uid.toString())
@@ -52,16 +52,14 @@ class ChatFragmentViewModel : ViewModel() {
                                     Chatroom(
                                         chatroom.documentId,
                                         null,
-                                        chatroom.text,
-                                        null,
-                                        chatroom.fromUser,
-                                        chatroom.toUser
+                                        chatroom.recentMessage,
+                                        chatroom.chatroomTitle,
+                                       null,
                                     )
                                 )
                                 chatroomsView?.setChatrooms(chatroom)
                             }
                         }
-                        chatroomAdapter.notifyDataSetChanged()
                     } catch (e: Exception) {
                         Log.d(TAG, "listenForItemUpdates: $e")
                     }
@@ -81,10 +79,15 @@ class ChatFragmentViewModel : ViewModel() {
                 val newUser = User(document.id, user.displayName, user.email)
                 userAdapter.users.clear()
                 userAdapter.users.add(User(newUser.uid))
-                Log.d(TAG, "getUsers: ${userAdapter.users}")
                 usersView?.setUsers(newUser)
-                userAdapter.notifyDataSetChanged()
+
             }
+            val janne = User("aksjKSJaksjkaSJklas","Janne","janne@me.com",null)
+            val berra = User("akSJaksjaklJSKLajsk","Berra","berra@me.com",null)
+            usersView?.setUsers(janne)
+            usersView?.setUsers(berra)
+
         }
+        userAdapter.notifyDataSetChanged()
     }
 }

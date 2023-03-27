@@ -34,12 +34,12 @@ class ChatRoomAdapter(
     override fun onBindViewHolder(holder: MessageViewHolder, position: Int) {
         val chatroom = chatrooms[position]
         holder.itemView.apply {
-            from_user.text = chatroom.toUser
-            recent_message.text = chatroom.text
+            from_user.text = chatroom.chatroomTitle
+            recent_message.text = chatroom.recentMessage
             chatroom.chatroomPicture?.let { message_picture.setImageResource(it) }
 
             message_picture.setOnClickListener {
-                utilities.loadFragment(ChatRoomFragment(chatroom.toUser.toString(),""),fragmentManager)
+                utilities.loadFragment(ChatRoomFragment(chatroom.chatroomTitle.toString(),""),fragmentManager)
             }
         }
     }

@@ -1,5 +1,6 @@
 package com.example.messenger_app_android.adapters
 
+import android.annotation.SuppressLint
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -46,11 +47,11 @@ class UserAdapter(
                             user.uid.toString()
                         ),
                         "Hej",
+                        user.displayName.toString(),
                         null,
-                        null,
-                        user.displayName.toString()
-                    ),
-                    user.displayName.toString(),position
+
+                        ),
+                    user.displayName.toString(), position
                 )
             }
         }
@@ -60,6 +61,7 @@ class UserAdapter(
         return users.size
     }
 
+
     private fun chatroomHandler(chatroom: Chatroom, titleOfChat: String, position: Int) {
         val TAG = "!!!"
         val db = FirebaseFirestore.getInstance()
@@ -68,18 +70,17 @@ class UserAdapter(
             .whereArrayContains("participants", auth.currentUser?.uid.toString()).get()
             .addOnSuccessListener { snapshot ->
                 if (snapshot.documents.isNotEmpty()) {
-                    var foundChatroom = false
+
                     for (document in snapshot.documents) {
                         val participants = document.get("participants") as List<*>
-                        if (participants.contains(users[position].uid.toString())) {
-                            val chatroomId = document.id
-                            joinChatroom(chatroomId, titleOfChat)
-                            foundChatroom = true
-                        }
+                            if (participants.contains(users[position].uid)) {
+                                chatroom.documentId = document.id
+                                joinChatroom(chatroom.documentId, titleOfChat)
+                                return@addOnSuccessListener
+                            }
+
                     }
-                    if (!foundChatroom) {
-                        createAndJoinChatroom(chatroom, titleOfChat)
-                    }
+                    createAndJoinChatroom(chatroom, titleOfChat)
                 } else {
                     createAndJoinChatroom(chatroom, titleOfChat)
                 }
@@ -93,7 +94,6 @@ class UserAdapter(
             .addOnSuccessListener {
                 chatroom.documentId = chatroomDocRef.id
                 joinChatroom(chatroom.documentId, titleOfChat)
-
             }
             .addOnFailureListener { e ->
                 Log.w("!!!", "Error writing document", e)
@@ -107,9 +107,9 @@ class UserAdapter(
 
         db.collection("chatrooms").document(chatroomId).get().addOnSuccessListener { snapshot ->
             if (snapshot.exists()) {
-                val id = snapshot.id
+                val documentId = snapshot.id
                 utilities.loadFragment(
-                    ChatRoomFragment(title, id), fragmentManager
+                    ChatRoomFragment(title, documentId), fragmentManager
                 )
             } else {
                 Log.d("!!!", "No such document")
