@@ -29,7 +29,7 @@ interface ChatroomFragmentChatroomView {
     fun setPost(post: MutableList<Post>)
 }
 
-class ChatRoomFragment(var chatroomTitle: String, var documentId: String) : Fragment(),
+class ChatRoomFragment(private var chatroomTitle: String, var documentId: String) : Fragment(),
     ChatroomFragmentChatroomView {
 
     private lateinit var auth: FirebaseAuth

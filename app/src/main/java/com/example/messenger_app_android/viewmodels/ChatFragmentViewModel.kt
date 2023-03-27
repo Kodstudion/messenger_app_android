@@ -36,7 +36,6 @@ class ChatFragmentViewModel : ViewModel() {
 
     private fun listenForChatroomUpdates() {
         val TAG = "!!!"
-        chatroomAdapter = ChatRoomAdapter(mutableListOf())
         userAdapter = UserAdapter(mutableListOf())
 
         db.collection("chatrooms")
@@ -44,20 +43,14 @@ class ChatFragmentViewModel : ViewModel() {
             .addSnapshotListener { snapshot, error ->
                 snapshot?.let { querySnapshot ->
                     try {
+                        val newChatroom = mutableListOf<Chatroom>()
                         for (document in querySnapshot.documents) {
                             val chatroom = document.toObject<Chatroom>()
                             chatroom?.documentId = document.id
                             if (chatroom != null) {
-                                chatroomAdapter.chatrooms.add(
-                                    Chatroom(
-                                        chatroom.documentId,
-                                        null,
-                                        chatroom.recentMessage,
-                                        chatroom.chatroomTitle,
-                                       null,
-                                    )
-                                )
-                                chatroomsView?.setChatrooms(chatroom)
+                                newChatroom.add(chatroom)
+
+                                chatroomsView?.setChatrooms(newChatroom)
                             }
                         }
                     } catch (e: Exception) {
@@ -82,8 +75,8 @@ class ChatFragmentViewModel : ViewModel() {
                 usersView?.setUsers(newUser)
 
             }
-            val janne = User("aksjKSJaksjkaSJklas","Janne","janne@me.com",null)
-            val berra = User("akSJaksjaklJSKLajsk","Berra","berra@me.com",null)
+            val janne = User("aksjKSJaksjkaSJklas", "Janne", "janne@me.com", null)
+            val berra = User("akSJaksjaklJSKLajsk", "Berra", "berra@me.com", null)
             usersView?.setUsers(janne)
             usersView?.setUsers(berra)
 

@@ -15,89 +15,7 @@ enum class PostType {
     SENT, RECEIVED
 }
 
-//class PostAdapter : ListAdapter<Post, RecyclerView.ViewHolder>(DiffCallback()) {
-//
-//    class SentPostHolder(private val binding: ItemSentPostBinding) :
-//        RecyclerView.ViewHolder(binding.root) {
-//        fun bind(post: Post) {
-//            binding.apply {
-//                sentPostTextview.text = post.postBody
-//            }
-//        }
-//    }
-//
-//    class ReceivedPostHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-//        fun bind(post: Post) {
-//            itemView.apply {
-//                recived_post_textview.text = post.postBody
-//            }
-//        }
-//    }
-//
-//    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-//        return when (viewType) {
-//            1 -> {
-//                SentPostHolder(
-//                    ItemSentPostBinding.inflate(
-//                        LayoutInflater.from(parent.context),
-//                        parent,
-//                        false
-//                    )
-//                )
-//            }
-//            2 -> {
-//                ReceivedPostHolder(
-//                    LayoutInflater.from(parent.context).inflate(
-//                        R.layout.item_recived_post,
-//                        parent,
-//                        false
-//                    )
-//                )
-//            }
-//            else -> {
-//                SentPostHolder(
-//                    ItemSentPostBinding.inflate(
-//                        LayoutInflater.from(parent.context),
-//                        parent,
-//                        false
-//                    )
-//                )
-//            }
-//        }
-//    }
-//
-//    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-//        val post = getItem(position)
-//        return when (getItem(position).postType) {
-//            PostType.SENT -> {
-//                (holder as SentPostHolder).bind(post)
-//            }
-//            PostType.RECIVED -> {
-//                (holder as ReceivedPostHolder).bind(post)
-//            }
-//            else -> {
-//                (holder as SentPostHolder).bind(post)
-//            }
-//        }
-//    }
-//}
-//
-//
-//
-//
-//class DiffCallback : DiffUtil.ItemCallback<Post>() {
-//    override fun areItemsTheSame(oldItem: Post, newItem: Post): Boolean {
-//        return oldItem == newItem
-//    }
-//
-//    override fun areContentsTheSame(oldItem: Post, newItem: Post): Boolean {
-//       return oldItem.postBody == newItem.postBody
-//    }
-//
-//
-//}
-
-class PostAdapter() : ListAdapter<Post, RecyclerView.ViewHolder> (DiffCallback()) {
+class PostAdapter() : ListAdapter<Post, RecyclerView.ViewHolder> (PostDiffCallback()) {
 
     abstract class BaseViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         abstract fun bindItem(post: Post)
@@ -161,7 +79,7 @@ class PostAdapter() : ListAdapter<Post, RecyclerView.ViewHolder> (DiffCallback()
 
 }
 
-class DiffCallback: DiffUtil.ItemCallback<Post>() {
+class PostDiffCallback: DiffUtil.ItemCallback<Post>() {
     override fun areItemsTheSame(oldItem: Post, newItem: Post): Boolean {
         return oldItem == newItem
     }
