@@ -11,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@android:color/darker_gray"
-        app:layout_constraintTop_toTopOf="parent"/>
+        app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.cardview.widget.CardView
         android:id="@+id/card_view"
@@ -36,7 +36,7 @@
                 android:layout_width="100dp"
                 android:layout_height="100dp"
                 android:layout_gravity="center"
-                android:src="@drawable/ic_baseline_person_pin_24"/>
+                android:src="@drawable/ic_baseline_person_pin_24" />
 
 
             <androidx.cardview.widget.CardView
@@ -77,14 +77,29 @@
 
             </androidx.cardview.widget.CardView>
 
-            <TextView
-                android:id="@+id/sign_in_with_email_tv"
+            <FrameLayout
+                android:id="@+id/fragment_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Or Sign In With Email"
-                android:textAlignment="center"
+                app:layout_constraintTop_toTopOf="parent"
                 android:clickable="true"
-                android:focusable="true"/>
+                android:focusable="true"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent">
+
+            </FrameLayout>
+
+
+                <TextView
+                    android:id="@+id/sign_in_with_email_tv"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Or Sign In With Email"
+                    android:textAlignment="center" />
+
+
+
+
 
         </LinearLayout>
 

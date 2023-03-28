@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.messenger_app_android.adapters.PostAdapter
 import com.example.messenger_app_android.fragments.ChatroomFragmentChatroomView
 import com.example.messenger_app_android.models.Post
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -22,6 +23,7 @@ class ChatroomFragmentViewModel(private val documentId: String) : ViewModel() {
 
     private fun listenForPostUpdates() {
         val TAG = "!!!"
+        val auth = FirebaseAuth.getInstance()
         db.collection("chatrooms").document(documentId).collection("posts").orderBy(
             "timestamp", Query.Direction.ASCENDING
         ).addSnapshotListener { snapshot, error ->
@@ -30,7 +32,7 @@ class ChatroomFragmentViewModel(private val documentId: String) : ViewModel() {
                     val newPost = mutableListOf<Post>()
                     querySnapshot.documents.forEach { document ->
                         val post = document.toObject(Post::class.java)
-                        if (post != null) {
+                        if (post != null && post.userId == auth.currentUser?.uid) {
                             newPost.add(post)
                             chatroomView?.setPost(newPost)
                         }
