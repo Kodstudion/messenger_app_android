@@ -13,6 +13,7 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
 
+
 class ChatFragmentViewModel : ViewModel() {
 
     private var chatroomsView: ChatFragmentChatroomsView? = null
@@ -20,7 +21,6 @@ class ChatFragmentViewModel : ViewModel() {
     private val db = Firebase.firestore
     private val auth = Firebase.auth
 
-    private lateinit var chatroomAdapter: ChatRoomAdapter
     private lateinit var userAdapter: UserAdapter
 
     fun attachChatrooms(chatroomsChatFragmentView: ChatFragmentChatroomsView) {
@@ -31,37 +31,26 @@ class ChatFragmentViewModel : ViewModel() {
     fun attachUsers(usersChatFragmentView: ChatFragmentUsersView) {
         usersView = usersChatFragmentView
         getUsers()
-
     }
 
     private fun listenForChatroomUpdates() {
+        userAdapter = UserAdapter(mutableListOf())
         val TAG = "!!!"
-        chatroomAdapter = ChatRoomAdapter(mutableListOf(), null)
-        userAdapter = UserAdapter(mutableListOf(), null)
-
         db.collection("chatrooms")
             .whereArrayContains("participants", auth.currentUser?.uid.toString())
             .addSnapshotListener { snapshot, error ->
                 snapshot?.let { querySnapshot ->
                     try {
+                        val newChatroom = mutableListOf<Chatroom>()
                         for (document in querySnapshot.documents) {
                             val chatroom = document.toObject<Chatroom>()
                             chatroom?.documentId = document.id
                             if (chatroom != null) {
-                                chatroomAdapter.chatrooms.add(
-                                    Chatroom(
-                                        chatroom.documentId,
-                                        null,
-                                        chatroom.text,
-                                        null,
-                                        chatroom.fromUser,
-                                        chatroom.toUser
-                                    )
-                                )
-                                chatroomsView?.setChatrooms(chatroom)
+                                newChatroom.add(chatroom)
+
+                                chatroomsView?.setChatrooms(newChatroom)
                             }
                         }
-                        chatroomAdapter.notifyDataSetChanged()
                     } catch (e: Exception) {
                         Log.d(TAG, "listenForItemUpdates: $e")
                     }
@@ -75,16 +64,21 @@ class ChatFragmentViewModel : ViewModel() {
 
     private fun getUsers() {
         db.collection("users").get().addOnSuccessListener { result ->
-            val TAG = "!!!"
             for (document in result) {
                 val user = document.toObject(User::class.java)
+
                 val newUser = User(document.id, user.displayName, user.email)
                 userAdapter.users.clear()
                 userAdapter.users.add(User(newUser.uid))
-                Log.d(TAG, "getUsers: ${userAdapter.users}")
                 usersView?.setUsers(newUser)
-                userAdapter.notifyDataSetChanged()
+
             }
+            val janne = User("aksjKSJaksjkaSJklas", "Janne", "janne@me.com", null)
+            val berra = User("akSJaksjaklJSKLajsk", "Berra", "berra@me.com", null)
+
+            usersView?.setUsers(berra)
+            usersView?.setUsers(janne)
+
         }
     }
 }

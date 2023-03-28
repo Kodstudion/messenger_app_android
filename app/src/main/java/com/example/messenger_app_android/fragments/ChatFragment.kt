@@ -23,7 +23,7 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 
 interface ChatFragmentChatroomsView {
-    fun setChatrooms(chatroom: Chatroom)
+    fun setChatrooms(chatroom: MutableList<Chatroom>)
 }
 
 interface ChatFragmentUsersView {
@@ -62,8 +62,8 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView, ChatFragmentUsersVie
         auth = Firebase.auth
 
         val fragmentManager = requireActivity().supportFragmentManager
-        userAdapter = UserAdapter(mutableListOf(), fragmentManager)
-        chatroomAdapter = ChatRoomAdapter(mutableListOf(), fragmentManager)
+        userAdapter = UserAdapter(mutableListOf(),fragmentManager)
+        chatroomAdapter = ChatRoomAdapter(fragmentManager)
 
 
         binding.horizontalRecyclerview.layoutManager =
@@ -91,14 +91,14 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView, ChatFragmentUsersVie
         }
     }
 
-    override fun setChatrooms(chatroom: Chatroom) {
-        chatroomAdapter.chatrooms.add(chatroom)
-        chatroomAdapter.notifyDataSetChanged()
+    override fun setChatrooms(chatroom: MutableList<Chatroom>) {
+       chatroomAdapter.submitList(chatroom)
     }
 
     override fun setUsers(user: User) {
         userAdapter.users.add(user)
         userAdapter.notifyDataSetChanged()
+
     }
 
     private fun saveUser(uid: String, displayName: String, email: String) {
