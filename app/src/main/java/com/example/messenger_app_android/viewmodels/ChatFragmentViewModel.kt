@@ -21,7 +21,6 @@ class ChatFragmentViewModel : ViewModel() {
     private val db = Firebase.firestore
     private val auth = Firebase.auth
 
-    private lateinit var chatroomAdapter: ChatRoomAdapter
     private lateinit var userAdapter: UserAdapter
 
     fun attachChatrooms(chatroomsChatFragmentView: ChatFragmentChatroomsView) {
@@ -35,9 +34,8 @@ class ChatFragmentViewModel : ViewModel() {
     }
 
     private fun listenForChatroomUpdates() {
-        val TAG = "!!!"
         userAdapter = UserAdapter(mutableListOf())
-
+        val TAG = "!!!"
         db.collection("chatrooms")
             .whereArrayContains("participants", auth.currentUser?.uid.toString())
             .addSnapshotListener { snapshot, error ->
@@ -66,9 +64,9 @@ class ChatFragmentViewModel : ViewModel() {
 
     private fun getUsers() {
         db.collection("users").get().addOnSuccessListener { result ->
-            val TAG = "!!!"
             for (document in result) {
                 val user = document.toObject(User::class.java)
+
                 val newUser = User(document.id, user.displayName, user.email)
                 userAdapter.users.clear()
                 userAdapter.users.add(User(newUser.uid))
@@ -77,10 +75,10 @@ class ChatFragmentViewModel : ViewModel() {
             }
             val janne = User("aksjKSJaksjkaSJklas", "Janne", "janne@me.com", null)
             val berra = User("akSJaksjaklJSKLajsk", "Berra", "berra@me.com", null)
-            usersView?.setUsers(janne)
+
             usersView?.setUsers(berra)
+            usersView?.setUsers(janne)
 
         }
-        userAdapter.notifyDataSetChanged()
     }
 }

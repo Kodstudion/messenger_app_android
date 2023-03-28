@@ -62,7 +62,7 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView, ChatFragmentUsersVie
         auth = Firebase.auth
 
         val fragmentManager = requireActivity().supportFragmentManager
-        userAdapter = UserAdapter(mutableListOf(), fragmentManager)
+        userAdapter = UserAdapter(mutableListOf(),fragmentManager)
         chatroomAdapter = ChatRoomAdapter(fragmentManager)
 
 
@@ -98,6 +98,7 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView, ChatFragmentUsersVie
     override fun setUsers(user: User) {
         userAdapter.users.add(user)
         userAdapter.notifyDataSetChanged()
+
     }
 
     private fun saveUser(uid: String, displayName: String, email: String) {

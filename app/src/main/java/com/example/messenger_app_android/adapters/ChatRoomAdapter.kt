@@ -17,7 +17,6 @@ import com.example.messenger_app_android.utilities.Utilities
 
 
 val utilities = Utilities()
-val TAG = "!!!"
 
 class ChatRoomAdapter(private val fragmentManager: FragmentManager? = null) : ListAdapter<Chatroom, ChatRoomAdapter.ItemViewHolder>(ChatroomDiffCallBack()) {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemViewHolder {
@@ -46,7 +45,6 @@ class ChatRoomAdapter(private val fragmentManager: FragmentManager? = null) : Li
                             fragmentManager
                         )
                     }
-
                 }
             }
         }

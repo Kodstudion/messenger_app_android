@@ -5,6 +5,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.FragmentManager
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.messenger_app_android.R
 import com.example.messenger_app_android.fragments.ChatRoomFragment
@@ -14,6 +16,7 @@ import com.example.messenger_app_android.models.User
 import com.example.messenger_app_android.utilities.Utilities
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+
 
 class UserAdapter(
     var users: MutableList<User>,
@@ -60,24 +63,20 @@ class UserAdapter(
         return users.size
     }
 
-
     private fun chatroomHandler(chatroom: Chatroom, titleOfChat: String, position: Int) {
-        val TAG = "!!!"
         val db = FirebaseFirestore.getInstance()
         val auth = FirebaseAuth.getInstance()
         db.collection("chatrooms")
             .whereArrayContains("participants", auth.currentUser?.uid.toString()).get()
             .addOnSuccessListener { snapshot ->
                 if (snapshot.documents.isNotEmpty()) {
-
                     for (document in snapshot.documents) {
                         val participants = document.get("participants") as List<*>
-                            if (participants.contains(users[position].uid)) {
-                                chatroom.documentId = document.id
-                                joinChatroom(chatroom.documentId, titleOfChat)
-                                return@addOnSuccessListener
-                            }
-
+                        if (participants.contains(users[position].uid)) {
+                            chatroom.documentId = document.id
+                            joinChatroom(chatroom.documentId, titleOfChat)
+                            return@addOnSuccessListener
+                        }
                     }
                     createAndJoinChatroom(chatroom, titleOfChat)
                 } else {
@@ -100,7 +99,6 @@ class UserAdapter(
     }
 
     private fun joinChatroom(chatroomId: String, title: String) {
-        val TAG = "!!!"
         val utilities = Utilities()
         val db = FirebaseFirestore.getInstance()
 
@@ -116,6 +114,10 @@ class UserAdapter(
         }
     }
 }
+
+
+
+
 
 
 
