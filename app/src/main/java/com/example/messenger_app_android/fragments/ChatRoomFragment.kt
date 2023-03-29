@@ -21,7 +21,6 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-import kotlinx.android.synthetic.main.fragment_chat_room.*
 import java.sql.Timestamp
 import java.util.*
 
@@ -89,7 +88,7 @@ class ChatRoomFragment(private var chatroomTitle: String, var documentId: String
                 timestamp
             )
             if (addPost.isNotEmpty()) {
-                writePost(post, documentId)
+                sentAndReceivedPost(post, documentId)
                 binding.sendMessageEditText.text.clear()
             } else {
                 Toast.makeText(activity, "Please enter a message", Toast.LENGTH_SHORT).show()
@@ -108,25 +107,44 @@ class ChatRoomFragment(private var chatroomTitle: String, var documentId: String
         postAdapter.submitList(post)
     }
 
-
-    private fun writePost(post: Post, documentId: String) {
-        val newPost = Post(
+    private fun sentAndReceivedPost(post: Post, documentId: String) {
+        val sent = Post(
             auth.currentUser?.uid,
             post.postBody,
             post.fromUser,
             post.toUser,
             post.postBody,
-            post.postType,
+            postType = PostType.SENT,
             post.timestamp
         )
         val postDocRef =
             db.collection("chatrooms").document(documentId).collection("posts").document()
-        postDocRef.set(newPost).addOnSuccessListener {
-            Log.d(TAG, "writePost: Success")
+        postDocRef.set(sent).addOnSuccessListener {
+            setReceivedPost(post, documentId)
         }
             .addOnFailureListener {
                 Log.d(TAG, "writePost: Failed")
             }
+    }
+
+    private fun setReceivedPost(post: Post, documentId: String) {
+            val received = Post(
+                auth.currentUser?.uid,
+                post.postBody,
+                post.fromUser,
+                post.toUser,
+                post.postBody,
+                postType = PostType.RECEIVED,
+                post.timestamp,
+            )
+            val postDocRef =
+                db.collection("chatrooms").document(documentId).collection("posts").document()
+            postDocRef.set(received).addOnSuccessListener {
+                Log.d(TAG, "receivedPost: $received")
+            }
+                .addOnFailureListener {
+                    Log.d(TAG, "received: Failed")
+                }
     }
 
 }

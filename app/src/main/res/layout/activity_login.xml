@@ -77,32 +77,28 @@
 
             </androidx.cardview.widget.CardView>
 
-            <FrameLayout
-                android:id="@+id/fragment_container"
+
+            <TextView
+                android:id="@+id/sign_in_with_email_tv"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:layout_constraintTop_toTopOf="parent"
-                android:clickable="true"
-                android:focusable="true"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent">
-
-            </FrameLayout>
-
-
-                <TextView
-                    android:id="@+id/sign_in_with_email_tv"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Or Sign In With Email"
-                    android:textAlignment="center" />
-
-
-
-
+                android:text="Or Sign In With Email"
+                android:textAlignment="center" />
 
         </LinearLayout>
 
     </androidx.cardview.widget.CardView>
+
+    <FrameLayout
+        android:id="@+id/fragment_container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="@+id/view"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.497"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/card_view">
+
+    </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
