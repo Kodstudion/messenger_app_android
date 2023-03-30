@@ -53,7 +53,7 @@ class ChatFragmentViewModel() : ViewModel() {
                             val chatroom = document.toObject<Chatroom>()
                             chatroom?.documentId = document.id
                             if (chatroom != null) {
-                                chatroom.participantsNames?.forEach{
+                                chatroom.participantsNames?.forEach {
                                     if (it.key != auth.currentUser?.uid) {
                                         chatroom.nameOfChat = it.value
 
@@ -77,14 +77,20 @@ class ChatFragmentViewModel() : ViewModel() {
     }
 
     private fun getUsers() {
+        val auth = Firebase.auth
         db.collection("users").get().addOnSuccessListener { result ->
             for (document in result) {
                 val user = document.toObject(User::class.java)
-                val newUser = User(document.id, user.displayName, user.email)
+                if (user.uid == auth.currentUser?.uid) {
+                    continue
+                } else {
+                    val newUser = User(document.id, user.displayName, user.email)
 
-                userAdapter.users.clear()
-                userAdapter.users.add(User(newUser.uid))
-                usersView?.setUsers(newUser)
+                    userAdapter.users.clear()
+                    userAdapter.users.add(User(newUser.uid))
+                    usersView?.setUsers(newUser)
+                }
+
             }
         }
     }
