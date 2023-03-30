@@ -5,8 +5,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.messenger_app_android.adapters.PostType
 import com.example.messenger_app_android.fragments.ChatroomFragmentChatroomView
+import com.example.messenger_app_android.models.Chatroom
 import com.example.messenger_app_android.models.Post
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase

@@ -14,11 +14,17 @@ import com.example.messenger_app_android.databinding.FragmentLoginWithEmailBindi
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.UserProfileChangeRequest
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 
 class LoginWithEmailFragment : Fragment() {
 
+    val TAG = "!!!"
+
     private lateinit var binding: FragmentLoginWithEmailBinding
     private lateinit var auth: FirebaseAuth
+    private lateinit var db: FirebaseFirestore
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -31,7 +37,6 @@ class LoginWithEmailFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val TAG = "!!!"
         auth = FirebaseAuth.getInstance()
 
         binding.passwordLoginIv.setOnClickListener {
@@ -46,7 +51,6 @@ class LoginWithEmailFragment : Fragment() {
                             val displayName = UserProfileChangeRequest.Builder()
                                 .setDisplayName(binding.emailEt.text.toString())
                                 .build()
-                            Log.d(TAG, "onViewCreated: ${displayName.displayName}")
                             user.updateProfile(displayName)
                             updateUI(user)
                         }

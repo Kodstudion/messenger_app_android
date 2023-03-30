@@ -75,28 +75,30 @@ class ChatRoomFragment(private var chatroomTitle: String, var documentId: String
         }
 
         binding.sendMessageButton.setOnClickListener {
-            val date = Date()
-            val timestamp = Timestamp(date.time)
-            val addPost = binding.sendMessageEditText.text.toString()
+//            val date = Date()
+//            val timestamp = Timestamp(date.time)
+            val timestamp = com.google.firebase.Timestamp.now()
+            val postBody = binding.sendMessageEditText.text.toString()
             val post = Post(
                 auth.currentUser?.uid,
-                addPost,
+                postBody,
                 auth.currentUser?.displayName,
                 chatroomTitle,
-                addPost,
+                postBody,
                 PostType.SENT,
                 timestamp
             )
-            if (addPost.isNotEmpty()) {
-                sentAndReceivedPost(post, documentId)
+            if (postBody.isNotEmpty()) {
+                sendAndReceivePost(post, documentId)
                 binding.sendMessageEditText.text.clear()
             } else {
                 Toast.makeText(activity, "Please enter a message", Toast.LENGTH_SHORT).show()
             }
+
+            updateResentMessage(postBody)
         }
 
     }
-
 
     override fun onStart() {
         super.onStart()
@@ -107,7 +109,20 @@ class ChatRoomFragment(private var chatroomTitle: String, var documentId: String
         postAdapter.submitList(post)
     }
 
-    private fun sentAndReceivedPost(post: Post, documentId: String) {
+    private fun updateResentMessage(resentMessage: String) {
+        val recentMessageDocRef = db.collection("chatrooms").document(documentId)
+        recentMessageDocRef.get().addOnSuccessListener { document ->
+            if (document != null) {
+                recentMessageDocRef.update("recentMessage", resentMessage)
+            } else {
+                Log.d(TAG, "No such document")
+            }
+        }.addOnFailureListener { exception ->
+            Log.d(TAG, "get failed with ", exception)
+        }
+    }
+
+    private fun sendAndReceivePost(post: Post, documentId: String) {
         val sent = Post(
             auth.currentUser?.uid,
             post.postBody,
@@ -128,23 +143,23 @@ class ChatRoomFragment(private var chatroomTitle: String, var documentId: String
     }
 
     private fun setReceivedPost(post: Post, documentId: String) {
-            val received = Post(
-                auth.currentUser?.uid,
-                post.postBody,
-                post.fromUser,
-                post.toUser,
-                post.postBody,
-                postType = PostType.RECEIVED,
-                post.timestamp,
-            )
-            val postDocRef =
-                db.collection("chatrooms").document(documentId).collection("posts").document()
-            postDocRef.set(received).addOnSuccessListener {
-                Log.d(TAG, "receivedPost: $received")
+        val received = Post(
+            auth.currentUser?.uid,
+            post.postBody,
+            post.fromUser,
+            post.toUser,
+            post.postBody,
+            postType = PostType.RECEIVED,
+            post.timestamp,
+        )
+        val postDocRef =
+            db.collection("chatrooms").document(documentId).collection("posts").document()
+        postDocRef.set(received).addOnSuccessListener {
+            Log.d(TAG, "receivedPost: $received")
+        }
+            .addOnFailureListener {
+                Log.d(TAG, "received: Failed")
             }
-                .addOnFailureListener {
-                    Log.d(TAG, "received: Failed")
-                }
     }
 
 }

@@ -66,7 +66,7 @@ class PostAdapter() : ListAdapter<Post, RecyclerView.ViewHolder> (PostDiffCallba
     inner class ReceivedPostHolder(itemView: View) : BaseViewHolder(itemView) {
         override fun bindItem(post: Post) {
             itemView.apply {
-                recived_post_textview.text = post.postBody
+                received_post_textview.text = post.postBody
             }
         }
     }

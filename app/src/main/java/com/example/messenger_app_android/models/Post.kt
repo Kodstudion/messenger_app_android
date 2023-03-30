@@ -10,6 +10,7 @@ data class Post(
     val toUser: String? = null,
     val recentMessage: String? = null,
     val postType: PostType? = null,
-    val timestamp: java.util.Date? = null,
+//    val timestamp: java.util.Date? = null,
+    val timestamp: com.google.firebase.Timestamp? = null,
 
     )

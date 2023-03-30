@@ -5,8 +5,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.FragmentManager
-import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.messenger_app_android.R
 import com.example.messenger_app_android.fragments.ChatRoomFragment
@@ -17,6 +15,7 @@ import com.example.messenger_app_android.utilities.Utilities
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
+val TAG = "!!!"
 
 class UserAdapter(
     var users: MutableList<User>,
@@ -33,7 +32,6 @@ class UserAdapter(
     }
 
     override fun onBindViewHolder(holder: ProfileViewHolder, position: Int) {
-        val TAG = "!!!"
         val auth = FirebaseAuth.getInstance()
         val user = users[position]
         holder.itemView.apply {
@@ -44,16 +42,22 @@ class UserAdapter(
                 chatroomHandler(
                     Chatroom(
                         "",
+//                        hashMapOf(auth.currentUser?.uid.toString() to auth.currentUser?.displayName.toString(),
+//                        user.uid.toString() to user.displayName.toString()),
                         mutableListOf(
                             auth.currentUser?.uid.toString(),
                             user.uid.toString()
                         ),
-                        "Hej",
+                        null,
                         user.displayName.toString(),
                         null,
-
+                        hashMapOf(
+                            auth.currentUser?.uid.toString() to auth.currentUser?.displayName.toString(),
+                            user.uid.toString() to user.displayName.toString()
                         ),
-                    user.displayName.toString(), position
+                    ),
+                    user.displayName.toString(),
+                    position
                 )
             }
         }
@@ -67,7 +71,7 @@ class UserAdapter(
         val db = FirebaseFirestore.getInstance()
         val auth = FirebaseAuth.getInstance()
         db.collection("chatrooms")
-            .whereArrayContains("participants", auth.currentUser?.uid.toString()).get()
+            .whereArrayContains("participants", auth.currentUser?.uid ?: return).get()
             .addOnSuccessListener { snapshot ->
                 if (snapshot.documents.isNotEmpty()) {
                     for (document in snapshot.documents) {
@@ -112,6 +116,34 @@ class UserAdapter(
                 Log.d("!!!", "No such document")
             }
         }
+    }
+
+    private fun participantNameListener(chatroom: Chatroom, documentId: String) {
+        val auth = FirebaseAuth.getInstance()
+        val db = FirebaseFirestore.getInstance()
+        db.collection("chatrooms").addSnapshotListener { snapshot, _ ->
+            snapshot?.let { querySnapshot ->
+                try {
+                    querySnapshot.documents.forEach { document ->
+                        chatroom.participantsNames?.forEach { name ->
+                            if (name.key != auth.currentUser?.uid) {
+                                chatroom.nameOfChat = name.value
+                                updateChatName(chatroom, documentId)
+                                Log.d(TAG, "updateChatNameAndTitleName: ${chatroom.nameOfChat}")
+                            }
+                        }
+                    }
+
+                } catch (e: Exception) {
+                    Log.d(com.example.messenger_app_android.fragments.TAG, "listenForPostUpdates: $e")
+                }
+            }
+        }
+    }
+
+    private fun updateChatName(chatroom: Chatroom, documentId: String) {
+        val db = FirebaseFirestore.getInstance()
+        db.collection("chatrooms").document(documentId).update("nameOfChat", chatroom.nameOfChat)
     }
 }
 
