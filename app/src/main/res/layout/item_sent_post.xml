@@ -6,9 +6,10 @@
 
 
     <LinearLayout
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
+        android:gravity="end"
         android:paddingStart="20dp"
         android:paddingEnd="20dp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -17,9 +18,11 @@
 
         <TextView
             android:id="@+id/sent_post_textview"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:textAlignment="textStart"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingBottom="12dp"
+            android:maxLines="100"
+            android:ellipsize="end"
             android:text="SENT"
             android:paddingTop="12dp"
             android:paddingStart="20dp"

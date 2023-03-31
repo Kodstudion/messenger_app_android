@@ -1,8 +1,9 @@
 package com.example.messenger_app_android.fragments
 
 import android.annotation.SuppressLint
-import android.graphics.Rect
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.*
 import android.widget.Toast
@@ -16,11 +17,13 @@ import com.example.messenger_app_android.models.Post
 import com.example.messenger_app_android.utilities.Utilities
 import com.example.messenger_app_android.viewmodels.ChatroomFragmentViewModel
 import com.example.messenger_app_android.viewmodels.ChatroomFragmentViewModelFactory
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import org.ocpsoft.prettytime.PrettyTime
 
 
 interface ChatroomFragmentChatroomView {
@@ -59,7 +62,6 @@ class ChatRoomFragment(private var chatroomTitle: String, var documentId: String
         return binding.root
     }
 
-
     @SuppressLint("ClickableViewAccessibility")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -75,7 +77,7 @@ class ChatRoomFragment(private var chatroomTitle: String, var documentId: String
         }
 
         binding.sendMessageButton.setOnClickListener {
-            val timestamp = com.google.firebase.Timestamp.now()
+            val timestamp = Timestamp.now()
             val postBody = binding.sendMessageEditText.text.toString()
             val post = Post(
                 auth.currentUser?.uid,
@@ -93,11 +95,11 @@ class ChatRoomFragment(private var chatroomTitle: String, var documentId: String
                 Toast.makeText(activity, "Please enter a message", Toast.LENGTH_SHORT).show()
             }
 
-            updateResentMessage(postBody)
+            updateResentMessageText(postBody)
+            recentMessageElapsedTime(timestamp)
         }
 
     }
-
 
     override fun onStart() {
         super.onStart()
@@ -110,7 +112,7 @@ class ChatRoomFragment(private var chatroomTitle: String, var documentId: String
     }
 
 
-    private fun updateResentMessage(resentMessage: String) {
+    private fun updateResentMessageText(resentMessage: String) {
         val recentMessageDocRef = db.collection("chatrooms").document(documentId)
         recentMessageDocRef.get().addOnSuccessListener { document ->
             if (document != null) {
@@ -121,6 +123,27 @@ class ChatRoomFragment(private var chatroomTitle: String, var documentId: String
         }.addOnFailureListener { exception ->
             Log.d(TAG, "get failed with ", exception)
         }
+    }
+
+    private fun recentMessageElapsedTime(timestamp: Timestamp)  {
+        val prettyTime = PrettyTime()
+        val timeHandler = Handler(Looper.getMainLooper())
+        timeHandler.post(object: Runnable {
+            override fun run() {
+               val elapsedString = prettyTime.format(timestamp.toDate())
+               val elapsedTimeDocRef = db.collection("chatrooms").document(documentId)
+                elapsedTimeDocRef.get().addOnSuccessListener { document ->
+                    if (document != null) {
+                        elapsedTimeDocRef.update("elapsedTime", elapsedString)
+                    } else {
+                        Log.d(TAG, "No such document")
+                    }
+                }.addOnFailureListener { exception ->
+                    Log.d(TAG, "get failed with ", exception)
+                }
+                timeHandler.postDelayed(this, 60 * 1000)
+            }
+        })
     }
 
     private fun sendAndReceivePost(post: Post, documentId: String) {
@@ -156,7 +179,6 @@ class ChatRoomFragment(private var chatroomTitle: String, var documentId: String
         val postDocRef =
             db.collection("chatrooms").document(documentId).collection("posts").document()
         postDocRef.set(received).addOnSuccessListener {
-            Log.d(TAG, "receivedPost: $received")
         }
             .addOnFailureListener {
                 Log.d(TAG, "received: Failed")
