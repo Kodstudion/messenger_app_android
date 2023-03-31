@@ -5,8 +5,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.FragmentManager
-import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.messenger_app_android.R
 import com.example.messenger_app_android.fragments.ChatRoomFragment
@@ -17,6 +15,7 @@ import com.example.messenger_app_android.utilities.Utilities
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
+val TAG = "!!!"
 
 class UserAdapter(
     var users: MutableList<User>,
@@ -33,7 +32,6 @@ class UserAdapter(
     }
 
     override fun onBindViewHolder(holder: ProfileViewHolder, position: Int) {
-        val TAG = "!!!"
         val auth = FirebaseAuth.getInstance()
         val user = users[position]
         holder.itemView.apply {
@@ -48,12 +46,16 @@ class UserAdapter(
                             auth.currentUser?.uid.toString(),
                             user.uid.toString()
                         ),
-                        "Hej",
+                        null,
                         user.displayName.toString(),
                         null,
-
+                        hashMapOf(
+                            auth.currentUser?.uid.toString() to auth.currentUser?.displayName.toString(),
+                            user.uid.toString() to user.displayName.toString()
                         ),
-                    user.displayName.toString(), position
+                    ),
+                    user.displayName.toString(),
+                    position
                 )
             }
         }
@@ -67,7 +69,7 @@ class UserAdapter(
         val db = FirebaseFirestore.getInstance()
         val auth = FirebaseAuth.getInstance()
         db.collection("chatrooms")
-            .whereArrayContains("participants", auth.currentUser?.uid.toString()).get()
+            .whereArrayContains("participants", auth.currentUser?.uid ?: return).get()
             .addOnSuccessListener { snapshot ->
                 if (snapshot.documents.isNotEmpty()) {
                     for (document in snapshot.documents) {

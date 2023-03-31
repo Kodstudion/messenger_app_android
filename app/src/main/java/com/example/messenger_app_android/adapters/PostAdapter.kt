@@ -1,5 +1,6 @@
 package com.example.messenger_app_android.adapters
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -19,6 +20,7 @@ class PostAdapter() : ListAdapter<Post, RecyclerView.ViewHolder> (PostDiffCallba
 
     abstract class BaseViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         abstract fun bindItem(post: Post)
+
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
@@ -49,6 +51,7 @@ class PostAdapter() : ListAdapter<Post, RecyclerView.ViewHolder> (PostDiffCallba
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         (holder as BaseViewHolder).bindItem(getItem(position))
+
     }
 
 
@@ -64,7 +67,7 @@ class PostAdapter() : ListAdapter<Post, RecyclerView.ViewHolder> (PostDiffCallba
     inner class ReceivedPostHolder(itemView: View) : BaseViewHolder(itemView) {
         override fun bindItem(post: Post) {
             itemView.apply {
-                recived_post_textview.text = post.postBody
+                received_post_textview.text = post.postBody
             }
         }
     }
@@ -76,7 +79,6 @@ class PostAdapter() : ListAdapter<Post, RecyclerView.ViewHolder> (PostDiffCallba
             else -> 1
         }
     }
-
 }
 
 class PostDiffCallback: DiffUtil.ItemCallback<Post>() {

@@ -34,14 +34,14 @@ class ChatRoomAdapter(private val fragmentManager: FragmentManager? = null) : Li
    inner class ItemViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         fun bind(chatroom: Chatroom) {
             itemView.apply {
-                from_user.text = chatroom.chatroomTitle
+                from_user.text = chatroom.nameOfChat
                 recent_message.text = chatroom.recentMessage
                 chatroom.chatroomPicture?.let { message_picture.setImageResource(it) }
 
                 message_picture.setOnClickListener {
-                    if (chatroom.chatroomTitle != null) {
+                    if (chatroom.nameOfChat != null) {
                         utilities.loadFragment(
-                            ChatRoomFragment(chatroom.chatroomTitle ?: "", chatroom.documentId),
+                            ChatRoomFragment(chatroom.nameOfChat ?: "", chatroom.documentId),
                             fragmentManager
                         )
                     }
@@ -57,7 +57,7 @@ class ChatroomDiffCallBack : DiffUtil.ItemCallback<Chatroom>() {
     }
 
     override fun areContentsTheSame(oldItem: Chatroom, newItem: Chatroom): Boolean {
-        return oldItem.chatroomTitle == newItem.chatroomTitle
+        return oldItem.nameOfChat == newItem.nameOfChat
     }
 
 }

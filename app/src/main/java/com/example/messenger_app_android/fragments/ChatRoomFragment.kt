@@ -1,10 +1,10 @@
 package com.example.messenger_app_android.fragments
 
+import android.annotation.SuppressLint
+import android.graphics.Rect
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -21,9 +21,7 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-import kotlinx.android.synthetic.main.fragment_chat_room.*
-import java.sql.Timestamp
-import java.util.*
+
 
 interface ChatroomFragmentChatroomView {
     fun setPost(post: MutableList<Post>)
@@ -44,29 +42,30 @@ class ChatRoomFragment(private var chatroomTitle: String, var documentId: String
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-
+        binding = FragmentChatRoomBinding.inflate(layoutInflater, container, false)
         chatroomFragmentViewModel = ViewModelProvider(
             this,
             ChatroomFragmentViewModelFactory(documentId)
         )[ChatroomFragmentViewModel::class.java]
         chatroomFragmentViewModel.attachChatroom(this)
 
+        postAdapter = PostAdapter()
+        val layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
+        layoutManager.stackFromEnd = true
+        binding.chatConversationListAdapter.layoutManager = layoutManager
 
-        binding = FragmentChatRoomBinding.inflate(layoutInflater, container, false)
+        binding.chatConversationListAdapter.adapter = postAdapter
+
         return binding.root
     }
 
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         db = Firebase.firestore
         auth = Firebase.auth
-
-        postAdapter = PostAdapter()
-        binding.chatConversationRecyclerview.layoutManager =
-            LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
-        binding.chatConversationRecyclerview.adapter = postAdapter
 
         val utilities = Utilities();
         val fragmentManager = requireActivity().supportFragmentManager
@@ -76,24 +75,25 @@ class ChatRoomFragment(private var chatroomTitle: String, var documentId: String
         }
 
         binding.sendMessageButton.setOnClickListener {
-            val date = Date()
-            val timestamp = Timestamp(date.time)
-            val addPost = binding.sendMessageEditText.text.toString()
+            val timestamp = com.google.firebase.Timestamp.now()
+            val postBody = binding.sendMessageEditText.text.toString()
             val post = Post(
                 auth.currentUser?.uid,
-                addPost,
+                postBody,
                 auth.currentUser?.displayName,
                 chatroomTitle,
-                addPost,
+                postBody,
                 PostType.SENT,
                 timestamp
             )
-            if (addPost.isNotEmpty()) {
-                writePost(post, documentId)
+            if (postBody.isNotEmpty()) {
+                sendAndReceivePost(post, documentId)
                 binding.sendMessageEditText.text.clear()
             } else {
                 Toast.makeText(activity, "Please enter a message", Toast.LENGTH_SHORT).show()
             }
+
+            updateResentMessage(postBody)
         }
 
     }
@@ -106,29 +106,62 @@ class ChatRoomFragment(private var chatroomTitle: String, var documentId: String
 
     override fun setPost(post: MutableList<Post>) {
         postAdapter.submitList(post)
+        binding.chatConversationListAdapter.scrollToPosition(post.size - 1)
     }
 
 
-    private fun writePost(post: Post, documentId: String) {
-        val newPost = Post(
+    private fun updateResentMessage(resentMessage: String) {
+        val recentMessageDocRef = db.collection("chatrooms").document(documentId)
+        recentMessageDocRef.get().addOnSuccessListener { document ->
+            if (document != null) {
+                recentMessageDocRef.update("recentMessage", resentMessage)
+            } else {
+                Log.d(TAG, "No such document")
+            }
+        }.addOnFailureListener { exception ->
+            Log.d(TAG, "get failed with ", exception)
+        }
+    }
+
+    private fun sendAndReceivePost(post: Post, documentId: String) {
+        val sent = Post(
             auth.currentUser?.uid,
             post.postBody,
             post.fromUser,
             post.toUser,
             post.postBody,
-            post.postType,
+            postType = PostType.SENT,
             post.timestamp
         )
         val postDocRef =
             db.collection("chatrooms").document(documentId).collection("posts").document()
-        postDocRef.set(newPost).addOnSuccessListener {
-            Log.d(TAG, "writePost: Success")
+        postDocRef.set(sent).addOnSuccessListener {
+            setReceivedPost(post, documentId)
         }
             .addOnFailureListener {
                 Log.d(TAG, "writePost: Failed")
             }
     }
 
+    private fun setReceivedPost(post: Post, documentId: String) {
+        val received = Post(
+            auth.currentUser?.uid,
+            post.postBody,
+            post.fromUser,
+            post.toUser,
+            post.postBody,
+            postType = PostType.RECEIVED,
+            post.timestamp,
+        )
+        val postDocRef =
+            db.collection("chatrooms").document(documentId).collection("posts").document()
+        postDocRef.set(received).addOnSuccessListener {
+            Log.d(TAG, "receivedPost: $received")
+        }
+            .addOnFailureListener {
+                Log.d(TAG, "received: Failed")
+            }
+    }
 }
 
 
