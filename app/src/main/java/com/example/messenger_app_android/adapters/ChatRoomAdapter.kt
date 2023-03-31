@@ -36,6 +36,7 @@ class ChatRoomAdapter(private val fragmentManager: FragmentManager? = null) : Li
             itemView.apply {
                 from_user.text = chatroom.nameOfChat
                 recent_message.text = chatroom.recentMessage
+                elapsed_time.text = chatroom.elapsedTime?.toString()
                 chatroom.chatroomPicture?.let { message_picture.setImageResource(it) }
 
                 message_picture.setOnClickListener {
