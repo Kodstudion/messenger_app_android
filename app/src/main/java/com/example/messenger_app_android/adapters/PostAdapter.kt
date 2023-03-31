@@ -1,5 +1,6 @@
 package com.example.messenger_app_android.adapters
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -78,7 +79,6 @@ class PostAdapter() : ListAdapter<Post, RecyclerView.ViewHolder> (PostDiffCallba
             else -> 1
         }
     }
-
 }
 
 class PostDiffCallback: DiffUtil.ItemCallback<Post>() {

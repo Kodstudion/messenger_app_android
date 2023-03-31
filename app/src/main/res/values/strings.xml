@@ -2,6 +2,8 @@
     <string name="app_name">Messenger_app_android</string>
     <string name="SHA1_key">555140004573-cqd15tvmms56v4i358s0r4puvhif3rv6.apps.googleusercontent.com</string>
     <string name="user_display_name">USER_DISPLAYNAME</string>
-    <!-- TODO: Remove or change this placeholder text -->
+
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
 </resources>

@@ -1,10 +1,10 @@
 package com.example.messenger_app_android.fragments
 
+import android.annotation.SuppressLint
+import android.graphics.Rect
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -21,8 +21,7 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-import java.sql.Timestamp
-import java.util.*
+
 
 interface ChatroomFragmentChatroomView {
     fun setPost(post: MutableList<Post>)
@@ -43,29 +42,30 @@ class ChatRoomFragment(private var chatroomTitle: String, var documentId: String
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-
+        binding = FragmentChatRoomBinding.inflate(layoutInflater, container, false)
         chatroomFragmentViewModel = ViewModelProvider(
             this,
             ChatroomFragmentViewModelFactory(documentId)
         )[ChatroomFragmentViewModel::class.java]
         chatroomFragmentViewModel.attachChatroom(this)
 
+        postAdapter = PostAdapter()
+        val layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
+        layoutManager.stackFromEnd = true
+        binding.chatConversationListAdapter.layoutManager = layoutManager
 
-        binding = FragmentChatRoomBinding.inflate(layoutInflater, container, false)
+        binding.chatConversationListAdapter.adapter = postAdapter
+
         return binding.root
     }
 
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         db = Firebase.firestore
         auth = Firebase.auth
-
-        postAdapter = PostAdapter()
-        binding.chatConversationRecyclerview.layoutManager =
-            LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
-        binding.chatConversationRecyclerview.adapter = postAdapter
 
         val utilities = Utilities();
         val fragmentManager = requireActivity().supportFragmentManager
@@ -75,8 +75,6 @@ class ChatRoomFragment(private var chatroomTitle: String, var documentId: String
         }
 
         binding.sendMessageButton.setOnClickListener {
-//            val date = Date()
-//            val timestamp = Timestamp(date.time)
             val timestamp = com.google.firebase.Timestamp.now()
             val postBody = binding.sendMessageEditText.text.toString()
             val post = Post(
@@ -100,6 +98,7 @@ class ChatRoomFragment(private var chatroomTitle: String, var documentId: String
 
     }
 
+
     override fun onStart() {
         super.onStart()
         binding.toolbarTitleChatroom.text = chatroomTitle
@@ -107,7 +106,9 @@ class ChatRoomFragment(private var chatroomTitle: String, var documentId: String
 
     override fun setPost(post: MutableList<Post>) {
         postAdapter.submitList(post)
+        binding.chatConversationListAdapter.scrollToPosition(post.size - 1)
     }
+
 
     private fun updateResentMessage(resentMessage: String) {
         val recentMessageDocRef = db.collection("chatrooms").document(documentId)
@@ -161,7 +162,6 @@ class ChatRoomFragment(private var chatroomTitle: String, var documentId: String
                 Log.d(TAG, "received: Failed")
             }
     }
-
 }
 
 

@@ -42,8 +42,6 @@ class UserAdapter(
                 chatroomHandler(
                     Chatroom(
                         "",
-//                        hashMapOf(auth.currentUser?.uid.toString() to auth.currentUser?.displayName.toString(),
-//                        user.uid.toString() to user.displayName.toString()),
                         mutableListOf(
                             auth.currentUser?.uid.toString(),
                             user.uid.toString()
@@ -116,34 +114,6 @@ class UserAdapter(
                 Log.d("!!!", "No such document")
             }
         }
-    }
-
-    private fun participantNameListener(chatroom: Chatroom, documentId: String) {
-        val auth = FirebaseAuth.getInstance()
-        val db = FirebaseFirestore.getInstance()
-        db.collection("chatrooms").addSnapshotListener { snapshot, _ ->
-            snapshot?.let { querySnapshot ->
-                try {
-                    querySnapshot.documents.forEach { document ->
-                        chatroom.participantsNames?.forEach { name ->
-                            if (name.key != auth.currentUser?.uid) {
-                                chatroom.nameOfChat = name.value
-                                updateChatName(chatroom, documentId)
-                                Log.d(TAG, "updateChatNameAndTitleName: ${chatroom.nameOfChat}")
-                            }
-                        }
-                    }
-
-                } catch (e: Exception) {
-                    Log.d(com.example.messenger_app_android.fragments.TAG, "listenForPostUpdates: $e")
-                }
-            }
-        }
-    }
-
-    private fun updateChatName(chatroom: Chatroom, documentId: String) {
-        val db = FirebaseFirestore.getInstance()
-        db.collection("chatrooms").document(documentId).update("nameOfChat", chatroom.nameOfChat)
     }
 }
 

@@ -28,6 +28,7 @@ class ChatroomFragmentViewModel(private val documentId: String) : ViewModel() {
         db.collection("chatrooms").document(documentId).collection("posts").orderBy(
             "timestamp", Query.Direction.ASCENDING
         ).addSnapshotListener { snapshot, error ->
+
             snapshot?.let { querySnapshot ->
                 try {
                     val posts = mutableListOf<Post>()
