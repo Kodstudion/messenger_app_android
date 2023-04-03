@@ -96,7 +96,7 @@ class ChatRoomFragment(private var chatroomTitle: String, var documentId: String
             }
 
             updateResentMessageText(postBody)
-            recentMessageElapsedTime(timestamp)
+            //recentMessageElapsedTime(timestamp)
         }
 
     }
@@ -125,26 +125,27 @@ class ChatRoomFragment(private var chatroomTitle: String, var documentId: String
         }
     }
 
-    private fun recentMessageElapsedTime(timestamp: Timestamp)  {
-        val prettyTime = PrettyTime()
-        val timeHandler = Handler(Looper.getMainLooper())
-        timeHandler.post(object: Runnable {
-            override fun run() {
-               val elapsedString = prettyTime.format(timestamp.toDate())
-               val elapsedTimeDocRef = db.collection("chatrooms").document(documentId)
-                elapsedTimeDocRef.get().addOnSuccessListener { document ->
-                    if (document != null) {
-                        elapsedTimeDocRef.update("elapsedTime", elapsedString)
-                    } else {
-                        Log.d(TAG, "No such document")
-                    }
-                }.addOnFailureListener { exception ->
-                    Log.d(TAG, "get failed with ", exception)
-                }
-                timeHandler.postDelayed(this, 60 * 1000)
-            }
-        })
-    }
+//    private fun recentMessageElapsedTime(timestamp: Timestamp)  {
+//        val minute: Long = 60 * 1000
+//        val prettyTime = PrettyTime()
+//        val timeHandler = Handler(Looper.getMainLooper())
+//        timeHandler.post(object: Runnable {
+//            override fun run() {
+//               val elapsedString = prettyTime.format(timestamp.toDate())
+//               val elapsedTimeDocRef = db.collection("chatrooms").document(documentId)
+//                elapsedTimeDocRef.get().addOnSuccessListener { document ->
+//                    if (document != null) {
+//                        elapsedTimeDocRef.update("elapsedTime", elapsedString)
+//                    } else {
+//                        Log.d(TAG, "No such document")
+//                    }
+//                }.addOnFailureListener { exception ->
+//                    Log.d(TAG, "get failed with ", exception)
+//                }
+//                timeHandler.postDelayed(this, minute)
+//            }
+//        })
+//    }
 
     private fun sendAndReceivePost(post: Post, documentId: String) {
         val sent = Post(

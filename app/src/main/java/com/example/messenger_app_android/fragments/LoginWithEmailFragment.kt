@@ -2,6 +2,8 @@ package com.example.messenger_app_android.fragments
 
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -11,11 +13,14 @@ import android.widget.Toast
 import com.example.messenger_app_android.R
 import com.example.messenger_app_android.activities.HomeActivity
 import com.example.messenger_app_android.databinding.FragmentLoginWithEmailBinding
+import com.example.messenger_app_android.models.User
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
 
 class LoginWithEmailFragment : Fragment() {
@@ -61,7 +66,6 @@ class LoginWithEmailFragment : Fragment() {
                 }
         }
     }
-
     private fun updateUI(user: FirebaseUser?) {
         user?.let {
             val intent = Intent(context, HomeActivity::class.java)

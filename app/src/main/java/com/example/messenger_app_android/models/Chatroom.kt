@@ -3,7 +3,6 @@ package com.example.messenger_app_android.models
 
 import com.google.firebase.database.IgnoreExtraProperties
 import com.google.firebase.firestore.DocumentId
-import java.sql.Timestamp
 
 @IgnoreExtraProperties
 data class Chatroom(

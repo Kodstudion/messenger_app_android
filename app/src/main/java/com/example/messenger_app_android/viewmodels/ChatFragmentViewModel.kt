@@ -2,20 +2,15 @@ package com.example.messenger_app_android.viewmodels
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import com.example.messenger_app_android.adapters.UserAdapter
 import com.example.messenger_app_android.fragments.ChatFragmentChatroomsView
 import com.example.messenger_app_android.fragments.ChatFragmentUsersView
-import com.example.messenger_app_android.fragments.TAG
 import com.example.messenger_app_android.models.Chatroom
 import com.example.messenger_app_android.models.User
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
-import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
-import kotlin.math.log
 
 
 class ChatFragmentViewModel() : ViewModel() {
@@ -60,7 +55,6 @@ class ChatFragmentViewModel() : ViewModel() {
                                     }
                                 }
                                 newChatroom.add(chatroom)
-
                             }
                         }
                         chatroomsView?.setChatrooms(newChatroom)
@@ -80,11 +74,12 @@ class ChatFragmentViewModel() : ViewModel() {
         val auth = Firebase.auth
         db.collection("users").get().addOnSuccessListener { result ->
             for (document in result) {
+                Log.d(TAG, "getUsers: $document")
                 val user = document.toObject(User::class.java)
                 if (user.uid == auth.currentUser?.uid) {
                     continue
                 } else {
-                    val newUser = User(document.id, user.displayName, user.email)
+                    val newUser = User(document.id, user.displayName, user.email, null)
 
                     userAdapter.users.clear()
                     userAdapter.users.add(User(newUser.uid))
