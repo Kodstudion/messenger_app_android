@@ -1,5 +1,7 @@
 package com.example.messenger_app_android.viewmodels
 
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.example.messenger_app_android.adapters.UserAdapter
@@ -7,10 +9,12 @@ import com.example.messenger_app_android.fragments.ChatFragmentChatroomsView
 import com.example.messenger_app_android.fragments.ChatFragmentUsersView
 import com.example.messenger_app_android.models.Chatroom
 import com.example.messenger_app_android.models.User
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
+import org.ocpsoft.prettytime.PrettyTime
 
 
 class ChatFragmentViewModel() : ViewModel() {
@@ -27,8 +31,6 @@ class ChatFragmentViewModel() : ViewModel() {
     fun attachChatrooms(chatroomsChatFragmentView: ChatFragmentChatroomsView) {
         chatroomsView = chatroomsChatFragmentView
         listenForChatroomUpdates()
-
-
     }
 
     fun attachUsers(usersChatFragmentView: ChatFragmentUsersView) {
@@ -79,13 +81,10 @@ class ChatFragmentViewModel() : ViewModel() {
                 if (user.uid == auth.currentUser?.uid) {
                     continue
                 } else {
-                    val newUser = User(document.id, user.displayName, user.email, null)
-
                     userAdapter.users.clear()
-                    userAdapter.users.add(User(newUser.uid))
-                    usersView?.setUsers(newUser)
+                    userAdapter.users.add(user)
+                    usersView?.setUsers(user)
                 }
-
             }
         }
     }

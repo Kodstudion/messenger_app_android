@@ -6,7 +6,7 @@
     android:layout_height="150dp">
 
     <ImageView
-        android:id="@+id/message_picture"
+        android:id="@+id/chatroom_picture"
         android:layout_width="100dp"
         android:layout_height="100dp"
         android:layout_marginStart="10dp"
@@ -27,8 +27,8 @@
         android:gravity="center"
         android:text="From User"
         android:textColor="@color/black"
-        app:layout_constraintBottom_toBottomOf="@+id/message_picture"
-        app:layout_constraintStart_toEndOf="@+id/message_picture"
+        app:layout_constraintBottom_toBottomOf="@+id/chatroom_picture"
+        app:layout_constraintStart_toEndOf="@+id/chatroom_picture"
         app:layout_constraintTop_toTopOf="parent">
 
     </TextView>
@@ -44,7 +44,7 @@
         android:textColor="@color/black"
         android:maxLines="1"
         android:ellipsize="end"
-        app:layout_constraintStart_toEndOf="@+id/message_picture"
+        app:layout_constraintStart_toEndOf="@+id/chatroom_picture"
         app:layout_constraintTop_toTopOf="@+id/from_user"/>
 
     <TextView

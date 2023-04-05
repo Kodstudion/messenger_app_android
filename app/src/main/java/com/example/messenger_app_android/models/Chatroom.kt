@@ -13,4 +13,5 @@ data class Chatroom(
     val chatroomPicture: Int? = null,
     var participantsNames: HashMap<String, String>? = null,
     var elapsedTime: String? = null,
+    var lastUpdated: com.google.firebase.Timestamp? = null,
 )

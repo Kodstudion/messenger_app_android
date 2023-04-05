@@ -93,7 +93,6 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView, ChatFragmentUsersVie
         }
 
         if (userID != null && displayName != null && email != null) {
-//            val timestamp = Timestamp.now()
             saveUser(userID, displayName, email)
         }
     }
@@ -105,8 +104,6 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView, ChatFragmentUsersVie
     override fun setUsers(user: User) {
         userAdapter.users.add(user)
         userAdapter.notifyDataSetChanged()
-//        isUserOnline(user.uid ?: "")
-
     }
 
     private fun saveUser(
