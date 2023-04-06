@@ -50,10 +50,9 @@ class ChatFragmentViewModel() : ViewModel() {
                             val chatroom = document.toObject<Chatroom>()
                             chatroom?.documentId = document.id
                             if (chatroom != null) {
-                                chatroom.participantsNames?.forEach {
-                                    if (it.key != auth.currentUser?.uid) {
-                                        chatroom.nameOfChat = it.value
-
+                                chatroom.participantsNames?.forEach { entry ->
+                                    if (entry.key != auth.currentUser?.uid) {
+                                        chatroom.nameOfChat = entry.value
                                     }
                                 }
                                 newChatroom.add(chatroom)

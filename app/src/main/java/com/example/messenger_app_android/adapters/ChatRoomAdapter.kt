@@ -46,7 +46,7 @@ class ChatRoomAdapter(private val fragmentManager: FragmentManager? = null) :
             itemView.apply {
                 from_user.text = chatroom.nameOfChat
                 recent_message.text = chatroom.recentMessage
-                elapsed_time.text = chatroom.elapsedTime
+                sender_textview.text = chatroom.sender
 
                 recentMessageElapsedTimeHandler(elapsed_time, chatroom)
                 chatroom.chatroomPicture?.let { chatroom_picture.setImageResource(it) }
@@ -97,7 +97,7 @@ private fun recentMessageElapsedTimeHandler(elapsedTimeTextView: TextView, chatr
         timeHandler.post(object : Runnable {
             override fun run() {
                 val currentTime = System.currentTimeMillis() - lastUpdated.seconds * 1000
-                updateElapsedTimeText(elapsedTimeTextView, currentTime, chatroom)
+                updateElapsedTimeText(elapsedTimeTextView, currentTime)
                 timeHandler.postDelayed(this, minute)
             }
         })
@@ -105,11 +105,9 @@ private fun recentMessageElapsedTimeHandler(elapsedTimeTextView: TextView, chatr
 private fun updateElapsedTimeText(
     elapsedTimeTextView: TextView,
     currentTime: Long,
-    chatroom: Chatroom
 ) {
     val elapsedTime = PrettyTime().format(Date(System.currentTimeMillis() - currentTime))
     elapsedTimeTextView.text = elapsedTime
-    chatroom.elapsedTime = elapsedTime
 }
 
 
