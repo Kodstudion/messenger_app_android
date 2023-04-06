@@ -53,6 +53,12 @@ class ChatFragmentViewModel() : ViewModel() {
                                 chatroom.participantsNames?.forEach { entry ->
                                     if (entry.key != auth.currentUser?.uid) {
                                         chatroom.nameOfChat = entry.value
+
+                                    }
+                                    if (entry.key == auth.currentUser?.uid) {
+                                        chatroom.sender = ""
+                                    } else if (entry.key != auth.currentUser?.uid) {
+                                        chatroom.sender = "You:"
                                     }
                                 }
                                 newChatroom.add(chatroom)

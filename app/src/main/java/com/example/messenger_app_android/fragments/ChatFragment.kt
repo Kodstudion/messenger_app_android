@@ -121,27 +121,6 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView, ChatFragmentUsersVie
                 Log.w("!!!", "Error writing document", e)
             }
     }
-
-//    private fun isUserOnline(uid: String) {
-//        val minute: Long = 60 * 1000
-//        val timeHandler = Handler(Looper.getMainLooper())
-//        timeHandler.post(object : Runnable {
-//            override fun run() {
-//                db.collection("users").addSnapshotListener { snapshot, error ->
-//                    snapshot?.documents?.forEach { document ->
-//                        val user = document.toObject<User>()
-//                        val online = Timestamp.now().toDate().time
-//                        val time = user?.timestamp?.toDate()?.time ?: 0
-//                        val isOnline = (online - time) < minute
-//                        db.collection("users").document(uid)
-//                            .update("online", !false)
-//                    }
-//                }
-//
-//            }
-//        })
-//    }
-
 }
 
 
