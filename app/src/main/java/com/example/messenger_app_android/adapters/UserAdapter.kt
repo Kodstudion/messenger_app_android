@@ -1,21 +1,29 @@
 package com.example.messenger_app_android.adapters
 
+import android.os.Handler
+import android.os.Looper.getMainLooper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import androidx.fragment.app.FragmentManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.messenger_app_android.R
 import com.example.messenger_app_android.fragments.ChatRoomFragment
 import com.example.messenger_app_android.models.Chatroom
-import kotlinx.android.synthetic.main.item_horizontal_recyclerview.view.*
 import com.example.messenger_app_android.models.User
+import kotlinx.android.synthetic.main.item_horizontal_recyclerview.view.*
 import com.example.messenger_app_android.utilities.Utilities
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
+
 val TAG = "!!!"
+
+enum class Status {
+    ONLINE, OFFLINE
+}
 
 class UserAdapter(
     var users: MutableList<User>,
@@ -38,6 +46,9 @@ class UserAdapter(
             display_name.text = user.displayName
 
             user.profilePicture?.let { profile_picture.setImageResource(it) }
+
+            isUserOnline(user,profile_picture, R.drawable.round_green_circle, R.drawable.round_blue_circle)
+
             profile_picture.setOnClickListener {
                 chatroomHandler(
                     Chatroom(
@@ -117,6 +128,26 @@ class UserAdapter(
                 Log.d("!!!", "No such document")
             }
         }
+    }
+
+    private fun isUserOnline(user: User, imageView: ImageView, imageResOnline: Int, imageResOffline: Int) {
+        val timeHandler = Handler(getMainLooper())
+        val tenMinutes: Long = 10 * 60 * 1000
+        val loggedIn = user.loggedIn
+        timeHandler.post(object: Runnable{
+            override fun run() {
+                val currentTime = System.currentTimeMillis() - (loggedIn?.seconds?.times(1000) ?: 0)
+                if (currentTime < tenMinutes) {
+                    user.status = Status.ONLINE
+                    imageView.setImageResource(imageResOnline)
+                } else {
+                    user.status = Status.OFFLINE
+                    imageView.setImageResource(imageResOffline)
+                }
+                timeHandler.postDelayed(this, tenMinutes)
+            }
+
+        })
     }
 }
 

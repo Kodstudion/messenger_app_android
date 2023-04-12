@@ -1,7 +1,8 @@
 package com.example.messenger_app_android.models
 
 
-import com.google.firebase.Timestamp
+
+import com.example.messenger_app_android.adapters.Status
 import com.google.firebase.database.IgnoreExtraProperties
 
 @IgnoreExtraProperties
@@ -10,6 +11,6 @@ data class User(
     val displayName: String? = null,
     val email: String? = null,
     val profilePicture: Int? = null,
-//    val timestamp: Timestamp? = null,
-//    var online: Boolean = false,
+    var loggedIn: com.google.firebase.Timestamp? = null,
+    var status: Status? = null,
     )

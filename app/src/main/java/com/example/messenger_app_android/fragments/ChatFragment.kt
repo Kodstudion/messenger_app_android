@@ -34,7 +34,7 @@ interface ChatFragmentChatroomsView {
 }
 
 interface ChatFragmentUsersView {
-    fun setUsers(user: User)
+    fun setUsers(user: MutableList<User>)
 }
 
 class ChatFragment : Fragment(), ChatFragmentChatroomsView, ChatFragmentUsersView {
@@ -93,7 +93,8 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView, ChatFragmentUsersVie
         }
 
         if (userID != null && displayName != null && email != null) {
-            saveUser(userID, displayName, email)
+            val timestamp = Timestamp.now()
+            saveUser(userID, displayName, email, timestamp)
         }
     }
 
@@ -101,8 +102,9 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView, ChatFragmentUsersVie
         chatroomAdapter.submitList(chatroom)
     }
 
-    override fun setUsers(user: User) {
-        userAdapter.users.add(user)
+    override fun setUsers(user: MutableList<User>) {
+        userAdapter.users.clear()
+        userAdapter.users.addAll(user)
         userAdapter.notifyDataSetChanged()
     }
 
@@ -110,8 +112,10 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView, ChatFragmentUsersVie
         uid: String,
         displayName: String,
         email: String,
+        timestamp: Timestamp
+
     ) {
-        val user = User(uid, displayName, email, null)
+        val user = User(uid, displayName, email, null, timestamp)
         db.collection("users").document(uid).set(user)
             .addOnSuccessListener {
                 Log.d("!!!", "DocumentSnapshot successfully written!")

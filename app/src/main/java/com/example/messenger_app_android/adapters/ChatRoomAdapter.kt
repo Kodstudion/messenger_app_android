@@ -3,7 +3,6 @@ package com.example.messenger_app_android.adapters
 
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -137,7 +136,6 @@ private fun updatePostIsSeen(chatroom: Chatroom) {
     val auth = Firebase.auth
     chatroom.postIsSeen?.forEach { entry ->
         if (entry.key == auth.currentUser?.uid) {
-            Log.d(TAG, "updatePostIsSeen: ${entry.key}")
             val postIsSeenDocRef = db.collection("chatrooms").document(chatroom.documentId)
             postIsSeenDocRef.set(
                 hashMapOf(
