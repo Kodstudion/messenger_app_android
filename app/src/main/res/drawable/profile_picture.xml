@@ -4,6 +4,6 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item android:drawable="@drawable/ic_baseline_person_24"/>
-    <item android:drawable="@drawable/round_imageview"/>
+    <item android:drawable="@drawable/round_blue_circle"/>
 
 </layer-list>

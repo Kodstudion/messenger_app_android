@@ -2,8 +2,6 @@ package com.example.messenger_app_android.fragments
 
 import android.annotation.SuppressLint
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import android.view.*
 import android.widget.Toast
@@ -21,10 +19,9 @@ import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-import org.ocpsoft.prettytime.PrettyTime
-
 
 interface ChatroomFragmentChatroomView {
     fun setPost(post: MutableList<Post>)
@@ -86,19 +83,18 @@ class ChatRoomFragment(private var chatroomTitle: String, var documentId: String
                 chatroomTitle,
                 postBody,
                 PostType.SENT,
-                timestamp
+                timestamp,
             )
             if (postBody.isNotEmpty()) {
-                sendAndReceivePost(post, documentId)
+                sendAndReceivePost(post)
+                updateChatroomLastUpdate(timestamp)
+                getAndSetPostIsSeen()
                 binding.sendMessageEditText.text.clear()
             } else {
                 Toast.makeText(activity, "Please enter a message", Toast.LENGTH_SHORT).show()
             }
-
-            updateResentMessageText(postBody)
-            recentMessageElapsedTime(timestamp)
+            chatroomFragmentViewModel.updateResentMessageText(postBody)
         }
-
     }
 
     override fun onStart() {
@@ -109,73 +105,40 @@ class ChatRoomFragment(private var chatroomTitle: String, var documentId: String
     override fun setPost(post: MutableList<Post>) {
         postAdapter.submitList(post)
         binding.chatConversationListAdapter.scrollToPosition(post.size - 1)
+
     }
 
-
-    private fun updateResentMessageText(resentMessage: String) {
-        val recentMessageDocRef = db.collection("chatrooms").document(documentId)
-        recentMessageDocRef.get().addOnSuccessListener { document ->
-            if (document != null) {
-                recentMessageDocRef.update("recentMessage", resentMessage)
-            } else {
-                Log.d(TAG, "No such document")
-            }
-        }.addOnFailureListener { exception ->
-            Log.d(TAG, "get failed with ", exception)
-        }
-    }
-
-    private fun recentMessageElapsedTime(timestamp: Timestamp)  {
-        val prettyTime = PrettyTime()
-        val timeHandler = Handler(Looper.getMainLooper())
-        timeHandler.post(object: Runnable {
-            override fun run() {
-               val elapsedString = prettyTime.format(timestamp.toDate())
-               val elapsedTimeDocRef = db.collection("chatrooms").document(documentId)
-                elapsedTimeDocRef.get().addOnSuccessListener { document ->
-                    if (document != null) {
-                        elapsedTimeDocRef.update("elapsedTime", elapsedString)
-                    } else {
-                        Log.d(TAG, "No such document")
-                    }
-                }.addOnFailureListener { exception ->
-                    Log.d(TAG, "get failed with ", exception)
-                }
-                timeHandler.postDelayed(this, 60 * 1000)
-            }
-        })
-    }
-
-    private fun sendAndReceivePost(post: Post, documentId: String) {
+    private fun sendAndReceivePost(post: Post) {
         val sent = Post(
             auth.currentUser?.uid,
             post.postBody,
             post.fromUser,
             post.toUser,
             post.postBody,
-            postType = PostType.SENT,
-            post.timestamp
+            PostType.SENT,
+            post.timestamp,
         )
         val postDocRef =
             db.collection("chatrooms").document(documentId).collection("posts").document()
         postDocRef.set(sent).addOnSuccessListener {
-            setReceivedPost(post, documentId)
+            setReceivedPost(post)
         }
             .addOnFailureListener {
                 Log.d(TAG, "writePost: Failed")
             }
     }
 
-    private fun setReceivedPost(post: Post, documentId: String) {
+    private fun setReceivedPost(post: Post) {
         val received = Post(
             auth.currentUser?.uid,
             post.postBody,
             post.fromUser,
             post.toUser,
             post.postBody,
-            postType = PostType.RECEIVED,
+            PostType.RECEIVED,
             post.timestamp,
-        )
+
+            )
         val postDocRef =
             db.collection("chatrooms").document(documentId).collection("posts").document()
         postDocRef.set(received).addOnSuccessListener {
@@ -183,6 +146,38 @@ class ChatRoomFragment(private var chatroomTitle: String, var documentId: String
             .addOnFailureListener {
                 Log.d(TAG, "received: Failed")
             }
+    }
+
+    private fun getAndSetPostIsSeen() {
+        val postIsSeenDocRef = db.collection("chatrooms").document(documentId)
+        postIsSeenDocRef.get().addOnSuccessListener { document ->
+            if (document != null) {
+                val postIsSeen = document.data?.get("postIsSeen") as? HashMap<*, *>
+                val keys = postIsSeen?.keys
+                if (keys != null) {
+                    for (key in keys) {
+                        if (key != auth.currentUser?.uid) {
+                            Log.d(TAG, "getAndSetPostIsSeen: $key")
+                            postIsSeenDocRef.set(
+                                hashMapOf(
+                                    "postIsSeen" to hashMapOf(key to false)
+                                ), SetOptions.merge())
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun updateChatroomLastUpdate(timestamp: Timestamp) {
+        val lastUpdatedDocRef = db.collection("chatrooms").document(documentId)
+        lastUpdatedDocRef.get().addOnSuccessListener { document ->
+            if (document != null) {
+                lastUpdatedDocRef.update("lastUpdated", timestamp)
+            } else {
+                Log.d(TAG, "No such document")
+            }
+        }
     }
 }
 

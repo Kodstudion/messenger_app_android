@@ -1,21 +1,21 @@
 package com.example.messenger_app_android.viewmodels
 
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
+import android.widget.ImageView
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import com.example.messenger_app_android.adapters.UserAdapter
 import com.example.messenger_app_android.fragments.ChatFragmentChatroomsView
 import com.example.messenger_app_android.fragments.ChatFragmentUsersView
-import com.example.messenger_app_android.fragments.TAG
 import com.example.messenger_app_android.models.Chatroom
 import com.example.messenger_app_android.models.User
-import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.ktx.auth
-import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
-import kotlin.math.log
+import org.ocpsoft.prettytime.PrettyTime
 
 
 class ChatFragmentViewModel() : ViewModel() {
@@ -32,8 +32,6 @@ class ChatFragmentViewModel() : ViewModel() {
     fun attachChatrooms(chatroomsChatFragmentView: ChatFragmentChatroomsView) {
         chatroomsView = chatroomsChatFragmentView
         listenForChatroomUpdates()
-
-
     }
 
     fun attachUsers(usersChatFragmentView: ChatFragmentUsersView) {
@@ -53,14 +51,16 @@ class ChatFragmentViewModel() : ViewModel() {
                             val chatroom = document.toObject<Chatroom>()
                             chatroom?.documentId = document.id
                             if (chatroom != null) {
-                                chatroom.participantsNames?.forEach {
-                                    if (it.key != auth.currentUser?.uid) {
-                                        chatroom.nameOfChat = it.value
+                                chatroom.participantsNames?.forEach { entry ->
+                                    if (entry.key != auth.currentUser?.uid) {
+                                        chatroom.nameOfChat = entry.value
+                                        chatroom.sender = ""
 
+                                    } else {
+                                        chatroom.sender = "You:"
                                     }
                                 }
                                 newChatroom.add(chatroom)
-
                             }
                         }
                         chatroomsView?.setChatrooms(newChatroom)
@@ -69,7 +69,6 @@ class ChatFragmentViewModel() : ViewModel() {
                         Log.d(TAG, "listenForItemUpdates: $e")
                     }
                 }
-
                 error?.let {
                     Log.d(TAG, "listenForItemUpdates: $it")
                 }
@@ -80,17 +79,15 @@ class ChatFragmentViewModel() : ViewModel() {
         val auth = Firebase.auth
         db.collection("users").get().addOnSuccessListener { result ->
             for (document in result) {
+                Log.d(TAG, "getUsers: $document")
                 val user = document.toObject(User::class.java)
                 if (user.uid == auth.currentUser?.uid) {
                     continue
                 } else {
-                    val newUser = User(document.id, user.displayName, user.email)
-
                     userAdapter.users.clear()
-                    userAdapter.users.add(User(newUser.uid))
-                    usersView?.setUsers(newUser)
+                    userAdapter.users.add(user)
+                    usersView?.setUsers(user)
                 }
-
             }
         }
     }

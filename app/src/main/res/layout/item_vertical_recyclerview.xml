@@ -6,7 +6,7 @@
     android:layout_height="150dp">
 
     <ImageView
-        android:id="@+id/message_picture"
+        android:id="@+id/chatroom_picture"
         android:layout_width="100dp"
         android:layout_height="100dp"
         android:layout_marginStart="10dp"
@@ -22,14 +22,26 @@
         android:id="@+id/from_user"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="20dp"
+        android:layout_marginStart="20dp"
         android:textSize="19sp"
         android:gravity="center"
         android:text="From User"
         android:textColor="@color/black"
-        app:layout_constraintBottom_toBottomOf="@+id/message_picture"
-        app:layout_constraintStart_toEndOf="@+id/message_picture"
+        app:layout_constraintBottom_toBottomOf="@+id/chatroom_picture"
+        app:layout_constraintStart_toEndOf="@+id/chatroom_picture"
         app:layout_constraintTop_toTopOf="parent">
+
+    </TextView>
+
+    <TextView
+        android:id="@+id/sender_textview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="3dp"
+        android:layout_marginStart="20dp"
+        android:text="sender:"
+        app:layout_constraintStart_toEndOf="@+id/chatroom_picture"
+        app:layout_constraintTop_toBottomOf="@+id/from_user">
 
     </TextView>
 
@@ -37,23 +49,24 @@
         android:id="@+id/recent_message"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="28dp"
+        android:layout_marginStart="5dp"
+        android:ellipsize="end"
         android:gravity="center"
+        android:maxLines="1"
         android:text="RecentMessage"
         android:textColor="@color/black"
-        android:maxLines="1"
-        android:ellipsize="end"
-        app:layout_constraintStart_toEndOf="@+id/message_picture"
-        app:layout_constraintTop_toTopOf="@+id/from_user"/>
+        app:layout_constraintStart_toEndOf="@+id/sender_textview"
+        app:layout_constraintTop_toTopOf="@+id/from_user" />
 
     <TextView
         android:id="@+id/elapsed_time"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Elapsed Time"
-        android:layout_marginStart="5dp"
         android:layout_marginTop="4dp"
+        android:layout_marginStart="5dp"
+        android:layout_marginBottom="5dp"
+        android:text=""
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toEndOf="@+id/recent_message"
         app:layout_constraintTop_toTopOf="parent" />

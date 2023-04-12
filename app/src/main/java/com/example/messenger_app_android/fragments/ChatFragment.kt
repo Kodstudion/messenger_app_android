@@ -1,17 +1,16 @@
 package com.example.messenger_app_android.fragments
 
 import android.content.Intent
-import android.content.res.Configuration
+
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.*
 import androidx.fragment.app.Fragment
-import androidx.appcompat.app.ActionBarDrawerToggle
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.messenger_app_android.R
 import com.example.messenger_app_android.activities.LoginActivity
 import com.example.messenger_app_android.adapters.ChatRoomAdapter
 import com.example.messenger_app_android.adapters.UserAdapter
@@ -19,14 +18,14 @@ import com.example.messenger_app_android.databinding.FragmentChatBinding
 import com.example.messenger_app_android.models.Chatroom
 import com.example.messenger_app_android.models.User
 import com.example.messenger_app_android.viewmodels.ChatFragmentViewModel
-import com.example.messenger_app_android.viewmodels.ChatroomFragmentViewModel
-import com.example.messenger_app_android.viewmodels.ChatroomFragmentViewModelFactory
-import com.google.android.material.navigation.NavigationView
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
+
 
 val TAG = "!!!"
 
@@ -63,7 +62,6 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView, ChatFragmentUsersVie
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val TAG = "!!!"
         db = Firebase.firestore
         auth = Firebase.auth
 
@@ -96,7 +94,6 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView, ChatFragmentUsersVie
 
         if (userID != null && displayName != null && email != null) {
             saveUser(userID, displayName, email)
-
         }
     }
 
@@ -107,12 +104,14 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView, ChatFragmentUsersVie
     override fun setUsers(user: User) {
         userAdapter.users.add(user)
         userAdapter.notifyDataSetChanged()
-
     }
 
-
-    private fun saveUser(uid: String, displayName: String, email: String) {
-        val user = User(uid, displayName, email)
+    private fun saveUser(
+        uid: String,
+        displayName: String,
+        email: String,
+    ) {
+        val user = User(uid, displayName, email, null)
         db.collection("users").document(uid).set(user)
             .addOnSuccessListener {
                 Log.d("!!!", "DocumentSnapshot successfully written!")
@@ -122,6 +121,7 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView, ChatFragmentUsersVie
             }
     }
 }
+
 
 
 

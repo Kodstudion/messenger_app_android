@@ -1,8 +1,10 @@
 package com.example.messenger_app_android.models
 
 import com.example.messenger_app_android.adapters.PostType
+import com.google.firebase.database.IgnoreExtraProperties
 
 
+@IgnoreExtraProperties
 data class Post(
     val userId: String? = null,
     var postBody: String? = null,

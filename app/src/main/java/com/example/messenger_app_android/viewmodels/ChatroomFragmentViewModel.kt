@@ -1,14 +1,13 @@
 package com.example.messenger_app_android.viewmodels
 
+
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.messenger_app_android.adapters.PostType
 import com.example.messenger_app_android.fragments.ChatroomFragmentChatroomView
-import com.example.messenger_app_android.models.Chatroom
 import com.example.messenger_app_android.models.Post
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -22,6 +21,18 @@ class ChatroomFragmentViewModel(private val documentId: String) : ViewModel() {
     fun attachChatroom(chatroomFragmentChatroomView: ChatroomFragmentChatroomView) {
         chatroomView = chatroomFragmentChatroomView
         listenForPostUpdates()
+    }
+    fun updateResentMessageText(resentMessage: String) {
+        val recentMessageDocRef = db.collection("chatrooms").document(documentId)
+        recentMessageDocRef.get().addOnSuccessListener { document ->
+            if (document != null) {
+                recentMessageDocRef.update("recentMessage", resentMessage)
+            } else {
+                Log.d(TAG, "No such document")
+            }
+        }.addOnFailureListener { exception ->
+            Log.d(TAG, "get failed with ", exception)
+        }
     }
 
     private fun listenForPostUpdates() {
@@ -53,7 +64,6 @@ class ChatroomFragmentViewModel(private val documentId: String) : ViewModel() {
         }
     }
 }
-
 
 class ChatroomFragmentViewModelFactory(private val documentId: String) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {

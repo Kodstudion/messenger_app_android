@@ -1,20 +1,15 @@
 package com.example.messenger_app_android.models
 
-import com.google.firebase.database.Exclude
 
+import com.google.firebase.Timestamp
+import com.google.firebase.database.IgnoreExtraProperties
+
+@IgnoreExtraProperties
 data class User(
     var uid: String? = null,
     val displayName: String? = null,
     val email: String? = null,
     val profilePicture: Int? = null,
-) {
-    @Exclude
-    fun toMap(): Map<String, Any?> {
-        return mapOf(
-            "userId" to uid,
-            "displayName" to displayName,
-            "email" to email,
-            "profilePicture" to profilePicture
-        )
-    }
-}
+//    val timestamp: Timestamp? = null,
+//    var online: Boolean = false,
+    )
