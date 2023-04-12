@@ -34,7 +34,7 @@ interface ChatFragmentChatroomsView {
 }
 
 interface ChatFragmentUsersView {
-    fun setUsers(user: User)
+    fun setUsers(user: MutableList<User>)
 }
 
 class ChatFragment : Fragment(), ChatFragmentChatroomsView, ChatFragmentUsersView {
@@ -102,8 +102,9 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView, ChatFragmentUsersVie
         chatroomAdapter.submitList(chatroom)
     }
 
-    override fun setUsers(user: User) {
-        userAdapter.users.add(user)
+    override fun setUsers(user: MutableList<User>) {
+        userAdapter.users.clear()
+        userAdapter.users.addAll(user)
         userAdapter.notifyDataSetChanged()
     }
 

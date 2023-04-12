@@ -74,38 +74,22 @@ class ChatFragmentViewModel() : ViewModel() {
         db.collection("users").addSnapshotListener { snapshot, _ ->
             snapshot?.let { querySnapshot ->
                 try {
+                    val users = mutableListOf<User>()
                     for (document in querySnapshot.documents) {
                         val user = document.toObject<User>()
                         if (user?.uid == auth.currentUser?.uid) {
                             continue
                         } else {
-                            userAdapter.users.clear()
                             userAdapter.users.add(user ?: return@addSnapshotListener)
-                            usersView?.setUsers(user)
+                            users.add(user)
                         }
                     }
+                    usersView?.setUsers(users)
                 } catch (e: Exception) {
                     Log.d(TAG, "listenForItemUpdates: $e")
                 }
             }
         }
     }
-
-//    private fun getUsers() {
-//        val auth = Firebase.auth
-//        db.collection("users").get().addOnSuccessListener { result ->
-//            for (document in result) {
-//                val user = document.toObject(User::class.java)
-//                if (user.uid == auth.currentUser?.uid) {
-//                    continue
-//                } else {
-//                    userAdapter.users.clear()
-//                    userAdapter.users.add(user)
-//                    usersView?.setUsers(user)
-//                }
-//            }
-//
-//        }
-//    }
 }
 
