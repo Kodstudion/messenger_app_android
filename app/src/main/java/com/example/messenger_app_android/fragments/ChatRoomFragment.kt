@@ -87,8 +87,9 @@ class ChatRoomFragment(private var chatroomTitle: String, var documentId: String
             )
             if (postBody.isNotEmpty()) {
                 sendAndReceivePost(post)
-                updateChatroomLastUpdate(timestamp)
                 getAndSetPostIsSeen()
+                updateUserStatus(timestamp)
+                updateChatroomLastUpdate(timestamp)
                 binding.sendMessageEditText.text.clear()
             } else {
                 Toast.makeText(activity, "Please enter a message", Toast.LENGTH_SHORT).show()
@@ -161,10 +162,22 @@ class ChatRoomFragment(private var chatroomTitle: String, var documentId: String
                             postIsSeenDocRef.set(
                                 hashMapOf(
                                     "postIsSeen" to hashMapOf(key to false)
-                                ), SetOptions.merge())
+                                ), SetOptions.merge()
+                            )
                         }
                     }
                 }
+            }
+        }
+    }
+
+    private fun updateUserStatus(timestamp: Timestamp) {
+        val userDocRef = db.collection("users").document(auth.currentUser?.uid.toString())
+        userDocRef.get().addOnSuccessListener { document ->
+            if (document != null) {
+                userDocRef.update("loggedIn", timestamp)
+            } else {
+                Log.d(TAG, "No such document")
             }
         }
     }

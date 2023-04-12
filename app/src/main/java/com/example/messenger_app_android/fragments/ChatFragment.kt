@@ -93,7 +93,8 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView, ChatFragmentUsersVie
         }
 
         if (userID != null && displayName != null && email != null) {
-            saveUser(userID, displayName, email)
+            val timestamp = Timestamp.now()
+            saveUser(userID, displayName, email, timestamp)
         }
     }
 
@@ -110,8 +111,10 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView, ChatFragmentUsersVie
         uid: String,
         displayName: String,
         email: String,
+        timestamp: Timestamp
+
     ) {
-        val user = User(uid, displayName, email, null)
+        val user = User(uid, displayName, email, null, timestamp)
         db.collection("users").document(uid).set(user)
             .addOnSuccessListener {
                 Log.d("!!!", "DocumentSnapshot successfully written!")
