@@ -14,4 +14,5 @@ data class Chatroom(
     var participantsNames: HashMap<String, String>? = null,
     var lastUpdated: com.google.firebase.Timestamp? = null,
     var sender: String? = null,
+    var postIsSeen: HashMap<String, Boolean>? = null,
 )

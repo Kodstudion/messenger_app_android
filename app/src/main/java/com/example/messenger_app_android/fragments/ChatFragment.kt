@@ -110,7 +110,6 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView, ChatFragmentUsersVie
         uid: String,
         displayName: String,
         email: String,
-//        timestamp: Timestamp,
     ) {
         val user = User(uid, displayName, email, null)
         db.collection("users").document(uid).set(user)

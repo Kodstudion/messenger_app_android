@@ -53,6 +53,9 @@ class UserAdapter(
                             auth.currentUser?.uid.toString() to auth.currentUser?.displayName.toString(),
                             user.uid.toString() to user.displayName.toString()
                         ),
+                        null,
+                        null,
+                        hashMapOf(auth.currentUser?.uid.toString() to true, user.uid.toString() to true)
                     ),
                     user.displayName.toString(),
                     position

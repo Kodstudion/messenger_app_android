@@ -3,6 +3,7 @@ package com.example.messenger_app_android.viewmodels
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import android.widget.ImageView
 import androidx.lifecycle.ViewModel
 import com.example.messenger_app_android.adapters.UserAdapter
 import com.example.messenger_app_android.fragments.ChatFragmentChatroomsView
@@ -53,11 +54,9 @@ class ChatFragmentViewModel() : ViewModel() {
                                 chatroom.participantsNames?.forEach { entry ->
                                     if (entry.key != auth.currentUser?.uid) {
                                         chatroom.nameOfChat = entry.value
-
-                                    }
-                                    if (entry.key == auth.currentUser?.uid) {
                                         chatroom.sender = ""
-                                    } else if (entry.key != auth.currentUser?.uid) {
+
+                                    } else {
                                         chatroom.sender = "You:"
                                     }
                                 }
@@ -70,7 +69,6 @@ class ChatFragmentViewModel() : ViewModel() {
                         Log.d(TAG, "listenForItemUpdates: $e")
                     }
                 }
-
                 error?.let {
                     Log.d(TAG, "listenForItemUpdates: $it")
                 }

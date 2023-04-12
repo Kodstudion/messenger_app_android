@@ -2,8 +2,6 @@ package com.example.messenger_app_android.fragments
 
 import android.annotation.SuppressLint
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import android.view.*
 import android.widget.Toast
@@ -13,7 +11,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.messenger_app_android.adapters.PostAdapter
 import com.example.messenger_app_android.adapters.PostType
 import com.example.messenger_app_android.databinding.FragmentChatRoomBinding
-import com.example.messenger_app_android.models.Chatroom
 import com.example.messenger_app_android.models.Post
 import com.example.messenger_app_android.utilities.Utilities
 import com.example.messenger_app_android.viewmodels.ChatroomFragmentViewModel
@@ -22,12 +19,9 @@ import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
-import org.ocpsoft.prettytime.PrettyTime
-import java.util.TimerTask
-
 
 interface ChatroomFragmentChatroomView {
     fun setPost(post: MutableList<Post>)
@@ -81,7 +75,6 @@ class ChatRoomFragment(private var chatroomTitle: String, var documentId: String
 
         binding.sendMessageButton.setOnClickListener {
             val timestamp = Timestamp.now()
-           // val chatroom = Chatroom(timestamp.toString())
             val postBody = binding.sendMessageEditText.text.toString()
             val post = Post(
                 auth.currentUser?.uid,
@@ -90,11 +83,12 @@ class ChatRoomFragment(private var chatroomTitle: String, var documentId: String
                 chatroomTitle,
                 postBody,
                 PostType.SENT,
-                timestamp
+                timestamp,
             )
             if (postBody.isNotEmpty()) {
-                sendAndReceivePost(post, documentId)
+                sendAndReceivePost(post)
                 updateChatroomLastUpdate(timestamp)
+                getAndSetPostIsSeen()
                 binding.sendMessageEditText.text.clear()
             } else {
                 Toast.makeText(activity, "Please enter a message", Toast.LENGTH_SHORT).show()
@@ -114,47 +108,37 @@ class ChatRoomFragment(private var chatroomTitle: String, var documentId: String
 
     }
 
-    private fun sendAndReceivePost(post: Post, documentId: String) {
+    private fun sendAndReceivePost(post: Post) {
         val sent = Post(
             auth.currentUser?.uid,
             post.postBody,
             post.fromUser,
             post.toUser,
             post.postBody,
-            postType = PostType.SENT,
-            post.timestamp
+            PostType.SENT,
+            post.timestamp,
         )
         val postDocRef =
             db.collection("chatrooms").document(documentId).collection("posts").document()
         postDocRef.set(sent).addOnSuccessListener {
-            setReceivedPost(post, documentId)
+            setReceivedPost(post)
         }
             .addOnFailureListener {
                 Log.d(TAG, "writePost: Failed")
             }
     }
-    
-    private fun updateChatroomLastUpdate(timestamp: Timestamp) {
-       val lastUpdatedDocRef =  db.collection("chatrooms").document(documentId)
-       lastUpdatedDocRef.get().addOnSuccessListener { document ->
-           if (document != null) {
-               lastUpdatedDocRef.update("lastUpdated", timestamp)
-              } else {
-                Log.d(TAG, "No such document")
-           }
-       }
-    }
 
-    private fun setReceivedPost(post: Post, documentId: String) {
+    private fun setReceivedPost(post: Post) {
         val received = Post(
             auth.currentUser?.uid,
             post.postBody,
             post.fromUser,
             post.toUser,
             post.postBody,
-            postType = PostType.RECEIVED,
+            PostType.RECEIVED,
             post.timestamp,
-        )
+
+            )
         val postDocRef =
             db.collection("chatrooms").document(documentId).collection("posts").document()
         postDocRef.set(received).addOnSuccessListener {
@@ -162,6 +146,38 @@ class ChatRoomFragment(private var chatroomTitle: String, var documentId: String
             .addOnFailureListener {
                 Log.d(TAG, "received: Failed")
             }
+    }
+
+    private fun getAndSetPostIsSeen() {
+        val postIsSeenDocRef = db.collection("chatrooms").document(documentId)
+        postIsSeenDocRef.get().addOnSuccessListener { document ->
+            if (document != null) {
+                val postIsSeen = document.data?.get("postIsSeen") as? HashMap<*, *>
+                val keys = postIsSeen?.keys
+                if (keys != null) {
+                    for (key in keys) {
+                        if (key != auth.currentUser?.uid) {
+                            Log.d(TAG, "getAndSetPostIsSeen: $key")
+                            postIsSeenDocRef.set(
+                                hashMapOf(
+                                    "postIsSeen" to hashMapOf(key to false)
+                                ), SetOptions.merge())
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun updateChatroomLastUpdate(timestamp: Timestamp) {
+        val lastUpdatedDocRef = db.collection("chatrooms").document(documentId)
+        lastUpdatedDocRef.get().addOnSuccessListener { document ->
+            if (document != null) {
+                lastUpdatedDocRef.update("lastUpdated", timestamp)
+            } else {
+                Log.d(TAG, "No such document")
+            }
+        }
     }
 }
 
