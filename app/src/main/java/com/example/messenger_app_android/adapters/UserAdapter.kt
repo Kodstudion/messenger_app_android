@@ -138,10 +138,10 @@ class UserAdapter(
             override fun run() {
                 val currentTime = System.currentTimeMillis() - (loggedIn?.seconds?.times(1000) ?: 0)
                 if (currentTime < tenMinutes) {
-                    user.status = Status.ONLINE
+                    Status.ONLINE
                     imageView.setImageResource(imageResOnline)
                 } else {
-                    user.status = Status.OFFLINE
+                    Status.OFFLINE
                     imageView.setImageResource(imageResOffline)
                 }
                 timeHandler.postDelayed(this, tenMinutes)

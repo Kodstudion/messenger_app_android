@@ -12,6 +12,10 @@ import com.example.messenger_app_android.adapters.PostAdapter
 import com.example.messenger_app_android.adapters.PostType
 import com.example.messenger_app_android.databinding.FragmentChatRoomBinding
 import com.example.messenger_app_android.models.Post
+import com.example.messenger_app_android.services.MessagingServices
+import com.example.messenger_app_android.services.RetrofitInstance
+import com.example.messenger_app_android.services.models.NotificationData
+import com.example.messenger_app_android.services.models.PushNotification
 import com.example.messenger_app_android.utilities.Utilities
 import com.example.messenger_app_android.viewmodels.ChatroomFragmentViewModel
 import com.example.messenger_app_android.viewmodels.ChatroomFragmentViewModelFactory
@@ -22,10 +26,15 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.messaging.FirebaseMessaging
+import com.google.gson.Gson
+import kotlinx.coroutines.*
 
 interface ChatroomFragmentChatroomView {
     fun setPost(post: MutableList<Post>)
 }
+
+const val TOPIC = "/topics/myTopic"
 
 class ChatRoomFragment(private var chatroomTitle: String, var documentId: String) : Fragment(),
     ChatroomFragmentChatroomView {
@@ -35,7 +44,6 @@ class ChatRoomFragment(private var chatroomTitle: String, var documentId: String
     private lateinit var binding: FragmentChatRoomBinding
     private lateinit var postAdapter: PostAdapter
     private lateinit var chatroomFragmentViewModel: ChatroomFragmentViewModel
-
 
     val TAG = "!!!"
     override fun onCreateView(
@@ -62,12 +70,13 @@ class ChatRoomFragment(private var chatroomTitle: String, var documentId: String
     @SuppressLint("ClickableViewAccessibility")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
+        FirebaseMessaging.getInstance().subscribeToTopic(TOPIC)
         db = Firebase.firestore
         auth = Firebase.auth
 
         val utilities = Utilities();
         val fragmentManager = requireActivity().supportFragmentManager
+
 
         binding.arrowLeftBack.setOnClickListener {
             utilities.loadFragment(ChatFragment(), fragmentManager)
@@ -90,6 +99,12 @@ class ChatRoomFragment(private var chatroomTitle: String, var documentId: String
                 getAndSetPostIsSeen()
                 updateUserStatus(timestamp)
                 updateChatroomLastUpdate(timestamp)
+                PushNotification(
+                    NotificationData(auth.currentUser?.displayName ?: "", postBody),
+                    TOPIC
+                ).also {
+                    sendPushNotification(it)
+                }
                 binding.sendMessageEditText.text.clear()
             } else {
                 Toast.makeText(activity, "Please enter a message", Toast.LENGTH_SHORT).show()
@@ -102,6 +117,7 @@ class ChatRoomFragment(private var chatroomTitle: String, var documentId: String
         super.onStart()
         binding.toolbarTitleChatroom.text = chatroomTitle
     }
+
 
     override fun setPost(post: MutableList<Post>) {
         postAdapter.submitList(post)
@@ -190,6 +206,19 @@ class ChatRoomFragment(private var chatroomTitle: String, var documentId: String
             } else {
                 Log.d(TAG, "No such document")
             }
+        }
+    }
+
+    private fun sendPushNotification(notification: PushNotification) = CoroutineScope(Dispatchers.IO).launch {
+        try {
+            val response = RetrofitInstance.api.postNotification(notification)
+            if (response.isSuccessful) {
+                Log.d(TAG, "Response: ${Gson().toJson(response)}")
+            } else {
+                Log.e(TAG, response.errorBody().toString())
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, e.toString())
         }
     }
 }

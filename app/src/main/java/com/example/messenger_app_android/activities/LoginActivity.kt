@@ -1,7 +1,11 @@
 package com.example.messenger_app_android.activities
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.Context
 import android.content.Intent
 import android.content.IntentSender
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -136,6 +140,7 @@ class LoginActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
+//        createNotificationChannel()
         val currentUser = auth.currentUser
         updateUI(currentUser)
     }
@@ -161,6 +166,23 @@ class LoginActivity : AppCompatActivity() {
             startActivity((intent))
         }
     }
+
+//    private fun createNotificationChannel() {
+//        // Create the NotificationChannel, but only on API 26+ because
+//        // the NotificationChannel class is new and not in the support library
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//            val name = getString(R.string.channel_name)
+//            val descriptionText = "janne"
+//            val importance = NotificationManager.IMPORTANCE_DEFAULT
+//            val channel = NotificationChannel("1", name, importance).apply {
+//                description = descriptionText
+//            }
+//            // Register the channel with the system
+//            val notificationManager: NotificationManager =
+//                getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+//            notificationManager.createNotificationChannel(channel)
+//        }
+//    }
 }
 
 

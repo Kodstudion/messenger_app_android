@@ -12,5 +12,5 @@ data class User(
     val email: String? = null,
     val profilePicture: Int? = null,
     var loggedIn: com.google.firebase.Timestamp? = null,
-    var status: Status? = null,
+    val deviceToken: String? = null,
     )
