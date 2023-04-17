@@ -1,6 +1,7 @@
 package com.example.messenger_app_android.fragments
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.*
@@ -8,11 +9,13 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.messenger_app_android.R
 import com.example.messenger_app_android.adapters.PostAdapter
 import com.example.messenger_app_android.adapters.PostType
 import com.example.messenger_app_android.databinding.FragmentChatRoomBinding
 import com.example.messenger_app_android.models.Chatroom
 import com.example.messenger_app_android.models.Post
+import com.example.messenger_app_android.services.MessagingServices
 import com.example.messenger_app_android.services.RetrofitInstance
 import com.example.messenger_app_android.services.models.NotificationData
 import com.example.messenger_app_android.services.models.PushNotification
@@ -33,10 +36,6 @@ import kotlinx.coroutines.*
 interface ChatroomFragmentChatroomView {
     fun setPost(post: MutableList<Post>)
 }
-
-const val TOPIC = "/topics/myTopic"
-const val TO_DEVICE =
-    "c6SpzS0DQraNl0Le33KJsl:APA91bGrNnI22kIuVp33nH9COVsAO7jaunKddLz4WTUFVuJeb7xU2BB9EnQ7e84jd3eYz5AD00j4SFJY2mAYKqT38-iAAmB3YYg4MpHULh5aWzuV7R0lh-vrh4dJ7u98aJj2yRdOwWKw"
 
 class ChatRoomFragment(private var chatroomTitle: String, var documentId: String) : Fragment(),
     ChatroomFragmentChatroomView {
@@ -72,7 +71,6 @@ class ChatRoomFragment(private var chatroomTitle: String, var documentId: String
     @SuppressLint("ClickableViewAccessibility")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        FirebaseMessaging.getInstance().subscribeToTopic(TOPIC)
         db = Firebase.firestore
         auth = Firebase.auth
 
@@ -86,10 +84,6 @@ class ChatRoomFragment(private var chatroomTitle: String, var documentId: String
                 chatroom = document.toObject(Chatroom::class.java) ?: return@addOnCompleteListener
             }
         }
-
-
-
-
 
         binding.arrowLeftBack.setOnClickListener {
             utilities.loadFragment(ChatFragment(), fragmentManager)
@@ -114,7 +108,7 @@ class ChatRoomFragment(private var chatroomTitle: String, var documentId: String
                 updateChatroomLastUpdate(timestamp)
                 PushNotification(
                     NotificationData(auth.currentUser?.displayName ?: "", postBody),
-                    TO_DEVICE
+                    ""
                 ).also {
                     sendPushNotification(it, chatroom)
                 }
@@ -223,11 +217,11 @@ class ChatRoomFragment(private var chatroomTitle: String, var documentId: String
 
     private fun sendPushNotification(notification: PushNotification, chatroom: Chatroom) =
         CoroutineScope(Dispatchers.IO).launch {
+            checkIfDeviceTokenIsValid(chatroom)
             try {
                 chatroom.deviceTokens?.forEach { entry ->
                     if (entry.key != auth.currentUser?.uid) {
-                       notification.to = entry.value
-                        Log.d(TAG, "sendPushNotification: ${notification.to}")
+                        notification.to = entry.value
                     }
                 }
                 val response = RetrofitInstance.api.postNotification(notification)
@@ -240,6 +234,30 @@ class ChatRoomFragment(private var chatroomTitle: String, var documentId: String
                 Log.e(TAG, e.toString())
             }
         }
+
+    private fun checkIfDeviceTokenIsValid(chatroom: Chatroom) {
+        val sharedPreferences = requireActivity().getSharedPreferences(
+            R.string.sharedPreferences.toString(),
+            Context.MODE_PRIVATE
+        )
+        val authCurrentUserDeviceToken =
+            sharedPreferences.getString(R.string.token.toString(), null)
+        chatroom.deviceTokens?.forEach { entry ->
+            if (entry.key == auth.currentUser?.uid && entry.value != authCurrentUserDeviceToken) {
+                val deviceTokenRef = db.collection("chatrooms").document(documentId)
+                deviceTokenRef.get().addOnSuccessListener { document ->
+                    if (document != null) {
+                        deviceTokenRef.set(
+                            hashMapOf("deviceTokens" to hashMapOf(entry.key to authCurrentUserDeviceToken)),
+                            SetOptions.merge()
+                        )
+                    }
+                }
+            } else {
+                return
+            }
+        }
+    }
 }
 
 
