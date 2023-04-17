@@ -11,8 +11,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.messenger_app_android.adapters.PostAdapter
 import com.example.messenger_app_android.adapters.PostType
 import com.example.messenger_app_android.databinding.FragmentChatRoomBinding
+import com.example.messenger_app_android.models.Chatroom
 import com.example.messenger_app_android.models.Post
-import com.example.messenger_app_android.services.MessagingServices
 import com.example.messenger_app_android.services.RetrofitInstance
 import com.example.messenger_app_android.services.models.NotificationData
 import com.example.messenger_app_android.services.models.PushNotification
@@ -35,7 +35,8 @@ interface ChatroomFragmentChatroomView {
 }
 
 const val TOPIC = "/topics/myTopic"
-const val TO_DEVICE = "/to/eIRQBONFTGaAo9hwCBh-1n:APA91bFAQp1Ew-4MdIe-E9rbttM1H09eKVMLrFCKQI356m10WTqI1JIuOYcXy2pkw_IAA17VfxTvmPQ2Lge0zbENO_NEyKMlORAhIrJQBPQ_BYdqD7BcAfmL_QOpSchRumVMCNgLbUNK"
+const val TO_DEVICE =
+    "c6SpzS0DQraNl0Le33KJsl:APA91bGrNnI22kIuVp33nH9COVsAO7jaunKddLz4WTUFVuJeb7xU2BB9EnQ7e84jd3eYz5AD00j4SFJY2mAYKqT38-iAAmB3YYg4MpHULh5aWzuV7R0lh-vrh4dJ7u98aJj2yRdOwWKw"
 
 class ChatRoomFragment(private var chatroomTitle: String, var documentId: String) : Fragment(),
     ChatroomFragmentChatroomView {
@@ -77,6 +78,17 @@ class ChatRoomFragment(private var chatroomTitle: String, var documentId: String
 
         val utilities = Utilities();
         val fragmentManager = requireActivity().supportFragmentManager
+        var chatroom = Chatroom()
+        val getChatroom = db.collection("chatrooms").document(documentId)
+        getChatroom.get().addOnCompleteListener { task ->
+            val document = task.result
+            if (document != null) {
+                chatroom = document.toObject(Chatroom::class.java) ?: return@addOnCompleteListener
+            }
+        }
+
+
+
 
 
         binding.arrowLeftBack.setOnClickListener {
@@ -104,7 +116,7 @@ class ChatRoomFragment(private var chatroomTitle: String, var documentId: String
                     NotificationData(auth.currentUser?.displayName ?: "", postBody),
                     TO_DEVICE
                 ).also {
-                    sendPushNotification(it)
+                    sendPushNotification(it, chatroom)
                 }
                 binding.sendMessageEditText.text.clear()
             } else {
@@ -209,18 +221,25 @@ class ChatRoomFragment(private var chatroomTitle: String, var documentId: String
         }
     }
 
-    private fun sendPushNotification(notification: PushNotification) = CoroutineScope(Dispatchers.IO).launch {
-        try {
-            val response = RetrofitInstance.api.postNotification(notification)
-            if (response.isSuccessful) {
-                Log.d(TAG, "Response: ${Gson().toJson(response)}")
-            } else {
-                Log.e(TAG, response.errorBody().toString())
+    private fun sendPushNotification(notification: PushNotification, chatroom: Chatroom) =
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                chatroom.deviceTokens?.forEach { entry ->
+                    if (entry.key != auth.currentUser?.uid) {
+                       notification.to = entry.value
+                        Log.d(TAG, "sendPushNotification: ${notification.to}")
+                    }
+                }
+                val response = RetrofitInstance.api.postNotification(notification)
+                if (response.isSuccessful) {
+                    Log.d(TAG, "Response: ${Gson().toJson(response)}")
+                } else {
+                    Log.e(TAG, response.errorBody().toString())
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, e.toString())
             }
-        } catch (e: Exception) {
-            Log.e(TAG, e.toString())
         }
-    }
 }
 
 
