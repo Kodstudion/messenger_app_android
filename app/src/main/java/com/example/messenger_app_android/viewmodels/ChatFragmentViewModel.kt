@@ -57,7 +57,7 @@ class ChatFragmentViewModel() : ViewModel() {
                                 newChatroom.add(chatroom)
                             }
                         }
-                        chatroomsView?.setChatrooms(newChatroom)
+                        chatroomsView?.setChatroom(newChatroom)
 
                     } catch (e: Exception) {
                         Log.d(TAG, "listenForItemUpdates: $e")

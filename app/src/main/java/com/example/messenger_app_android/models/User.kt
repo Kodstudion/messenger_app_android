@@ -2,7 +2,6 @@ package com.example.messenger_app_android.models
 
 
 
-import com.example.messenger_app_android.adapters.Status
 import com.google.firebase.database.IgnoreExtraProperties
 
 @IgnoreExtraProperties

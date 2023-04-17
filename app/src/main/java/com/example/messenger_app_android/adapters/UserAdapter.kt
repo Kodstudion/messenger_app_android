@@ -19,7 +19,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
 
-val TAG = "!!!"
+const val TAG = "!!!"
 
 enum class Status {
     ONLINE, OFFLINE
@@ -47,8 +47,8 @@ class UserAdapter(
 
             user.profilePicture?.let { profile_picture.setImageResource(it) }
 
-            isUserOnline(user,profile_picture, R.drawable.round_green_circle, R.drawable.round_blue_circle)
-
+            isUserOnline(user, profile_picture, R.drawable.round_green_circle, R.drawable.round_blue_circle)
+            
             profile_picture.setOnClickListener {
                 chatroomHandler(
                     Chatroom(
@@ -66,7 +66,8 @@ class UserAdapter(
                         ),
                         null,
                         null,
-                        hashMapOf(auth.currentUser?.uid.toString() to true, user.uid.toString() to true)
+                        hashMapOf(auth.currentUser?.uid.toString() to true, user.uid.toString() to true),
+                        hashMapOf(auth.currentUser?.uid.toString() to user.deviceToken.toString())
                     ),
                     user.displayName.toString(),
                     position
@@ -74,11 +75,9 @@ class UserAdapter(
             }
         }
     }
-
     override fun getItemCount(): Int {
         return users.size
     }
-
     private fun chatroomHandler(chatroom: Chatroom, titleOfChat: String, position: Int) {
         val db = FirebaseFirestore.getInstance()
         val auth = FirebaseAuth.getInstance()
@@ -94,14 +93,14 @@ class UserAdapter(
                             return@addOnSuccessListener
                         }
                     }
-                    createAndJoinChatroom(chatroom, titleOfChat)
+                    createOrJoinChatroom(chatroom, titleOfChat)
                 } else {
-                    createAndJoinChatroom(chatroom, titleOfChat)
+                    createOrJoinChatroom(chatroom, titleOfChat)
                 }
             }
     }
 
-    private fun createAndJoinChatroom(chatroom: Chatroom, titleOfChat: String) {
+    private fun createOrJoinChatroom(chatroom: Chatroom, titleOfChat: String) {
         val db = FirebaseFirestore.getInstance()
         val chatroomDocRef = db.collection("chatrooms").document()
         chatroomDocRef.set(chatroom)
@@ -146,7 +145,6 @@ class UserAdapter(
                 }
                 timeHandler.postDelayed(this, tenMinutes)
             }
-
         })
     }
 }

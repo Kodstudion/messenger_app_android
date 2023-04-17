@@ -101,7 +101,7 @@ class ChatRoomFragment(private var chatroomTitle: String, var documentId: String
                 updateChatroomLastUpdate(timestamp)
                 PushNotification(
                     NotificationData(auth.currentUser?.displayName ?: "", postBody),
-                    TOPIC
+                    TOPIC //TODO: change to user token
                 ).also {
                     sendPushNotification(it)
                 }
@@ -174,7 +174,6 @@ class ChatRoomFragment(private var chatroomTitle: String, var documentId: String
                 if (keys != null) {
                     for (key in keys) {
                         if (key != auth.currentUser?.uid) {
-                            Log.d(TAG, "getAndSetPostIsSeen: $key")
                             postIsSeenDocRef.set(
                                 hashMapOf(
                                     "postIsSeen" to hashMapOf(key to false)

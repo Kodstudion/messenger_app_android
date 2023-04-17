@@ -35,10 +35,11 @@ import com.google.firebase.messaging.FirebaseMessaging
 val TAG = "!!!"
 
 interface ChatFragmentChatroomsView {
-    fun setChatrooms(chatroom: MutableList<Chatroom>)
+    fun setChatroom(chatroom: MutableList<Chatroom>)
 }
 
 interface ChatFragmentUsersView {
+
     fun setUsers(user: MutableList<User>)
 }
 
@@ -115,7 +116,7 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView, ChatFragmentUsersVie
         }
     }
 
-    override fun setChatrooms(chatroom: MutableList<Chatroom>) {
+    override fun setChatroom(chatroom: MutableList<Chatroom>) {
         chatroomAdapter.submitList(chatroom)
     }
 
@@ -136,6 +137,7 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView, ChatFragmentUsersVie
         db.collection("users").document(uid).set(user)
             .addOnSuccessListener {
                 Log.d("!!!", "DocumentSnapshot successfully written!")
+
             }
             .addOnFailureListener { e ->
                 Log.w("!!!", "Error writing document", e)
@@ -154,7 +156,6 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView, ChatFragmentUsersVie
             db.collection("users").document(auth.currentUser?.uid ?: "").update("deviceToken", MessagingServices.token)
         }
     }
-
     private fun askNotificationPermission() {
         // This is only necessary for API level >= 33 (TIRAMISU)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
