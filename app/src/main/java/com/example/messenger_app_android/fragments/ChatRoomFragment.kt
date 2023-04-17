@@ -35,6 +35,7 @@ interface ChatroomFragmentChatroomView {
 }
 
 const val TOPIC = "/topics/myTopic"
+const val TO_DEVICE = "/to/eIRQBONFTGaAo9hwCBh-1n:APA91bFAQp1Ew-4MdIe-E9rbttM1H09eKVMLrFCKQI356m10WTqI1JIuOYcXy2pkw_IAA17VfxTvmPQ2Lge0zbENO_NEyKMlORAhIrJQBPQ_BYdqD7BcAfmL_QOpSchRumVMCNgLbUNK"
 
 class ChatRoomFragment(private var chatroomTitle: String, var documentId: String) : Fragment(),
     ChatroomFragmentChatroomView {
@@ -101,7 +102,7 @@ class ChatRoomFragment(private var chatroomTitle: String, var documentId: String
                 updateChatroomLastUpdate(timestamp)
                 PushNotification(
                     NotificationData(auth.currentUser?.displayName ?: "", postBody),
-                    TOPIC //TODO: change to user token
+                    TO_DEVICE
                 ).also {
                     sendPushNotification(it)
                 }

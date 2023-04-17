@@ -23,10 +23,10 @@ class MessagingServices : FirebaseMessagingService() {
         var sharedPreferences: SharedPreferences? = null
         var token: String?
         get() {
-            return sharedPreferences?.getString("token", "")
+            return sharedPreferences?.getString(R.string.token.toString(), "")
         }
         set(value) {
-            sharedPreferences?.edit()?.putString("token", value)?.apply()
+            sharedPreferences?.edit()?.putString(R.string.token.toString(), value)?.apply()
         }
     }
 

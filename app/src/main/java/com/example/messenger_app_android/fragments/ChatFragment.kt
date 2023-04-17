@@ -15,6 +15,7 @@ import androidx.fragment.app.Fragment
 import androidx.core.view.GravityCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.messenger_app_android.R
 import com.example.messenger_app_android.activities.LoginActivity
 import com.example.messenger_app_android.adapters.ChatRoomAdapter
 import com.example.messenger_app_android.adapters.UserAdapter
@@ -146,7 +147,7 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView, ChatFragmentUsersVie
     private fun updateDeviceToken() {
         val db = Firebase.firestore
         val auth = Firebase.auth
-        MessagingServices.sharedPreferences = requireActivity().getSharedPreferences("sharedPreferences", Context.MODE_PRIVATE)
+        MessagingServices.sharedPreferences = requireActivity().getSharedPreferences(R.string.sharedPreferences.toString(), Context.MODE_PRIVATE)
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
             if (!task.isSuccessful) {
                 Log.w(TAG, "Fetching FCM registration token failed", task.exception)

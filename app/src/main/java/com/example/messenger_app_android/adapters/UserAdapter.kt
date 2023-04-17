@@ -1,5 +1,6 @@
 package com.example.messenger_app_android.adapters
 
+import android.content.Context
 import android.os.Handler
 import android.os.Looper.getMainLooper
 import android.util.Log
@@ -50,6 +51,8 @@ class UserAdapter(
             isUserOnline(user, profile_picture, R.drawable.round_green_circle, R.drawable.round_blue_circle)
             
             profile_picture.setOnClickListener {
+                val sharedPreferences = context.getSharedPreferences(R.string.sharedPreferences.toString(), Context.MODE_PRIVATE)
+                val authCurrentUserDeviceToken = sharedPreferences.getString(R.string.token.toString(), null)
                 chatroomHandler(
                     Chatroom(
                         "",
@@ -67,7 +70,8 @@ class UserAdapter(
                         null,
                         null,
                         hashMapOf(auth.currentUser?.uid.toString() to true, user.uid.toString() to true),
-                        hashMapOf(auth.currentUser?.uid.toString() to user.deviceToken.toString())
+                        hashMapOf(auth.currentUser?.uid.toString() to authCurrentUserDeviceToken.toString(),
+                        user.uid.toString() to user.deviceToken.toString())
                     ),
                     user.displayName.toString(),
                     position
