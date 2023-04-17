@@ -1,39 +1,46 @@
 package com.example.messenger_app_android.fragments
 
+import android.Manifest
+import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import android.view.*
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.core.view.GravityCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.messenger_app_android.R
 import com.example.messenger_app_android.activities.LoginActivity
 import com.example.messenger_app_android.adapters.ChatRoomAdapter
 import com.example.messenger_app_android.adapters.UserAdapter
 import com.example.messenger_app_android.databinding.FragmentChatBinding
 import com.example.messenger_app_android.models.Chatroom
 import com.example.messenger_app_android.models.User
+import com.example.messenger_app_android.services.MessagingServices
 import com.example.messenger_app_android.viewmodels.ChatFragmentViewModel
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.messaging.FirebaseMessaging
 
 
 val TAG = "!!!"
 
 interface ChatFragmentChatroomsView {
-    fun setChatrooms(chatroom: MutableList<Chatroom>)
+    fun setChatroom(chatroom: MutableList<Chatroom>)
 }
 
 interface ChatFragmentUsersView {
+
     fun setUsers(user: MutableList<User>)
 }
 
@@ -45,6 +52,15 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView, ChatFragmentUsersVie
     private lateinit var userAdapter: UserAdapter
     private lateinit var chatroomAdapter: ChatRoomAdapter
     private lateinit var chatFragmentViewModel: ChatFragmentViewModel
+
+    private val requestPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
+            if (isGranted) {
+                Log.d(TAG, "Permission granted")
+            } else {
+                Log.d(TAG, "Permission denied")
+            }
+        }
 
     override fun onCreateView(
 
@@ -64,6 +80,8 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView, ChatFragmentUsersVie
         super.onViewCreated(view, savedInstanceState)
         db = Firebase.firestore
         auth = Firebase.auth
+
+        askNotificationPermission()
 
         val fragmentManager = requireActivity().supportFragmentManager
         userAdapter = UserAdapter(mutableListOf(), fragmentManager)
@@ -95,10 +113,11 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView, ChatFragmentUsersVie
         if (userID != null && displayName != null && email != null) {
             val timestamp = Timestamp.now()
             saveUser(userID, displayName, email, timestamp)
+            updateDeviceToken()
         }
     }
 
-    override fun setChatrooms(chatroom: MutableList<Chatroom>) {
+    override fun setChatroom(chatroom: MutableList<Chatroom>) {
         chatroomAdapter.submitList(chatroom)
     }
 
@@ -112,18 +131,51 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView, ChatFragmentUsersVie
         uid: String,
         displayName: String,
         email: String,
-        timestamp: Timestamp
+        timestamp: Timestamp,
 
     ) {
         val user = User(uid, displayName, email, null, timestamp)
         db.collection("users").document(uid).set(user)
             .addOnSuccessListener {
                 Log.d("!!!", "DocumentSnapshot successfully written!")
+
             }
             .addOnFailureListener { e ->
                 Log.w("!!!", "Error writing document", e)
             }
     }
+    private fun updateDeviceToken() {
+        val db = Firebase.firestore
+        val auth = Firebase.auth
+        MessagingServices.sharedPreferences = requireActivity().getSharedPreferences(R.string.sharedPreferences.toString(), Context.MODE_PRIVATE)
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (!task.isSuccessful) {
+                Log.w(TAG, "Fetching FCM registration token failed", task.exception)
+                return@addOnCompleteListener
+            }
+            MessagingServices.token = task.result
+            db.collection("users").document(auth.currentUser?.uid ?: "").update("deviceToken", MessagingServices.token)
+        }
+    }
+    private fun askNotificationPermission() {
+        // This is only necessary for API level >= 33 (TIRAMISU)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.POST_NOTIFICATIONS) ==
+                PackageManager.PERMISSION_GRANTED
+            ) {
+                // FCM SDK (and your app) can post notifications.
+            } else if (shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)) {
+                // TODO: display an educational UI explaining to the user the features that will be enabled
+                //       by them granting the POST_NOTIFICATION permission. This UI should provide the user
+                //       "OK" and "No thanks" buttons. If the user selects "OK," directly request the permission.
+                //       If the user selects "No thanks," allow the user to continue without notifications.
+            } else {
+                // Directly ask for the permission
+                requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+    }
+
 }
 
 

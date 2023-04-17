@@ -49,7 +49,7 @@ class ChatFragmentViewModel() : ViewModel() {
                             chatroom?.documentId = document.id
                             if (chatroom != null) {
                                 chatroom.participantsNames?.forEach { entry ->
-                                    if (entry.key == auth.currentUser?.uid) {
+                                    if (entry.key != auth.currentUser?.uid) {
                                         chatroom.nameOfChat = entry.value
                                         chatroom.sender = "You:"
                                     }
@@ -57,7 +57,7 @@ class ChatFragmentViewModel() : ViewModel() {
                                 newChatroom.add(chatroom)
                             }
                         }
-                        chatroomsView?.setChatrooms(newChatroom)
+                        chatroomsView?.setChatroom(newChatroom)
 
                     } catch (e: Exception) {
                         Log.d(TAG, "listenForItemUpdates: $e")

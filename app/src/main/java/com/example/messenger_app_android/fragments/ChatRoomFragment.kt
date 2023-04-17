@@ -1,6 +1,7 @@
 package com.example.messenger_app_android.fragments
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.*
@@ -8,10 +9,16 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.messenger_app_android.R
 import com.example.messenger_app_android.adapters.PostAdapter
 import com.example.messenger_app_android.adapters.PostType
 import com.example.messenger_app_android.databinding.FragmentChatRoomBinding
+import com.example.messenger_app_android.models.Chatroom
 import com.example.messenger_app_android.models.Post
+import com.example.messenger_app_android.services.MessagingServices
+import com.example.messenger_app_android.services.RetrofitInstance
+import com.example.messenger_app_android.services.models.NotificationData
+import com.example.messenger_app_android.services.models.PushNotification
 import com.example.messenger_app_android.utilities.Utilities
 import com.example.messenger_app_android.viewmodels.ChatroomFragmentViewModel
 import com.example.messenger_app_android.viewmodels.ChatroomFragmentViewModelFactory
@@ -22,6 +29,9 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.messaging.FirebaseMessaging
+import com.google.gson.Gson
+import kotlinx.coroutines.*
 
 interface ChatroomFragmentChatroomView {
     fun setPost(post: MutableList<Post>)
@@ -35,7 +45,6 @@ class ChatRoomFragment(private var chatroomTitle: String, var documentId: String
     private lateinit var binding: FragmentChatRoomBinding
     private lateinit var postAdapter: PostAdapter
     private lateinit var chatroomFragmentViewModel: ChatroomFragmentViewModel
-
 
     val TAG = "!!!"
     override fun onCreateView(
@@ -62,12 +71,19 @@ class ChatRoomFragment(private var chatroomTitle: String, var documentId: String
     @SuppressLint("ClickableViewAccessibility")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         db = Firebase.firestore
         auth = Firebase.auth
 
         val utilities = Utilities();
         val fragmentManager = requireActivity().supportFragmentManager
+        var chatroom = Chatroom()
+        val getChatroom = db.collection("chatrooms").document(documentId)
+        getChatroom.get().addOnCompleteListener { task ->
+            val document = task.result
+            if (document != null) {
+                chatroom = document.toObject(Chatroom::class.java) ?: return@addOnCompleteListener
+            }
+        }
 
         binding.arrowLeftBack.setOnClickListener {
             utilities.loadFragment(ChatFragment(), fragmentManager)
@@ -90,6 +106,12 @@ class ChatRoomFragment(private var chatroomTitle: String, var documentId: String
                 getAndSetPostIsSeen()
                 updateUserStatus(timestamp)
                 updateChatroomLastUpdate(timestamp)
+                PushNotification(
+                    NotificationData(auth.currentUser?.displayName ?: "", postBody),
+                    ""
+                ).also {
+                    sendPushNotification(it, chatroom)
+                }
                 binding.sendMessageEditText.text.clear()
             } else {
                 Toast.makeText(activity, "Please enter a message", Toast.LENGTH_SHORT).show()
@@ -102,6 +124,7 @@ class ChatRoomFragment(private var chatroomTitle: String, var documentId: String
         super.onStart()
         binding.toolbarTitleChatroom.text = chatroomTitle
     }
+
 
     override fun setPost(post: MutableList<Post>) {
         postAdapter.submitList(post)
@@ -158,7 +181,6 @@ class ChatRoomFragment(private var chatroomTitle: String, var documentId: String
                 if (keys != null) {
                     for (key in keys) {
                         if (key != auth.currentUser?.uid) {
-                            Log.d(TAG, "getAndSetPostIsSeen: $key")
                             postIsSeenDocRef.set(
                                 hashMapOf(
                                     "postIsSeen" to hashMapOf(key to false)
@@ -189,6 +211,50 @@ class ChatRoomFragment(private var chatroomTitle: String, var documentId: String
                 lastUpdatedDocRef.update("lastUpdated", timestamp)
             } else {
                 Log.d(TAG, "No such document")
+            }
+        }
+    }
+
+    private fun sendPushNotification(notification: PushNotification, chatroom: Chatroom) =
+        CoroutineScope(Dispatchers.IO).launch {
+            checkIfDeviceTokenIsValid(chatroom)
+            try {
+                chatroom.deviceTokens?.forEach { entry ->
+                    if (entry.key != auth.currentUser?.uid) {
+                        notification.to = entry.value
+                    }
+                }
+                val response = RetrofitInstance.api.postNotification(notification)
+                if (response.isSuccessful) {
+                    Log.d(TAG, "Response: ${Gson().toJson(response)}")
+                } else {
+                    Log.e(TAG, response.errorBody().toString())
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, e.toString())
+            }
+        }
+
+    private fun checkIfDeviceTokenIsValid(chatroom: Chatroom) {
+        val sharedPreferences = requireActivity().getSharedPreferences(
+            R.string.sharedPreferences.toString(),
+            Context.MODE_PRIVATE
+        )
+        val authCurrentUserDeviceToken =
+            sharedPreferences.getString(R.string.token.toString(), null)
+        chatroom.deviceTokens?.forEach { entry ->
+            if (entry.key == auth.currentUser?.uid && entry.value != authCurrentUserDeviceToken) {
+                val deviceTokenRef = db.collection("chatrooms").document(documentId)
+                deviceTokenRef.get().addOnSuccessListener { document ->
+                    if (document != null) {
+                        deviceTokenRef.set(
+                            hashMapOf("deviceTokens" to hashMapOf(entry.key to authCurrentUserDeviceToken)),
+                            SetOptions.merge()
+                        )
+                    }
+                }
+            } else {
+                return
             }
         }
     }
