@@ -1,40 +1,44 @@
 package com.example.messenger_app_android.services
 
+import android.Manifest
 import android.app.*
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
 import android.os.Build
-import android.os.Message
 import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import com.example.messenger_app_android.R
 import com.example.messenger_app_android.activities.HomeActivity
-import com.example.messenger_app_android.activities.LoginActivity
-import com.example.messenger_app_android.fragments.ChatFragment
-import com.example.messenger_app_android.fragments.ChatRoomFragment
-import com.google.firebase.database.core.utilities.Utilities
-import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import androidx.core.app.RemoteInput
+import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.getSystemService
+import com.example.messenger_app_android.services.constants.StringConstants
 import java.util.*
 
 
 val TAG = "!!!"
-private const val CHANNEL_ID = "messenger_app_android"
+const val CHANNEL_ID = "messenger_app_android"
+private const val KEY_TEXT_REPLY = "key_text_reply"
 
 class MessagingServices : FirebaseMessagingService() {
 
     companion object {
         var sharedPreferences: SharedPreferences? = null
         var token: String?
-        get() {
-            return sharedPreferences?.getString(R.string.token.toString(), "")
-        }
-        set(value) {
-            sharedPreferences?.edit()?.putString(R.string.token.toString(), value)?.apply()
-        }
+            get() {
+                return sharedPreferences?.getString(R.string.token.toString(), "")
+            }
+            set(value) {
+                sharedPreferences?.edit()?.putString(R.string.token.toString(), value)?.apply()
+            }
     }
 
 
@@ -60,15 +64,49 @@ class MessagingServices : FirebaseMessagingService() {
             intent,
             PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_MUTABLE
         )
+
+        val replyLabel = "Reply"
+        val remoteInput: RemoteInput = RemoteInput.Builder(KEY_TEXT_REPLY).run {
+            setLabel(replyLabel)
+            build()
+        }
+
+        val replyReceiver = Intent(this, ReplyBroadcastReceiver::class.java).apply {
+            action = "Reply action"
+            putExtra("noticeId", notificationID)
+            putExtra(StringConstants.CHATROOM_TITLE, message.data["chatroomTitle"])
+        }
+
+        val replyPendingIntent: PendingIntent = PendingIntent.getBroadcast(
+            this,
+            0,
+            replyReceiver,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
+        )
+
+        val action = NotificationCompat.Action.Builder(
+            R.drawable.ic_baseline_email_24,
+            "Reply",
+            replyPendingIntent
+        )
+            .addRemoteInput(remoteInput)
+            .build()
+
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle(message.data["title"])
             .setContentText(message.data["body"])
             .setSmallIcon(R.drawable.ic_baseline_email_24)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
+            .addAction(action)
             .build()
 
-        notificationManager.notify(notificationID, notification)
+        notificationManager.notify(1234, notification)
+    }
+
+    override fun onNewToken(newToken: String) {
+        super.onNewToken(newToken)
+        token = newToken
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -85,10 +123,39 @@ class MessagingServices : FirebaseMessagingService() {
         }
         notificationManager.createNotificationChannel(channel)
     }
-
-    override fun onNewToken(newToken: String) {
-        super.onNewToken(newToken)
-        token = newToken
-    }
-
 }
+
+class ReplyBroadcastReceiver : BroadcastReceiver() {
+    override fun onReceive(context: Context?, intent: Intent?) {
+        val notificationId = intent?.getIntExtra("noticeId", 0) ?: return
+        val chatroomTitle = intent.getStringExtra(StringConstants.CHATROOM_TITLE) ?: return
+        val messageText = getMessageText(intent) ?: return
+        Log.d(TAG, "onReceive: $messageText")
+
+        val notificationManager = context?.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+        val repliedNotification = NotificationCompat.Builder(context, CHANNEL_ID)
+            .setContentTitle("Replied")
+            .setContentText("To: $chatroomTitle")
+            .setSmallIcon(R.drawable.ic_baseline_email_24)
+            .setAutoCancel(true)
+            .build()
+
+        NotificationManagerCompat.from(context).apply {
+
+            if (ActivityCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                return
+            }
+            notify(notificationId, repliedNotification)
+        }
+    }
+    private fun getMessageText(intent: Intent): CharSequence? {
+        val remoteInput = RemoteInput.getResultsFromIntent(intent)
+        return remoteInput?.getCharSequence(KEY_TEXT_REPLY)
+    }
+}
+
