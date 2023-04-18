@@ -4,8 +4,10 @@ import android.os.Bundle
 import com.example.messenger_app_android.R
 import com.example.messenger_app_android.databinding.ActivityHomeBinding
 import com.example.messenger_app_android.fragments.ChatFragment
+import com.example.messenger_app_android.fragments.ChatRoomFragment
 import com.example.messenger_app_android.fragments.PersonsFragment
 import com.example.messenger_app_android.fragments.SettingsFragment
+import com.example.messenger_app_android.services.constants.StringConstants
 import com.example.messenger_app_android.utilities.Utilities
 
 
@@ -22,6 +24,9 @@ class HomeActivity : AppCompatActivity() {
         binding = ActivityHomeBinding.inflate(layoutInflater)
         utilities.loadFragment(ChatFragment(), supportFragmentManager)
         setContentView(binding.root)
+
+        loadFragmentFromPushNotice(utilities)
+
 
         binding.bottomNavigationView.setOnItemSelectedListener {
             when (it.itemId) {
@@ -43,5 +48,21 @@ class HomeActivity : AppCompatActivity() {
             }
         }
 
+    }
+
+    private fun loadFragmentFromPushNotice(utilities: Utilities) {
+        val documentId = intent.getStringExtra(StringConstants.DOCUMENT_ID)
+        val chatroomTitle = intent.getStringExtra(StringConstants.CHATROOM_TITLE)
+        if (documentId != null) {
+            val chatroomFragment = ChatRoomFragment().apply {
+                arguments = Bundle().apply {
+                    putString(StringConstants.DOCUMENT_ID, documentId)
+                    putString(StringConstants.CHATROOM_TITLE, chatroomTitle)
+                }
+            }
+            utilities.loadFragment(chatroomFragment, supportFragmentManager)
+        } else {
+            utilities.loadFragment(ChatFragment(), supportFragmentManager)
+        }
     }
 }

@@ -52,6 +52,7 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView, ChatFragmentUsersVie
     private lateinit var userAdapter: UserAdapter
     private lateinit var chatroomAdapter: ChatRoomAdapter
     private lateinit var chatFragmentViewModel: ChatFragmentViewModel
+    private lateinit var chatroomTitle: String
 
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->

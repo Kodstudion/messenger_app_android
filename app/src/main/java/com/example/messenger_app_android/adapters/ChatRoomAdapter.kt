@@ -1,8 +1,10 @@
 package com.example.messenger_app_android.adapters
 
 
+import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.messenger_app_android.R
 import com.example.messenger_app_android.fragments.ChatRoomFragment
 import com.example.messenger_app_android.models.Chatroom
+import com.example.messenger_app_android.services.constants.StringConstants
 import com.example.messenger_app_android.utilities.Utilities
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.SetOptions
@@ -45,7 +48,7 @@ class ChatRoomAdapter(private val fragmentManager: FragmentManager? = null) :
 
         fun bind(chatroom: Chatroom) {
             itemView.apply {
-                from_user.text = chatroom.nameOfChat
+                from_user.text = chatroom.chatroomTitle
                 recent_message.text = chatroom.recentMessage
                 sender_textview.text = chatroom.sender
 
@@ -70,9 +73,14 @@ class ChatRoomAdapter(private val fragmentManager: FragmentManager? = null) :
                 )
 
                 chatroom_picture.setOnClickListener {
-                    if (chatroom.nameOfChat != null) {
+                    if (chatroom.chatroomTitle != null) {
                         utilities.loadFragment(
-                            ChatRoomFragment(chatroom.nameOfChat ?: "", chatroom.documentId),
+                            ChatRoomFragment().apply {
+                                arguments = Bundle().apply {
+                                    putString(StringConstants.CHATROOM_TITLE, chatroom.chatroomTitle)
+                                    putString(StringConstants.DOCUMENT_ID, chatroom.documentId)
+                                }
+                            },
                             fragmentManager
                         )
                     }
@@ -89,7 +97,7 @@ class ChatroomDiffCallBack : DiffUtil.ItemCallback<Chatroom>() {
     }
 
     override fun areContentsTheSame(oldItem: Chatroom, newItem: Chatroom): Boolean {
-        return oldItem.nameOfChat == newItem.nameOfChat
+        return oldItem.chatroomTitle == newItem.chatroomTitle
     }
 }
 
@@ -140,7 +148,8 @@ private fun updatePostIsSeen(chatroom: Chatroom) {
             postIsSeenDocRef.set(
                 hashMapOf(
                     "postIsSeen" to hashMapOf(
-                        entry.key to true)
+                        entry.key to true
+                    )
                 ), SetOptions.merge()
             )
         }

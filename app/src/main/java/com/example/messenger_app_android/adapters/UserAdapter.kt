@@ -1,6 +1,7 @@
 package com.example.messenger_app_android.adapters
 
 import android.content.Context
+import android.os.Bundle
 import android.os.Handler
 import android.os.Looper.getMainLooper
 import android.util.Log
@@ -14,6 +15,7 @@ import com.example.messenger_app_android.R
 import com.example.messenger_app_android.fragments.ChatRoomFragment
 import com.example.messenger_app_android.models.Chatroom
 import com.example.messenger_app_android.models.User
+import com.example.messenger_app_android.services.constants.StringConstants
 import kotlinx.android.synthetic.main.item_horizontal_recyclerview.view.*
 import com.example.messenger_app_android.utilities.Utilities
 import com.google.firebase.auth.FirebaseAuth
@@ -48,11 +50,20 @@ class UserAdapter(
 
             user.profilePicture?.let { profile_picture.setImageResource(it) }
 
-            isUserOnline(user, profile_picture, R.drawable.round_green_circle, R.drawable.round_blue_circle)
-            
+            isUserOnline(
+                user,
+                profile_picture,
+                R.drawable.round_green_circle,
+                R.drawable.round_blue_circle
+            )
+
             profile_picture.setOnClickListener {
-                val sharedPreferences = context.getSharedPreferences(R.string.sharedPreferences.toString(), Context.MODE_PRIVATE)
-                val authCurrentUserDeviceToken = sharedPreferences.getString(R.string.token.toString(), null)
+                val sharedPreferences = context.getSharedPreferences(
+                    R.string.sharedPreferences.toString(),
+                    Context.MODE_PRIVATE
+                )
+                val authCurrentUserDeviceToken =
+                    sharedPreferences.getString(R.string.token.toString(), null)
                 chatroomHandler(
                     Chatroom(
                         "",
@@ -69,9 +80,18 @@ class UserAdapter(
                         ),
                         null,
                         null,
-                        hashMapOf(auth.currentUser?.uid.toString() to true, user.uid.toString() to true),
-                        hashMapOf(auth.currentUser?.uid.toString() to authCurrentUserDeviceToken.toString(),
-                        user.uid.toString() to user.deviceToken.toString())
+                        hashMapOf(
+                            auth.currentUser?.uid.toString() to true,
+                            user.uid.toString() to true
+                        ),
+                        hashMapOf(
+                            auth.currentUser?.uid.toString() to authCurrentUserDeviceToken.toString(),
+                            user.uid.toString() to user.deviceToken.toString()
+                        ),
+                        hashMapOf(
+                            auth.currentUser?.uid.toString() to false,
+                            user.uid.toString() to false
+                        ),
                     ),
                     user.displayName.toString(),
                     position
@@ -79,9 +99,11 @@ class UserAdapter(
             }
         }
     }
+
     override fun getItemCount(): Int {
         return users.size
     }
+
     private fun chatroomHandler(chatroom: Chatroom, titleOfChat: String, position: Int) {
         val db = FirebaseFirestore.getInstance()
         val auth = FirebaseAuth.getInstance()
@@ -117,7 +139,7 @@ class UserAdapter(
             }
     }
 
-    private fun joinChatroom(chatroomId: String, title: String) {
+    private fun joinChatroom(chatroomId: String, titleOfChat: String) {
         val utilities = Utilities()
         val db = FirebaseFirestore.getInstance()
 
@@ -125,7 +147,12 @@ class UserAdapter(
             if (snapshot.exists()) {
                 val documentId = snapshot.id
                 utilities.loadFragment(
-                    ChatRoomFragment(title, documentId), fragmentManager
+                    ChatRoomFragment().apply {
+                        arguments = Bundle().apply {
+                            putString(StringConstants.CHATROOM_TITLE, titleOfChat)
+                            putString(StringConstants.DOCUMENT_ID, documentId)
+                        }
+                    }, fragmentManager
                 )
             } else {
                 Log.d("!!!", "No such document")
@@ -133,11 +160,16 @@ class UserAdapter(
         }
     }
 
-    private fun isUserOnline(user: User, imageView: ImageView, imageResOnline: Int, imageResOffline: Int) {
+    private fun isUserOnline(
+        user: User,
+        imageView: ImageView,
+        imageResOnline: Int,
+        imageResOffline: Int
+    ) {
         val timeHandler = Handler(getMainLooper())
         val tenMinutes: Long = 10 * 60 * 1000
         val loggedIn = user.loggedIn
-        timeHandler.post(object: Runnable{
+        timeHandler.post(object : Runnable {
             override fun run() {
                 val currentTime = System.currentTimeMillis() - (loggedIn?.seconds?.times(1000) ?: 0)
                 if (currentTime < tenMinutes) {

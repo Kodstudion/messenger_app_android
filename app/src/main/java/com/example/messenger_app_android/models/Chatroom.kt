@@ -9,11 +9,12 @@ data class Chatroom(
     @DocumentId var documentId: String = "",
     var participants: MutableList<String>? = null,
     var recentMessage: String? = null,
-    var nameOfChat: String? = null,
+    var chatroomTitle: String? = null,
     val chatroomPicture: Int? = null,
     var participantsNames: HashMap<String, String>? = null,
     var lastUpdated: com.google.firebase.Timestamp? = null,
     var sender: String? = null,
     var postIsSeen: HashMap<String, Boolean>? = null,
     val deviceTokens: HashMap<String, String>? = null,
+    var typing: HashMap<String, Boolean>? = null,
 )

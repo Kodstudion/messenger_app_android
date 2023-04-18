@@ -22,7 +22,6 @@ class ChatFragmentViewModel() : ViewModel() {
     private var usersView: ChatFragmentUsersView? = null
     private val db = Firebase.firestore
     private val auth = Firebase.auth
-
     private lateinit var userAdapter: UserAdapter
 
     fun attachChatrooms(chatroomsChatFragmentView: ChatFragmentChatroomsView) {
@@ -50,7 +49,7 @@ class ChatFragmentViewModel() : ViewModel() {
                             if (chatroom != null) {
                                 chatroom.participantsNames?.forEach { entry ->
                                     if (entry.key != auth.currentUser?.uid) {
-                                        chatroom.nameOfChat = entry.value
+                                        chatroom.chatroomTitle = entry.value
                                         chatroom.sender = "You:"
                                     }
                                 }

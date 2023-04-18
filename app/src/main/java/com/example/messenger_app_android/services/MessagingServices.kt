@@ -5,10 +5,17 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Build
+import android.os.Message
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.example.messenger_app_android.R
+import com.example.messenger_app_android.activities.HomeActivity
+import com.example.messenger_app_android.activities.LoginActivity
 import com.example.messenger_app_android.fragments.ChatFragment
+import com.example.messenger_app_android.fragments.ChatRoomFragment
+import com.google.firebase.database.core.utilities.Utilities
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import java.util.*
@@ -34,7 +41,10 @@ class MessagingServices : FirebaseMessagingService() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onMessageReceived(message: RemoteMessage) {
         super.onMessageReceived(message)
-        val intent = Intent(this, ChatFragment::class.java)
+        val intent = Intent(this, HomeActivity::class.java)
+        intent.putExtra("documentId", message.data["documentId"])
+        intent.putExtra("chatroomTitle", message.data["chatroomTitle"])
+
         val notificationManager =
             getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val notificationID = UUID.randomUUID().hashCode()

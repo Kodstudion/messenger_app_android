@@ -12,16 +12,21 @@ import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 
-class ChatroomFragmentViewModel(private val documentId: String) : ViewModel() {
+class ChatroomFragmentViewModel : ViewModel() {
     val TAG = "!!!"
     private var chatroomView: ChatroomFragmentChatroomView? = null
     private val db = Firebase.firestore
     private val auth = FirebaseAuth.getInstance()
 
+    lateinit var documentId: String
+
     fun attachChatroom(chatroomFragmentChatroomView: ChatroomFragmentChatroomView) {
         chatroomView = chatroomFragmentChatroomView
         listenForPostUpdates()
     }
+
+
+
     fun updateResentMessageText(resentMessage: String) {
         val recentMessageDocRef = db.collection("chatrooms").document(documentId)
         recentMessageDocRef.get().addOnSuccessListener { document ->
@@ -65,10 +70,10 @@ class ChatroomFragmentViewModel(private val documentId: String) : ViewModel() {
     }
 }
 
-class ChatroomFragmentViewModelFactory(private val documentId: String) : ViewModelProvider.Factory {
+class ChatroomFragmentViewModelFactory : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(ChatroomFragmentViewModel::class.java)) {
-            return ChatroomFragmentViewModel(documentId) as T
+            return ChatroomFragmentViewModel() as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
