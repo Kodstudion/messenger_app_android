@@ -18,9 +18,12 @@ import com.example.messenger_app_android.activities.HomeActivity
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import androidx.core.app.RemoteInput
-import androidx.core.content.ContextCompat
-import androidx.core.content.ContextCompat.getSystemService
+import com.example.messenger_app_android.adapters.PostType
+import com.example.messenger_app_android.models.Post
 import com.example.messenger_app_android.services.constants.StringConstants
+import com.google.firebase.Timestamp
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import java.util.*
 
 
@@ -46,8 +49,9 @@ class MessagingServices : FirebaseMessagingService() {
     override fun onMessageReceived(message: RemoteMessage) {
         super.onMessageReceived(message)
         val intent = Intent(this, HomeActivity::class.java)
-        intent.putExtra("documentId", message.data["documentId"])
-        intent.putExtra("chatroomTitle", message.data["chatroomTitle"])
+        intent.putExtra(StringConstants.DOCUMENT_ID, message.data["documentId"])
+        intent.putExtra(StringConstants.CHATROOM_TITLE, message.data["chatroomTitle"])
+
 
         val notificationManager =
             getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -73,8 +77,9 @@ class MessagingServices : FirebaseMessagingService() {
 
         val replyReceiver = Intent(this, ReplyBroadcastReceiver::class.java).apply {
             action = "Reply action"
-            putExtra("noticeId", notificationID)
+            putExtra(StringConstants.NOTICICATION_ID, notificationID)
             putExtra(StringConstants.CHATROOM_TITLE, message.data["chatroomTitle"])
+            putExtra(StringConstants.DOCUMENT_ID, message.data["documentId"])
         }
 
         val replyPendingIntent: PendingIntent = PendingIntent.getBroadcast(
@@ -125,14 +130,14 @@ class MessagingServices : FirebaseMessagingService() {
     }
 }
 
+
 class ReplyBroadcastReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
-        val notificationId = intent?.getIntExtra("noticeId", 0) ?: return
-        val chatroomTitle = intent.getStringExtra(StringConstants.CHATROOM_TITLE) ?: return
-        val messageText = getMessageText(intent) ?: return
-        Log.d(TAG, "onReceive: $messageText")
-
-        val notificationManager = context?.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val notificationId = intent?.getIntExtra(StringConstants.NOTICICATION_ID, 0)
+        val chatroomTitle = intent?.getStringExtra(StringConstants.CHATROOM_TITLE)
+        val documentId = intent?.getStringExtra(StringConstants.DOCUMENT_ID)
+        val notificationManager =
+            context?.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         val repliedNotification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setContentTitle("Replied")
@@ -150,9 +155,43 @@ class ReplyBroadcastReceiver : BroadcastReceiver() {
             ) {
                 return
             }
-            notify(notificationId, repliedNotification)
+            notify(notificationId ?: 0, repliedNotification)
+
+            val auth = FirebaseAuth.getInstance()
+            val messageText = intent?.let { getMessageText(it) } ?: return
+            val timestamp = Timestamp.now()
+            val pushNotice = Post(
+                auth.currentUser?.uid,
+                messageText.toString(),
+                auth.currentUser?.displayName,
+                chatroomTitle,
+                messageText.toString(),
+                PostType.SENT,
+                timestamp
+            )
+            setPushNotice(pushNotice, documentId ?: "", messageText)
         }
     }
+
+    private fun setPushNotice(post: Post, documentId: String, messageText: CharSequence) {
+        val db = FirebaseFirestore.getInstance()
+        val auth = FirebaseAuth.getInstance()
+
+        val sent = Post(
+            auth.currentUser?.uid,
+            messageText.toString(),
+            post.fromUser,
+            post.toUser,
+            post.postBody,
+            PostType.SENT,
+            post.timestamp,
+        )
+
+        val chatroomDocRef =
+            db.collection("chatrooms").document(documentId).collection("posts").document()
+        chatroomDocRef.set(sent)
+    }
+
     private fun getMessageText(intent: Intent): CharSequence? {
         val remoteInput = RemoteInput.getResultsFromIntent(intent)
         return remoteInput?.getCharSequence(KEY_TEXT_REPLY)
