@@ -100,20 +100,13 @@ class MessagingServices : FirebaseMessagingService() {
         val messagingStyle = NotificationCompat.MessagingStyle(StringConstants.FROM_USER)
             .setConversationTitle(message.data[StringConstants.FROM_USER]).setGroupConversation(true)
 
-        val pushMessage1 = NotificationCompat.MessagingStyle.Message(
+        val pushMessage = NotificationCompat.MessagingStyle.Message(
             message.data["body"],
             message.sentTime,
             message.data["fromUser"]
         )
 
-//        val pushMessage2 = NotificationCompat.MessagingStyle.Message(
-//            message.data["body"],
-//            message.sentTime,
-//            message.data["fromUser"]
-//        )
-
-        messagingStyle.addMessage(pushMessage1)
-//        messagingStyle.addMessage(pushMessage2)
+        messagingStyle.addMessage(pushMessage)
 
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_baseline_email_24)
@@ -159,6 +152,30 @@ class ReplyBroadcastReceiver : BroadcastReceiver() {
         notificationManager =
             context?.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
+        val remoteInputResult: CharSequence? = RemoteInput.getResultsFromIntent(intent ?: return)?.getCharSequence(
+            KEY_TEXT_REPLY)
+
+        val replyMessage = NotificationCompat.MessagingStyle.Message(
+            remoteInputResult,
+            System.currentTimeMillis(),
+            "You: ",
+        )
+
+
+        val messagingStyle = NotificationCompat.MessagingStyle("You: ").addMessage(replyMessage)
+
+
+        val newMessageNotification = NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_baseline_email_24)
+            .setContentTitle("Reply")
+            .setContentText("Message sent")
+            .setAutoCancel(true)
+            .setStyle(messagingStyle)
+            .setGroup(chatroomTitle)
+            .build()
+
+        notificationManager.notify(notificationId ?: return, newMessageNotification)
+
         val repliedNotification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setContentTitle("Reply")
             .setContentText("Message sent")
@@ -175,7 +192,7 @@ class ReplyBroadcastReceiver : BroadcastReceiver() {
             ) {
                 return
             }
-            notify(notificationId ?: return, repliedNotification)
+//            notify(notificationId ?: return, repliedNotification)
 
             val auth = FirebaseAuth.getInstance()
             val messageText = getMessageText(intent)
