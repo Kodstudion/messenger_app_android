@@ -50,6 +50,7 @@ class MessagingServices : FirebaseMessagingService() {
         val intent = Intent(this, HomeActivity::class.java)
         intent.putExtra(StringConstants.DOCUMENT_ID, message.data["documentId"])
         intent.putExtra(StringConstants.CHATROOM_TITLE, message.data["chatroomTitle"])
+        intent.putExtra(StringConstants.FROM_USER, message.data["fromUser"])
 
 
         val notificationManager =
@@ -76,7 +77,7 @@ class MessagingServices : FirebaseMessagingService() {
 
         val replyReceiver = Intent(this, ReplyBroadcastReceiver::class.java).apply {
             action = "Reply action"
-            putExtra(StringConstants.NOTICICATION_ID, notificationID)
+            putExtra(StringConstants.NOTIFICATION_ID, notificationID)
             putExtra(StringConstants.CHATROOM_TITLE, message.data["chatroomTitle"])
             putExtra(StringConstants.DOCUMENT_ID, message.data["documentId"])
         }
@@ -91,21 +92,39 @@ class MessagingServices : FirebaseMessagingService() {
         val action = NotificationCompat.Action.Builder(
             R.drawable.ic_baseline_email_24,
             "Reply",
-            replyPendingIntent
+            replyPendingIntent,
         )
             .addRemoteInput(remoteInput)
             .build()
 
+        val messagingStyle = NotificationCompat.MessagingStyle(StringConstants.FROM_USER)
+            .setConversationTitle(message.data[StringConstants.FROM_USER]).setGroupConversation(true)
+
+        val pushMessage1 = NotificationCompat.MessagingStyle.Message(
+            message.data["body"],
+            message.sentTime,
+            message.data["fromUser"]
+        )
+
+//        val pushMessage2 = NotificationCompat.MessagingStyle.Message(
+//            message.data["body"],
+//            message.sentTime,
+//            message.data["fromUser"]
+//        )
+
+        messagingStyle.addMessage(pushMessage1)
+//        messagingStyle.addMessage(pushMessage2)
+
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle(message.data["title"])
-            .setContentText(message.data["body"])
             .setSmallIcon(R.drawable.ic_baseline_email_24)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
             .addAction(action)
+            .setStyle(messagingStyle)
+            .setGroup(message.data["chatroomTitle"])
             .build()
 
-        notificationManager.notify(1234, notification)
+        notificationManager.notify(notificationID, notification)
     }
 
     override fun onNewToken(newToken: String) {
@@ -131,14 +150,18 @@ class MessagingServices : FirebaseMessagingService() {
 
 
 class ReplyBroadcastReceiver : BroadcastReceiver() {
+
+    private lateinit var notificationManager: NotificationManager
     override fun onReceive(context: Context?, intent: Intent?) {
-        val notificationId = intent?.getIntExtra(StringConstants.NOTICICATION_ID, 0)
+        val notificationId = intent?.getIntExtra(StringConstants.NOTIFICATION_ID, 0)
         val chatroomTitle = intent?.getStringExtra(StringConstants.CHATROOM_TITLE)
         val documentId = intent?.getStringExtra(StringConstants.DOCUMENT_ID)
-        val notificationManager =
+        notificationManager =
             context?.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         val repliedNotification = NotificationCompat.Builder(context, CHANNEL_ID)
+            .setContentTitle("Reply")
+            .setContentText("Message sent")
             .setSmallIcon(R.drawable.ic_baseline_email_24)
             .setAutoCancel(true)
             .build()
@@ -154,8 +177,6 @@ class ReplyBroadcastReceiver : BroadcastReceiver() {
             }
             notify(notificationId ?: return, repliedNotification)
 
-
-
             val auth = FirebaseAuth.getInstance()
             val messageText = getMessageText(intent)
             val timestamp = Timestamp.now()
@@ -169,7 +190,6 @@ class ReplyBroadcastReceiver : BroadcastReceiver() {
                 timestamp
             )
             setSentPushNotice(pushNotice, documentId ?: return, messageText ?: return)
-            notificationManager.cancelAll()
         }
     }
 

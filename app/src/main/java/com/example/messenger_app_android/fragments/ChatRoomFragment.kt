@@ -114,7 +114,7 @@ class ChatRoomFragment : Fragment(),
                 updateUserStatus(timestamp)
                 updateChatroomLastUpdate(timestamp)
                 PushNotification(
-                    NotificationData(auth.currentUser?.displayName ?: "", postBody, documentId, chatroomTitle),
+                    NotificationData(auth.currentUser?.displayName ?: "", postBody, documentId, chatroomTitle,auth.currentUser?.displayName ?: ""),
                     ""
                 ).also {
                     sendPushNotification(it, chatroom)
