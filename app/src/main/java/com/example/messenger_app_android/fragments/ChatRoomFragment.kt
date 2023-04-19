@@ -274,7 +274,16 @@ class ChatRoomFragment : Fragment(),
     }
 
     private fun isTyping(chatroom: Chatroom, documentId: String) {
-
+        val isTpyingDocRef = db.collection("chatrooms").document(documentId)
+        isTpyingDocRef.get().addOnSuccessListener { document ->
+            if (document != null) {
+                chatroom.typing?.forEach { entry ->
+                    if (entry.key != auth.currentUser?.uid) {
+                        isTpyingDocRef.update("typing", hashMapOf(entry.key to true))
+                    }
+                }
+            }
+        }
     }
 }
 

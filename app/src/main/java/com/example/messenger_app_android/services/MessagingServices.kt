@@ -139,8 +139,6 @@ class ReplyBroadcastReceiver : BroadcastReceiver() {
             context?.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         val repliedNotification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setContentTitle("Replied")
-            .setContentText("To: $chatroomTitle")
             .setSmallIcon(R.drawable.ic_baseline_email_24)
             .setAutoCancel(true)
             .build()
@@ -156,6 +154,8 @@ class ReplyBroadcastReceiver : BroadcastReceiver() {
             }
             notify(notificationId ?: return, repliedNotification)
 
+
+
             val auth = FirebaseAuth.getInstance()
             val messageText = getMessageText(intent)
             val timestamp = Timestamp.now()
@@ -169,6 +169,7 @@ class ReplyBroadcastReceiver : BroadcastReceiver() {
                 timestamp
             )
             setSentPushNotice(pushNotice, documentId ?: return, messageText ?: return)
+            notificationManager.cancelAll()
         }
     }
 
