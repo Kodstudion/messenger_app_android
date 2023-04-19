@@ -46,6 +46,7 @@ class ChatRoomFragment : Fragment(),
     private lateinit var chatroomFragmentViewModel: ChatroomFragmentViewModel
     private lateinit var chatroomTitle: String
     private lateinit var documentId: String
+    private lateinit var chatroom: Chatroom
 
     val TAG = "!!!"
     override fun onCreateView(
@@ -83,14 +84,9 @@ class ChatRoomFragment : Fragment(),
         val utilities = Utilities();
         val fragmentManager = requireActivity().supportFragmentManager
 
-
-        var chatroom = Chatroom()
-        val getChatroom = db.collection("chatrooms").document(documentId)
-        getChatroom.get().addOnCompleteListener { task ->
-            val document = task.result
-            if (document != null) {
-                chatroom = document.toObject(Chatroom::class.java) ?: return@addOnCompleteListener
-                //TODO Set up UI
+        getChatroom(documentId) { chatroomCallbackResult ->
+            if (chatroomCallbackResult != null) {
+                chatroom = chatroomCallbackResult
             }
         }
 
@@ -263,7 +259,26 @@ class ChatRoomFragment : Fragment(),
             }
         }
     }
+    private fun getChatroom(documentId: String, callback: (Chatroom?) -> Unit) {
+        val chatroomDocRef = db.collection("chatrooms").document(documentId)
+        chatroomDocRef.addSnapshotListener { snapshot, _ ->
+            snapshot?.let { querySnapshot ->
+                try {
+                    val chatroom = querySnapshot.toObject(Chatroom::class.java)
+                    callback(chatroom)
+                } catch (e: Exception) {
+                    Log.e(TAG, e.toString())
+                }
+            }
+        }
+    }
+
+    private fun isTyping(chatroom: Chatroom, documentId: String) {
+
+    }
 }
+
+
 
 
 

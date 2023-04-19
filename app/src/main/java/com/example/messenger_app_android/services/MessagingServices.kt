@@ -8,7 +8,6 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
@@ -155,10 +154,10 @@ class ReplyBroadcastReceiver : BroadcastReceiver() {
             ) {
                 return
             }
-            notify(notificationId ?: 0, repliedNotification)
+            notify(notificationId ?: return, repliedNotification)
 
             val auth = FirebaseAuth.getInstance()
-            val messageText = intent?.let { getMessageText(it) } ?: return
+            val messageText = getMessageText(intent)
             val timestamp = Timestamp.now()
             val pushNotice = Post(
                 auth.currentUser?.uid,
@@ -169,11 +168,11 @@ class ReplyBroadcastReceiver : BroadcastReceiver() {
                 PostType.SENT,
                 timestamp
             )
-            setPushNotice(pushNotice, documentId ?: "", messageText)
+            setSentPushNotice(pushNotice, documentId ?: return, messageText ?: return)
         }
     }
 
-    private fun setPushNotice(post: Post, documentId: String, messageText: CharSequence) {
+    private fun setSentPushNotice(post: Post, documentId: String, messageText: CharSequence) {
         val db = FirebaseFirestore.getInstance()
         val auth = FirebaseAuth.getInstance()
 
@@ -184,14 +183,14 @@ class ReplyBroadcastReceiver : BroadcastReceiver() {
             post.toUser,
             post.postBody,
             PostType.SENT,
-            post.timestamp,
+            post.timestamp
+
         )
 
-        val chatroomDocRef =
+        val pushNoticeDocRef =
             db.collection("chatrooms").document(documentId).collection("posts").document()
-        chatroomDocRef.set(sent)
+        pushNoticeDocRef.set(sent)
     }
-
     private fun getMessageText(intent: Intent): CharSequence? {
         val remoteInput = RemoteInput.getResultsFromIntent(intent)
         return remoteInput?.getCharSequence(KEY_TEXT_REPLY)
