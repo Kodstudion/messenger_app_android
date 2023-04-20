@@ -59,25 +59,25 @@ class MessagingServices : FirebaseMessagingService() {
         intent.putExtra(StringConstants.CHATROOM_TITLE, message.data["chatroomTitle"])
         intent.putExtra(StringConstants.FROM_USER, message.data["fromUser"])
 
-        val replyReceiver = Intent(this, ReplyBroadcastReceiver::class.java).apply {
-            action = "Reply action"
-            putExtra(StringConstants.NOTIFICATION_ID, 123)
-            putExtra(StringConstants.CHATROOM_TITLE, message.data["chatroomTitle"])
-            putExtra(StringConstants.DOCUMENT_ID, message.data["documentId"])
-        }
-
-        val replyPendingIntent: PendingIntent = PendingIntent.getBroadcast(
-            this,
-            0,
-            replyReceiver,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
-        )
-
-        val action = NotificationCompat.Action.Builder(
-            R.drawable.ic_baseline_email_24,
-            "Reply",
-            replyPendingIntent,
-        )
+//        val replyReceiver = Intent(this, ReplyBroadcastReceiver::class.java).apply {
+//            action = "Reply action"
+//            putExtra(StringConstants.NOTIFICATION_ID, 123)
+//            putExtra(StringConstants.CHATROOM_TITLE, message.data["chatroomTitle"])
+//            putExtra(StringConstants.DOCUMENT_ID, message.data["documentId"])
+//        }
+//
+//        val replyPendingIntent: PendingIntent = PendingIntent.getBroadcast(
+//            this,
+//            0,
+//            replyReceiver,
+//            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
+//        )
+//
+//        val action = NotificationCompat.Action.Builder(
+//            R.drawable.ic_baseline_email_24,
+//            "Reply",
+//            replyPendingIntent,
+//        )
     }
     override fun onNewToken(newToken: String) {
         super.onNewToken(newToken)
@@ -91,7 +91,6 @@ class ReplyBroadcastReceiver : BroadcastReceiver() {
         val chatroomTitle = intent?.getStringExtra(StringConstants.CHATROOM_TITLE)
         val documentId = intent?.getStringExtra(StringConstants.DOCUMENT_ID)
         val auth = FirebaseAuth.getInstance()
-
 
         val remoteInputResult = getMessageText(intent ?: return)
 
@@ -128,7 +127,6 @@ private fun setSentPushNotice(post: Post, documentId: String, messageText: CharS
         post.postBody,
         PostType.SENT,
         post.timestamp
-
     )
 
     val pushNoticeDocRef =

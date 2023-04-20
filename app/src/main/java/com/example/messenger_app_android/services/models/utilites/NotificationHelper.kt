@@ -54,12 +54,7 @@ object NotificationHelper {
             .setAutoCancel(true)
             .setContentIntent(getPendingIntent(context, chatroomId))
             .addAction(
-                NotificationCompat.Action.Builder(
-                    R.drawable.ic_baseline_email_24,
-                    "Reply",
-                    getReplyPendingIntent(context, chatroomId)
-
-                )
+                getReplyPendingIntent(context, chatroomId)
                     .addRemoteInput(remoteInput)
                     .build()
             )
@@ -70,20 +65,48 @@ object NotificationHelper {
         notificationManager.notify(NOTIFICATION_ID, notification)
     }
 
-    private fun getReplyPendingIntent(context: Context, documentId: String): PendingIntent? {
+    private fun getReplyPendingIntent(
+        context: Context,
+        documentId: String
+    ): NotificationCompat.Action.Builder {
         val replyReceiver = Intent(context, ReplyBroadcastReceiver::class.java).apply {
             action = "Reply action"
             //putExtra(StringConstants.CHATROOM_TITLE, message.data["chatroomTitle"])
             putExtra(StringConstants.DOCUMENT_ID, documentId)
         }
-
-        return PendingIntent.getBroadcast(
+        val replyPendingIntent: PendingIntent = PendingIntent.getBroadcast(
             context,
             0,
             replyReceiver,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
         )
+        return NotificationCompat.Action.Builder(
+            R.drawable.ic_baseline_email_24,
+            "Reply",
+            replyPendingIntent,
+        )
     }
+
+//    val replyReceiver = Intent(this, ReplyBroadcastReceiver::class.java).apply {
+//        action = "Reply action"
+//        putExtra(StringConstants.NOTIFICATION_ID, 123)
+//        putExtra(StringConstants.CHATROOM_TITLE, message.data["chatroomTitle"])
+//        putExtra(StringConstants.DOCUMENT_ID, message.data["documentId"])
+//    }
+//
+//    val replyPendingIntent: PendingIntent = PendingIntent.getBroadcast(
+//        this,
+//        0,
+//        replyReceiver,
+//        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
+//    )
+//
+//    val action = NotificationCompat.Action.Builder(
+//        R.drawable.ic_baseline_email_24,
+//        "Reply",
+//        replyPendingIntent,
+//    )
+
 
     private fun getPendingIntent(context: Context, documentId: String): PendingIntent? {
         val intent = Intent(context, HomeActivity::class.java)
