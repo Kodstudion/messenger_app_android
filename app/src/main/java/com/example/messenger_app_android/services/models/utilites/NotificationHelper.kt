@@ -23,18 +23,18 @@ object NotificationHelper {
 
     private val messages = mutableListOf<NotificationCompat.MessagingStyle.Message>()
 
-    fun showMessage(context: Context, message: String, from: String, chatroomId: String) {
+    fun showMessage(context: Context, message: String, fromUser: String, documentId: String, chatroomTitle: String) {
         val notificationMessage = NotificationCompat.MessagingStyle.Message(
             message,
             System.currentTimeMillis(),
-            from
+            fromUser
         )
         messages.add(notificationMessage)
 
-        showNotification(context, chatroomId)
+        showNotification(context, documentId, chatroomTitle)
     }
 
-    private fun showNotification(context: Context, chatroomId: String) {
+    private fun showNotification(context: Context, chatroomId: String, chatroomTitle: String) {
         val notificationManager =
             context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -52,7 +52,7 @@ object NotificationHelper {
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_baseline_email_24)
             .setAutoCancel(true)
-            .setContentIntent(getPendingIntent(context, chatroomId))
+            .setContentIntent(getPendingIntent(context, chatroomId,chatroomTitle ))
             .addAction(
                 getReplyPendingIntent(context, chatroomId)
                     .addRemoteInput(remoteInput)
@@ -86,32 +86,10 @@ object NotificationHelper {
             replyPendingIntent,
         )
     }
-
-//    val replyReceiver = Intent(this, ReplyBroadcastReceiver::class.java).apply {
-//        action = "Reply action"
-//        putExtra(StringConstants.NOTIFICATION_ID, 123)
-//        putExtra(StringConstants.CHATROOM_TITLE, message.data["chatroomTitle"])
-//        putExtra(StringConstants.DOCUMENT_ID, message.data["documentId"])
-//    }
-//
-//    val replyPendingIntent: PendingIntent = PendingIntent.getBroadcast(
-//        this,
-//        0,
-//        replyReceiver,
-//        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
-//    )
-//
-//    val action = NotificationCompat.Action.Builder(
-//        R.drawable.ic_baseline_email_24,
-//        "Reply",
-//        replyPendingIntent,
-//    )
-
-
-    private fun getPendingIntent(context: Context, documentId: String): PendingIntent? {
+    private fun getPendingIntent(context: Context, documentId: String, chatroomTitle: String): PendingIntent? {
         val intent = Intent(context, HomeActivity::class.java)
         intent.putExtra(StringConstants.DOCUMENT_ID, documentId)
-//        intent.putExtra(StringConstants.CHATROOM_TITLE, message.data["chatroomTitle"])
+        intent.putExtra(StringConstants.CHATROOM_TITLE, chatroomTitle)
 //        intent.putExtra(StringConstants.FROM_USER, message.data["fromUser"])
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
 

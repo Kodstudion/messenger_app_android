@@ -20,12 +20,18 @@ import com.google.firebase.messaging.RemoteMessage
 import androidx.core.app.RemoteInput
 import com.example.messenger_app_android.adapters.PostType
 import com.example.messenger_app_android.models.Post
+import com.example.messenger_app_android.services.MessagingServices.Companion.token
 import com.example.messenger_app_android.services.constants.StringConstants
 import com.example.messenger_app_android.services.models.NotificationData
+import com.example.messenger_app_android.services.models.PushNotification
 import com.example.messenger_app_android.services.models.utilites.NotificationHelper
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.gson.Gson
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.util.*
 
 
@@ -51,8 +57,9 @@ class MessagingServices : FirebaseMessagingService() {
         NotificationHelper.showMessage(
             this,
             message.data["body"] ?: "",
-            message.data["from"] ?: "",
-            message.data["chatroomId"] ?: ""
+            message.data["fromUser"] ?: "",
+            message.data["documentId"] ?: "",
+            message.data["chatroomTitle"] ?: ""
         )
         val intent = Intent(this, HomeActivity::class.java)
         intent.putExtra(StringConstants.DOCUMENT_ID, message.data["documentId"])
@@ -79,6 +86,7 @@ class MessagingServices : FirebaseMessagingService() {
 //            replyPendingIntent,
 //        )
     }
+
     override fun onNewToken(newToken: String) {
         super.onNewToken(newToken)
         token = newToken
@@ -98,7 +106,8 @@ class ReplyBroadcastReceiver : BroadcastReceiver() {
             context,
             remoteInputResult.toString(),
             chatroomTitle ?: "",
-            documentId ?: ""
+            documentId ?: "",
+            chatroomTitle ?: ""
         )
 
         val timestamp = Timestamp.now()
@@ -111,7 +120,34 @@ class ReplyBroadcastReceiver : BroadcastReceiver() {
             PostType.SENT,
             timestamp
         )
-        setSentPushNotice(pushNotice, documentId ?: return, remoteInputResult.toString())
+        setSentPushNotice(pushNotice, documentId ?: return, remoteInputResult.toString()).apply {
+            PushNotification(
+                NotificationData(
+                    chatroomTitle ?: "",
+                    remoteInputResult.toString(),
+                    auth.currentUser?.displayName.toString(),
+                    documentId,
+                    auth.currentUser?.displayName.toString()),""
+            ).also {
+                sendPush(it)
+            }
+        }
+    }
+}
+
+private fun sendPush(pushNotification: PushNotification) = CoroutineScope(Dispatchers.IO).launch {
+    try {
+        pushNotification.to = token ?: return@launch
+
+        val response = RetrofitInstance.api.postNotification(pushNotification)
+        if (response.isSuccessful) {
+            Log.d(TAG, "Response: ${Gson().toJson(response)}")
+        } else {
+            Log.e(TAG, response.errorBody().toString())
+        }
+
+    } catch (e: Exception) {
+        Log.e(TAG, "sendPush: $e")
     }
 }
 

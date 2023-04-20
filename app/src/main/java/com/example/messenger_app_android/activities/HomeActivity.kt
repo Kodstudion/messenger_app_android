@@ -1,6 +1,7 @@
 package com.example.messenger_app_android.activities
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import com.example.messenger_app_android.R
 import com.example.messenger_app_android.databinding.ActivityHomeBinding
 import com.example.messenger_app_android.fragments.ChatFragment
@@ -60,6 +61,7 @@ class HomeActivity : AppCompatActivity() {
                     putString(StringConstants.CHATROOM_TITLE, chatroomTitle)
                 }
             }
+            Log.d(TAG, "loadFragmentFromPushNotice: $chatroomTitle")
             utilities.loadFragment(chatroomFragment, supportFragmentManager)
         } else {
             utilities.loadFragment(ChatFragment(), supportFragmentManager)
