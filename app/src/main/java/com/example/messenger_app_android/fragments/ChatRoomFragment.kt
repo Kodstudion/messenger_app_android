@@ -11,7 +11,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.messenger_app_android.R
 import com.example.messenger_app_android.adapters.PostAdapter
-import com.example.messenger_app_android.adapters.PostType
 import com.example.messenger_app_android.databinding.FragmentChatRoomBinding
 import com.example.messenger_app_android.models.Chatroom
 import com.example.messenger_app_android.models.Post
@@ -118,7 +117,9 @@ class ChatRoomFragment : Fragment(),
                         postBody,
                         documentId,
                         chatroomTitle,
-                        auth.currentUser?.displayName ?: ""
+                        auth.currentUser?.displayName ?: "",
+                        getOtherParticipantDeviceToken(chatroom)
+
                     ),
                     ""
                 ).also {
@@ -244,6 +245,17 @@ class ChatRoomFragment : Fragment(),
         }
     }
 
+    private fun getOtherParticipantDeviceToken(chatroom: Chatroom) : String {
+        var otherParticipantDeviceToken = ""
+        chatroom.deviceTokens?.forEach { entry ->
+            if (entry.key != auth.currentUser?.uid) {
+                otherParticipantDeviceToken = entry.value
+            }
+        }
+        Log.d(TAG, "getOtherParticipantDeviceToken: $otherParticipantDeviceToken")
+        return otherParticipantDeviceToken
+    }
+
     private fun getChatroom(documentId: String, callback: (Chatroom?) -> Unit) {
         val chatroomDocRef = db.collection("chatrooms").document(documentId)
         chatroomDocRef.addSnapshotListener { snapshot, _ ->
@@ -259,12 +271,12 @@ class ChatRoomFragment : Fragment(),
     }
 
     private fun isTyping(chatroom: Chatroom, documentId: String) {
-        val isTpyingDocRef = db.collection("chatrooms").document(documentId)
-        isTpyingDocRef.get().addOnSuccessListener { document ->
+        val isTypingDocRef = db.collection("chatrooms").document(documentId)
+        isTypingDocRef.get().addOnSuccessListener { document ->
             if (document != null) {
                 chatroom.typing?.forEach { entry ->
                     if (entry.key != auth.currentUser?.uid) {
-                        isTpyingDocRef.update("typing", hashMapOf(entry.key to true))
+                        isTypingDocRef.update("typing", hashMapOf(entry.key to true))
                     }
                 }
             }

@@ -19,6 +19,7 @@ import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import androidx.core.app.RemoteInput
 import com.example.messenger_app_android.adapters.PostType
+import com.example.messenger_app_android.models.Chatroom
 import com.example.messenger_app_android.models.Post
 import com.example.messenger_app_android.services.MessagingServices.Companion.token
 import com.example.messenger_app_android.services.constants.StringConstants
@@ -65,26 +66,8 @@ class MessagingServices : FirebaseMessagingService() {
         intent.putExtra(StringConstants.DOCUMENT_ID, message.data["documentId"])
         intent.putExtra(StringConstants.CHATROOM_TITLE, message.data["chatroomTitle"])
         intent.putExtra(StringConstants.FROM_USER, message.data["fromUser"])
+        intent.putExtra("token", message.data["token"])
 
-//        val replyReceiver = Intent(this, ReplyBroadcastReceiver::class.java).apply {
-//            action = "Reply action"
-//            putExtra(StringConstants.NOTIFICATION_ID, 123)
-//            putExtra(StringConstants.CHATROOM_TITLE, message.data["chatroomTitle"])
-//            putExtra(StringConstants.DOCUMENT_ID, message.data["documentId"])
-//        }
-//
-//        val replyPendingIntent: PendingIntent = PendingIntent.getBroadcast(
-//            this,
-//            0,
-//            replyReceiver,
-//            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
-//        )
-//
-//        val action = NotificationCompat.Action.Builder(
-//            R.drawable.ic_baseline_email_24,
-//            "Reply",
-//            replyPendingIntent,
-//        )
     }
 
     override fun onNewToken(newToken: String) {
@@ -98,6 +81,7 @@ class ReplyBroadcastReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
         val chatroomTitle = intent?.getStringExtra(StringConstants.CHATROOM_TITLE)
         val documentId = intent?.getStringExtra(StringConstants.DOCUMENT_ID)
+        val token = intent?.getStringExtra("token")
         val auth = FirebaseAuth.getInstance()
 
         val remoteInputResult = getMessageText(intent ?: return)
@@ -127,7 +111,8 @@ class ReplyBroadcastReceiver : BroadcastReceiver() {
                 remoteInputResult.toString(),
                 auth.currentUser?.displayName.toString(),
                 documentId,
-                auth.currentUser?.displayName.toString()
+                auth.currentUser?.displayName.toString(),
+                token ?: ""
             ), ""
         ).also {
             sendPush(it)
@@ -139,6 +124,7 @@ private fun sendPush(pushNotification: PushNotification) =
     CoroutineScope(Dispatchers.IO).launch {
         try {
             pushNotification.to = token ?: return@launch
+            Log.d(TAG, "sendPush: ${pushNotification.to}")
 
             val response = RetrofitInstance.api.postNotification(pushNotification)
             if (response.isSuccessful) {
