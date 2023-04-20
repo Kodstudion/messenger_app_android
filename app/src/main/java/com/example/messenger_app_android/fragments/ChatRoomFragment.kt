@@ -91,7 +91,7 @@ class ChatRoomFragment : Fragment(),
         }
 
         binding.toolbarTitleChatroom.text = chatroomTitle
-        
+
         binding.arrowLeftBack.setOnClickListener {
             utilities.loadFragment(ChatFragment(), fragmentManager)
         }
@@ -105,7 +105,6 @@ class ChatRoomFragment : Fragment(),
                 auth.currentUser?.displayName,
                 chatroomTitle,
                 postBody,
-                PostType.SENT,
                 timestamp,
             )
             if (postBody.isNotEmpty()) {
@@ -114,7 +113,13 @@ class ChatRoomFragment : Fragment(),
                 updateUserStatus(timestamp)
                 updateChatroomLastUpdate(timestamp)
                 PushNotification(
-                    NotificationData(auth.currentUser?.displayName ?: "", postBody, documentId, chatroomTitle,auth.currentUser?.displayName ?: ""),
+                    NotificationData(
+                        auth.currentUser?.displayName ?: "",
+                        postBody,
+                        documentId,
+                        chatroomTitle,
+                        auth.currentUser?.displayName ?: ""
+                    ),
                     ""
                 ).also {
                     sendPushNotification(it, chatroom)
@@ -126,7 +131,7 @@ class ChatRoomFragment : Fragment(),
             chatroomFragmentViewModel.updateResentMessageText(postBody)
         }
     }
-    
+
     override fun setPost(post: MutableList<Post>) {
         postAdapter.submitList(post)
         binding.chatConversationListAdapter.scrollToPosition(post.size - 1)
@@ -140,36 +145,15 @@ class ChatRoomFragment : Fragment(),
             post.fromUser,
             post.toUser,
             post.postBody,
-            PostType.SENT,
             post.timestamp,
         )
         val postDocRef =
             db.collection("chatrooms").document(documentId).collection("posts").document()
         postDocRef.set(sent).addOnSuccessListener {
-            setReceivedPost(post)
+
         }
             .addOnFailureListener {
                 Log.d(TAG, "writePost: Failed")
-            }
-    }
-
-    private fun setReceivedPost(post: Post) {
-        val received = Post(
-            auth.currentUser?.uid,
-            post.postBody,
-            post.fromUser,
-            post.toUser,
-            post.postBody,
-            PostType.RECEIVED,
-            post.timestamp,
-
-            )
-        val postDocRef =
-            db.collection("chatrooms").document(documentId).collection("posts").document()
-        postDocRef.set(received).addOnSuccessListener {
-        }
-            .addOnFailureListener {
-                Log.d(TAG, "received: Failed")
             }
     }
 
@@ -259,6 +243,7 @@ class ChatRoomFragment : Fragment(),
             }
         }
     }
+
     private fun getChatroom(documentId: String, callback: (Chatroom?) -> Unit) {
         val chatroomDocRef = db.collection("chatrooms").document(documentId)
         chatroomDocRef.addSnapshotListener { snapshot, _ ->

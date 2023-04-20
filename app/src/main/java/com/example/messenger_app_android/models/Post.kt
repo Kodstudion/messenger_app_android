@@ -1,6 +1,7 @@
 package com.example.messenger_app_android.models
 
 import com.example.messenger_app_android.adapters.PostType
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.IgnoreExtraProperties
 
 
@@ -11,6 +12,18 @@ data class Post(
     val fromUser: String? = null,
     val toUser: String? = null,
     val recentMessage: String? = null,
-    val postType: PostType? = null,
     val timestamp: com.google.firebase.Timestamp? = null,
-    )
+    ) {
+
+    fun getMessageType(): PostType {
+        val auth = FirebaseAuth.getInstance()
+        return if (userId == auth.currentUser?.uid) {
+            PostType.SENT
+        } else {
+            PostType.RECEIVED
+        }
+    }
+
+
+}
+

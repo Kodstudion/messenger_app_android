@@ -52,7 +52,7 @@ object NotificationHelper {
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_baseline_email_24)
             .setAutoCancel(true)
-            .setContentIntent(getPendingIntent(context, chatroomId,chatroomTitle ))
+            .setContentIntent(getPendingIntent(context, chatroomId, chatroomTitle ))
             .addAction(
                 getReplyPendingIntent(context, chatroomId)
                     .addRemoteInput(remoteInput)

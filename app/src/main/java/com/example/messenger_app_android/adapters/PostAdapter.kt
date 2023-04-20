@@ -73,10 +73,9 @@ class PostAdapter() : ListAdapter<Post, RecyclerView.ViewHolder> (PostDiffCallba
     }
 
     override fun getItemViewType(position: Int): Int {
-        return when (getItem(position).postType) {
+        return when (getItem(position).getMessageType()) {
             PostType.SENT -> 1
             PostType.RECEIVED -> 2
-            else -> 1
         }
     }
 }

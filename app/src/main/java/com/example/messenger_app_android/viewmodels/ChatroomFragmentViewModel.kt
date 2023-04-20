@@ -50,11 +50,8 @@ class ChatroomFragmentViewModel : ViewModel() {
                     val posts = mutableListOf<Post>()
                     querySnapshot.documents.forEach { document ->
                         val post = document.toObject(Post::class.java)
-                        if (post?.userId == auth.currentUser?.uid && post?.postType == PostType.SENT) {
-                            posts.add(post)
-                        }
-                        if (post?.userId != auth.currentUser?.uid && post?.postType == PostType.RECEIVED) {
-                            posts.add(post)
+                        post?.let {
+                            posts.add(it)
                         }
                     }
                     chatroomView?.setPost(posts)

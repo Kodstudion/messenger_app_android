@@ -117,39 +117,40 @@ class ReplyBroadcastReceiver : BroadcastReceiver() {
             auth.currentUser?.displayName,
             chatroomTitle,
             remoteInputResult.toString(),
-            PostType.SENT,
             timestamp
         )
-        setSentPushNotice(pushNotice, documentId ?: return, remoteInputResult.toString()).apply {
-            PushNotification(
-                NotificationData(
-                    chatroomTitle ?: "",
-                    remoteInputResult.toString(),
-                    auth.currentUser?.displayName.toString(),
-                    documentId,
-                    auth.currentUser?.displayName.toString()),""
-            ).also {
-                sendPush(it)
+        setSentPushNotice(pushNotice, documentId ?: return, remoteInputResult.toString())
+
+        PushNotification(
+            NotificationData(
+                chatroomTitle ?: "",
+                remoteInputResult.toString(),
+                auth.currentUser?.displayName.toString(),
+                documentId,
+                auth.currentUser?.displayName.toString()
+            ), ""
+        ).also {
+            sendPush(it)
+        }
+    }
+}
+
+private fun sendPush(pushNotification: PushNotification) =
+    CoroutineScope(Dispatchers.IO).launch {
+        try {
+            pushNotification.to = token ?: return@launch
+
+            val response = RetrofitInstance.api.postNotification(pushNotification)
+            if (response.isSuccessful) {
+                Log.d(TAG, "Response: ${Gson().toJson(response)}")
+            } else {
+                Log.e(TAG, response.errorBody().toString())
             }
+
+        } catch (e: Exception) {
+            Log.e(TAG, "sendPush: $e")
         }
     }
-}
-
-private fun sendPush(pushNotification: PushNotification) = CoroutineScope(Dispatchers.IO).launch {
-    try {
-        pushNotification.to = token ?: return@launch
-
-        val response = RetrofitInstance.api.postNotification(pushNotification)
-        if (response.isSuccessful) {
-            Log.d(TAG, "Response: ${Gson().toJson(response)}")
-        } else {
-            Log.e(TAG, response.errorBody().toString())
-        }
-
-    } catch (e: Exception) {
-        Log.e(TAG, "sendPush: $e")
-    }
-}
 
 private fun setSentPushNotice(post: Post, documentId: String, messageText: CharSequence) {
     val db = FirebaseFirestore.getInstance()
@@ -161,7 +162,6 @@ private fun setSentPushNotice(post: Post, documentId: String, messageText: CharS
         post.fromUser,
         post.toUser,
         post.postBody,
-        PostType.SENT,
         post.timestamp
     )
 
@@ -174,4 +174,5 @@ private fun getMessageText(intent: Intent): CharSequence? {
     val remoteInput = RemoteInput.getResultsFromIntent(intent)
     return remoteInput?.getCharSequence(KEY_TEXT_REPLY)
 }
+
 
