@@ -124,6 +124,7 @@ class ChatRoomFragment : Fragment(),
                     ""
                 ).also {
                     sendPushNotification(it, chatroom)
+                    Log.d(TAG, "onViewCreated: ${getOtherParticipantDeviceToken(chatroom)}")
                 }
                 binding.sendMessageEditText.text.clear()
             } else {
@@ -250,10 +251,10 @@ class ChatRoomFragment : Fragment(),
         chatroom.deviceTokens?.forEach { entry ->
             if (entry.key != auth.currentUser?.uid) {
                 otherParticipantDeviceToken = entry.value
+                Log.d(TAG, "getOtherParticipantDeviceToken: $otherParticipantDeviceToken")
             }
         }
-        Log.d(TAG, "getOtherParticipantDeviceToken: $otherParticipantDeviceToken")
-        return otherParticipantDeviceToken
+        return otherParticipantDeviceToken 
     }
 
     private fun getChatroom(documentId: String, callback: (Chatroom?) -> Unit) {

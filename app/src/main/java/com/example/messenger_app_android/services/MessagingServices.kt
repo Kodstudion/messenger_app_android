@@ -1,25 +1,18 @@
 package com.example.messenger_app_android.services
 
-import android.Manifest
 import android.app.*
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
-import android.content.pm.PackageManager
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
-import androidx.core.app.ActivityCompat
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
 import com.example.messenger_app_android.R
 import com.example.messenger_app_android.activities.HomeActivity
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import androidx.core.app.RemoteInput
-import com.example.messenger_app_android.adapters.PostType
-import com.example.messenger_app_android.models.Chatroom
 import com.example.messenger_app_android.models.Post
 import com.example.messenger_app_android.services.MessagingServices.Companion.token
 import com.example.messenger_app_android.services.constants.StringConstants
@@ -39,6 +32,7 @@ import java.util.*
 val TAG = "!!!"
 const val CHANNEL_ID = "messenger_app_android"
 private const val KEY_TEXT_REPLY = "key_text_reply"
+
 
 class MessagingServices : FirebaseMessagingService() {
     companion object {
@@ -60,13 +54,15 @@ class MessagingServices : FirebaseMessagingService() {
             message.data["body"] ?: "",
             message.data["fromUser"] ?: "",
             message.data["documentId"] ?: "",
-            message.data["chatroomTitle"] ?: ""
+            message.data["chatroomTitle"] ?: "",
+            message.data["otherParticipantDeviceToken"] ?: ""
         )
         val intent = Intent(this, HomeActivity::class.java)
         intent.putExtra(StringConstants.DOCUMENT_ID, message.data["documentId"])
         intent.putExtra(StringConstants.CHATROOM_TITLE, message.data["chatroomTitle"])
         intent.putExtra(StringConstants.FROM_USER, message.data["fromUser"])
-        intent.putExtra("token", message.data["token"])
+        intent.putExtra("otherParticipantDeviceToken", message.data["otherParticipantDeviceToken"])
+
 
     }
 
@@ -81,17 +77,19 @@ class ReplyBroadcastReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
         val chatroomTitle = intent?.getStringExtra(StringConstants.CHATROOM_TITLE)
         val documentId = intent?.getStringExtra(StringConstants.DOCUMENT_ID)
-        val token = intent?.getStringExtra("token")
+        val otherParticipantDeviceToken = intent?.getStringExtra("otherParticipantDeviceToken")
         val auth = FirebaseAuth.getInstance()
 
         val remoteInputResult = getMessageText(intent ?: return)
+        Log.d(TAG, "onReceive: $otherParticipantDeviceToken")
 
         NotificationHelper.showMessage(
             context,
             remoteInputResult.toString(),
             chatroomTitle ?: "",
             documentId ?: "",
-            chatroomTitle ?: ""
+            chatroomTitle ?: "",
+            otherParticipantDeviceToken ?: ""
         )
 
         val timestamp = Timestamp.now()
@@ -112,7 +110,7 @@ class ReplyBroadcastReceiver : BroadcastReceiver() {
                 auth.currentUser?.displayName.toString(),
                 documentId,
                 auth.currentUser?.displayName.toString(),
-                token ?: ""
+                otherParticipantDeviceToken ?: ""
             ), ""
         ).also {
             sendPush(it)
@@ -123,7 +121,7 @@ class ReplyBroadcastReceiver : BroadcastReceiver() {
 private fun sendPush(pushNotification: PushNotification) =
     CoroutineScope(Dispatchers.IO).launch {
         try {
-            pushNotification.to = token ?: return@launch
+            pushNotification.to = pushNotification.data.otherParticipantDeviceToken
             Log.d(TAG, "sendPush: ${pushNotification.to}")
 
             val response = RetrofitInstance.api.postNotification(pushNotification)

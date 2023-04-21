@@ -6,6 +6,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.RemoteInput
@@ -19,11 +20,13 @@ import java.util.*
 const val NOTIFICATION_ID = 123
 const val KEY_TEXT_REPLY = "key_text_reply"
 
+val TAG = "!!!"
+
 object NotificationHelper {
 
-    private val messages = mutableListOf<NotificationCompat.MessagingStyle.Message>()
+    val messages = mutableListOf<NotificationCompat.MessagingStyle.Message>()
 
-    fun showMessage(context: Context, message: String, fromUser: String, documentId: String, chatroomTitle: String) {
+    fun showMessage(context: Context, message: String, fromUser: String, documentId: String, chatroomTitle: String, otherParticipantDeviceToken: String) {
         val notificationMessage = NotificationCompat.MessagingStyle.Message(
             message,
             System.currentTimeMillis(),
@@ -31,10 +34,10 @@ object NotificationHelper {
         )
         messages.add(notificationMessage)
 
-        showNotification(context, documentId, chatroomTitle)
+        showNotification(context, documentId, chatroomTitle, otherParticipantDeviceToken)
     }
 
-    private fun showNotification(context: Context, chatroomId: String, chatroomTitle: String) {
+    private fun showNotification(context: Context, chatroomId: String, chatroomTitle: String, otherParticipantDeviceToken: String) {
         val notificationManager =
             context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -52,9 +55,9 @@ object NotificationHelper {
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_baseline_email_24)
             .setAutoCancel(true)
-            .setContentIntent(getPendingIntent(context, chatroomId, chatroomTitle ))
+            .setContentIntent(getPendingIntent(context, chatroomId, chatroomTitle, otherParticipantDeviceToken))
             .addAction(
-                getReplyPendingIntent(context, chatroomId)
+                getReplyPendingIntent(context, chatroomId, otherParticipantDeviceToken)
                     .addRemoteInput(remoteInput)
                     .build()
             )
@@ -67,12 +70,15 @@ object NotificationHelper {
 
     private fun getReplyPendingIntent(
         context: Context,
-        documentId: String
+        documentId: String,
+        otherParticipantDeviceToken: String
     ): NotificationCompat.Action.Builder {
+        val TAG = "!!!"
         val replyReceiver = Intent(context, ReplyBroadcastReceiver::class.java).apply {
             action = "Reply action"
-            //putExtra(StringConstants.CHATROOM_TITLE, message.data["chatroomTitle"])
-            putExtra(StringConstants.DOCUMENT_ID, documentId)
+
+            putExtra("otherParticipantDeviceToken", otherParticipantDeviceToken)
+            Log.d(TAG, "getReplyPendingIntent: $otherParticipantDeviceToken")
         }
         val replyPendingIntent: PendingIntent = PendingIntent.getBroadcast(
             context,
@@ -86,10 +92,12 @@ object NotificationHelper {
             replyPendingIntent,
         )
     }
-    private fun getPendingIntent(context: Context, documentId: String, chatroomTitle: String): PendingIntent? {
+    private fun getPendingIntent(context: Context, documentId: String, chatroomTitle: String, otherParticipantDeviceToken: String): PendingIntent? {
         val intent = Intent(context, HomeActivity::class.java)
         intent.putExtra(StringConstants.DOCUMENT_ID, documentId)
         intent.putExtra(StringConstants.CHATROOM_TITLE, chatroomTitle)
+        intent.putExtra("otherParticipantDeviceToken", otherParticipantDeviceToken)
+        Log.d(TAG, "NOTIFICATIONHELPER: $otherParticipantDeviceToken")
 //        intent.putExtra(StringConstants.FROM_USER, message.data["fromUser"])
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
 

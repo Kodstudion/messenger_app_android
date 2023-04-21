@@ -6,5 +6,5 @@ data class NotificationData(
     val documentId: String,
     val chatroomTitle: String,
     val fromUser: String,
-    val token: String,
+    val otherParticipantDeviceToken: String,
 )
