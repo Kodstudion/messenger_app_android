@@ -249,7 +249,7 @@ class ChatRoomFragment : Fragment(),
     private fun getOtherParticipantDeviceToken(chatroom: Chatroom) : String {
         var otherParticipantDeviceToken = ""
         chatroom.deviceTokens?.forEach { entry ->
-            if (entry.key != auth.currentUser?.uid) {
+            if (entry.key == auth.currentUser?.uid) {
                 otherParticipantDeviceToken = entry.value
                 Log.d(TAG, "getOtherParticipantDeviceToken: $otherParticipantDeviceToken")
             }
