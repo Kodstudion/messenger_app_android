@@ -80,13 +80,11 @@ class ReplyBroadcastReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
         val chatroomTitle = intent?.getStringExtra(StringConstants.CHATROOM_TITLE)
         val documentId = intent?.getStringExtra(StringConstants.DOCUMENT_ID)
-        val currentUserToken =
-            intent?.getStringExtra(StringConstants.CURRENT_USER_TOKEN) ?: ""
+        val currentUserToken = intent?.getStringExtra(StringConstants.CURRENT_USER_TOKEN) ?: ""
         val otherDeviceToken = intent?.getStringExtra(StringConstants.OTHER_USER_TOKEN) ?: ""
         val auth = FirebaseAuth.getInstance()
 
         val remoteInputResult = getMessageText(intent ?: return)
-        Log.d(TAG, "onReceive: $currentUserToken")
 
         NotificationHelper.showMessage(
             context,

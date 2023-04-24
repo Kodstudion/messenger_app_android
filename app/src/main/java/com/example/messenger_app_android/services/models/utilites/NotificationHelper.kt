@@ -91,7 +91,6 @@ object NotificationHelper {
                     .build()
             )
             .setStyle(messageStyle)
-            .setContentTitle("Messenger")
             .build()
 
         notificationManager.notify(NOTIFICATION_ID, notification)
@@ -109,7 +108,7 @@ object NotificationHelper {
             action = "Reply action"
 
             putExtra(StringConstants.DOCUMENT_ID, documentId)
-            putExtra(StringConstants.CHATROOM_TITLE, chatroomTitle)
+            putExtra(StringConstants.CHATROOM_TITLE, "Me:")
             putExtra(StringConstants.CURRENT_USER_TOKEN, currentUserToken)
             putExtra(StringConstants.OTHER_USER_TOKEN, otherDeviceToken)
 
