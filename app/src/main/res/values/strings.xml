@@ -9,5 +9,7 @@
     <string name="channel_name">Messenger</string>
     <string name="token">Device Token</string>
     <string name="sharedPreferences">SharedPreferences</string>
+    <string name="titleOfChat">Title of chat</string>
+    <string name="documentId">DocumentId</string>
 
 </resources>
