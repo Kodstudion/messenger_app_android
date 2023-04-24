@@ -7,5 +7,7 @@ class StringConstants {
         const val DOCUMENT_ID = "documentId"
         const val NOTIFICATION_ID = "noticeId"
         const val FROM_USER = "noticeId"
+        const val CURRENT_USER_TOKEN  = "currentUserToken"
+        const val OTHER_USER_TOKEN = "otherUserToken"
     }
 }

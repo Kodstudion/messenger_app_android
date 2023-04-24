@@ -118,13 +118,13 @@ class ChatRoomFragment : Fragment(),
                         documentId,
                         chatroomTitle,
                         auth.currentUser?.displayName ?: "",
-                        getOtherParticipantDeviceToken(chatroom)
-
+                        currentUserToken(chatroom),
+                        otherDeviceToken(chatroom)
                     ),
                     ""
                 ).also {
                     sendPushNotification(it, chatroom)
-                    Log.d(TAG, "onViewCreated: ${getOtherParticipantDeviceToken(chatroom)}")
+                    Log.d(TAG, "onViewCreated: ${currentUserToken(chatroom)}")
                 }
                 binding.sendMessageEditText.text.clear()
             } else {
@@ -246,15 +246,26 @@ class ChatRoomFragment : Fragment(),
         }
     }
 
-    private fun getOtherParticipantDeviceToken(chatroom: Chatroom) : String {
-        var otherParticipantDeviceToken = ""
+    private fun currentUserToken(chatroom: Chatroom) : String {
+        var currentUserToken = ""
         chatroom.deviceTokens?.forEach { entry ->
             if (entry.key == auth.currentUser?.uid) {
-                otherParticipantDeviceToken = entry.value
-                Log.d(TAG, "getOtherParticipantDeviceToken: $otherParticipantDeviceToken")
+                currentUserToken = entry.value
+                Log.d(TAG, "currentUserToken: $currentUserToken")
             }
         }
-        return otherParticipantDeviceToken 
+        return currentUserToken
+    }
+
+    private fun otherDeviceToken(chatroom: Chatroom) : String {
+        var otherDeviceToken = ""
+        chatroom.deviceTokens?.forEach { entry ->
+            if (entry.key != auth.currentUser?.uid) {
+                otherDeviceToken = entry.value
+                Log.d(TAG, "otherDeviceToken: $otherDeviceToken")
+            }
+        }
+        return otherDeviceToken
     }
 
     private fun getChatroom(documentId: String, callback: (Chatroom?) -> Unit) {

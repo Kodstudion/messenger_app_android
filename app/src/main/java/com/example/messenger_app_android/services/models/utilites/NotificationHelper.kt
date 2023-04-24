@@ -24,20 +24,35 @@ val TAG = "!!!"
 
 object NotificationHelper {
 
-    val messages = mutableListOf<NotificationCompat.MessagingStyle.Message>()
+    private val messages = mutableListOf<NotificationCompat.MessagingStyle.Message>()
 
-    fun showMessage(context: Context, message: String, fromUser: String, documentId: String, chatroomTitle: String, otherParticipantDeviceToken: String) {
+    fun showMessage(
+        context: Context,
+        message: String,
+        fromUser: String,
+        documentId: String,
+        chatroomTitle: String,
+        currentUserToken: String,
+        otherDeviceToken: String,
+    ) {
         val notificationMessage = NotificationCompat.MessagingStyle.Message(
             message,
             System.currentTimeMillis(),
             fromUser
+
         )
         messages.add(notificationMessage)
 
-        showNotification(context, documentId, chatroomTitle, otherParticipantDeviceToken)
+        showNotification(context, documentId, chatroomTitle, currentUserToken, otherDeviceToken)
     }
 
-    private fun showNotification(context: Context, chatroomId: String, chatroomTitle: String, otherParticipantDeviceToken: String) {
+    private fun showNotification(
+        context: Context,
+        documentId: String,
+        chatroomTitle: String,
+        currentUserToken: String,
+        otherDeviceToken: String,
+    ) {
         val notificationManager =
             context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -55,9 +70,23 @@ object NotificationHelper {
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_baseline_email_24)
             .setAutoCancel(true)
-            .setContentIntent(getPendingIntent(context, chatroomId, chatroomTitle, otherParticipantDeviceToken))
+            .setContentIntent(
+                getPendingIntent(
+                    context,
+                    documentId,
+                    chatroomTitle,
+                    currentUserToken,
+                    otherDeviceToken
+                )
+            )
             .addAction(
-                getReplyPendingIntent(context, chatroomId, otherParticipantDeviceToken)
+                getReplyPendingIntent(
+                    context,
+                    documentId,
+                    chatroomTitle,
+                    currentUserToken,
+                    otherDeviceToken
+                )
                     .addRemoteInput(remoteInput)
                     .build()
             )
@@ -71,14 +100,20 @@ object NotificationHelper {
     private fun getReplyPendingIntent(
         context: Context,
         documentId: String,
-        otherParticipantDeviceToken: String
+        chatroomTitle: String,
+        currentUserToken: String,
+        otherDeviceToken: String
     ): NotificationCompat.Action.Builder {
         val TAG = "!!!"
         val replyReceiver = Intent(context, ReplyBroadcastReceiver::class.java).apply {
             action = "Reply action"
 
-            putExtra("otherParticipantDeviceToken", otherParticipantDeviceToken)
-            Log.d(TAG, "getReplyPendingIntent: $otherParticipantDeviceToken")
+            putExtra(StringConstants.DOCUMENT_ID, documentId)
+            putExtra(StringConstants.CHATROOM_TITLE, chatroomTitle)
+            putExtra(StringConstants.CURRENT_USER_TOKEN, currentUserToken)
+            putExtra(StringConstants.OTHER_USER_TOKEN, otherDeviceToken)
+
+            Log.d(TAG, "getReplyPendingIntent: $currentUserToken")
         }
         val replyPendingIntent: PendingIntent = PendingIntent.getBroadcast(
             context,
@@ -92,12 +127,20 @@ object NotificationHelper {
             replyPendingIntent,
         )
     }
-    private fun getPendingIntent(context: Context, documentId: String, chatroomTitle: String, otherParticipantDeviceToken: String): PendingIntent? {
+
+    private fun getPendingIntent(
+        context: Context,
+        documentId: String,
+        chatroomTitle: String,
+        currentUserToken: String,
+        otherDeviceToken: String
+    ): PendingIntent? {
         val intent = Intent(context, HomeActivity::class.java)
         intent.putExtra(StringConstants.DOCUMENT_ID, documentId)
         intent.putExtra(StringConstants.CHATROOM_TITLE, chatroomTitle)
-        intent.putExtra("otherParticipantDeviceToken", otherParticipantDeviceToken)
-        Log.d(TAG, "NOTIFICATIONHELPER: $otherParticipantDeviceToken")
+        intent.putExtra(StringConstants.OTHER_USER_TOKEN, otherDeviceToken)
+//        intent.putExtra("otherParticipantDeviceToken", otherParticipantDeviceToken)
+        Log.d(TAG, "PendingIntent: $currentUserToken")
 //        intent.putExtra(StringConstants.FROM_USER, message.data["fromUser"])
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
 
