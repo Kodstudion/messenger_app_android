@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Bundle
 import android.os.Handler
-import android.os.Looper
 import android.os.Looper.getMainLooper
 import android.text.Editable
 import android.text.TextWatcher
@@ -27,7 +26,6 @@ import com.example.messenger_app_android.utilities.Utilities
 import com.example.messenger_app_android.viewmodels.ChatroomFragmentViewModel
 import com.example.messenger_app_android.viewmodels.ChatroomFragmentViewModelFactory
 import com.google.firebase.Timestamp
-import com.google.firebase.auth.FacebookAuthCredential
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -36,7 +34,6 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.gson.Gson
 import kotlinx.coroutines.*
-import kotlin.time.Duration.Companion.seconds
 
 interface ChatroomFragmentChatroomView {
     fun setPost(post: MutableList<Post>)
@@ -118,21 +115,36 @@ class ChatRoomFragment : Fragment(),
             private var isTyping = false
             private var typingHandler = Handler(getMainLooper())
             private val fiveSeconds: Long = 5000
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-            }
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun afterTextChanged(s: Editable?) {}
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                handleTextChange(s.toString())
+            }
+            private fun handleTextChange (editText: String) {
+                if (editText.isNotEmpty()) {
+                    startTyping()
+                } else {
+                    stopTyping()
+                }
+            }
+            private fun startTyping() {
                 if (!isTyping) {
                     isTyping = true
                     updateIsTyping(chatroom, documentId, true)
+                } else {
                     typingHandler.postDelayed({
-                        isTyping = false
+                        stopTyping()
                         updateIsTyping(chatroom, documentId, false)
                     }, fiveSeconds)
                 }
             }
 
-            override fun afterTextChanged(s: Editable?) {}
+            private fun stopTyping() {
+                isTyping = false
+                typingHandler.removeCallbacksAndMessages(null)
+                updateIsTyping(chatroom, documentId, false)
+            }
         })
 
 
