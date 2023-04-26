@@ -15,6 +15,7 @@ import com.example.messenger_app_android.activities.HomeActivity
 import com.example.messenger_app_android.services.CHANNEL_ID
 import com.example.messenger_app_android.services.ReplyBroadcastReceiver
 import com.example.messenger_app_android.services.constants.StringConstants
+import com.google.firebase.auth.FirebaseAuth
 import java.util.*
 
 const val NOTIFICATION_ID = 123
@@ -83,7 +84,6 @@ object NotificationHelper {
                 getReplyPendingIntent(
                     context,
                     documentId,
-                    chatroomTitle,
                     currentUserToken,
                     otherDeviceToken
                 )
@@ -99,20 +99,18 @@ object NotificationHelper {
     private fun getReplyPendingIntent(
         context: Context,
         documentId: String,
-        chatroomTitle: String,
         currentUserToken: String,
         otherDeviceToken: String
     ): NotificationCompat.Action.Builder {
         val TAG = "!!!"
+        val auth = FirebaseAuth.getInstance()
         val replyReceiver = Intent(context, ReplyBroadcastReceiver::class.java).apply {
             action = "Reply action"
 
             putExtra(StringConstants.DOCUMENT_ID, documentId)
-            putExtra(StringConstants.CHATROOM_TITLE, "Me:")
+            putExtra(StringConstants.CHATROOM_TITLE, auth.currentUser?.displayName)
             putExtra(StringConstants.CURRENT_USER_TOKEN, currentUserToken)
             putExtra(StringConstants.OTHER_USER_TOKEN, otherDeviceToken)
-
-            Log.d(TAG, "getReplyPendingIntent: $currentUserToken")
         }
         val replyPendingIntent: PendingIntent = PendingIntent.getBroadcast(
             context,
@@ -138,9 +136,6 @@ object NotificationHelper {
         intent.putExtra(StringConstants.DOCUMENT_ID, documentId)
         intent.putExtra(StringConstants.CHATROOM_TITLE, chatroomTitle)
         intent.putExtra(StringConstants.OTHER_USER_TOKEN, otherDeviceToken)
-//        intent.putExtra("otherParticipantDeviceToken", otherParticipantDeviceToken)
-        Log.d(TAG, "PendingIntent: $currentUserToken")
-//        intent.putExtra(StringConstants.FROM_USER, message.data["fromUser"])
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
 
         return PendingIntent.getActivity(

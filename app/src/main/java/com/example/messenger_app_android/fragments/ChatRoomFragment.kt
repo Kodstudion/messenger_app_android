@@ -3,6 +3,11 @@ package com.example.messenger_app_android.fragments
 import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.os.Looper.getMainLooper
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.view.*
 import android.widget.Toast
@@ -22,6 +27,7 @@ import com.example.messenger_app_android.utilities.Utilities
 import com.example.messenger_app_android.viewmodels.ChatroomFragmentViewModel
 import com.example.messenger_app_android.viewmodels.ChatroomFragmentViewModelFactory
 import com.google.firebase.Timestamp
+import com.google.firebase.auth.FacebookAuthCredential
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -30,6 +36,7 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.gson.Gson
 import kotlinx.coroutines.*
+import kotlin.time.Duration.Companion.seconds
 
 interface ChatroomFragmentChatroomView {
     fun setPost(post: MutableList<Post>)
@@ -86,14 +93,48 @@ class ChatRoomFragment : Fragment(),
         getChatroom(documentId) { chatroomCallbackResult ->
             if (chatroomCallbackResult != null) {
                 chatroom = chatroomCallbackResult
+                chatroom.typing?.forEach { entry ->
+                    if (entry.key != auth.currentUser?.uid && entry.value) {
+                        chatroom.participantsNames?.get(entry.key)?.let { otherParticipantName ->
+                            binding.userIsTypingTextView.text = otherParticipantName
+                        }
+                    } else if (entry.key != auth.currentUser?.uid && !entry.value) {
+                        binding.userIsTypingTextView.text = ""
+                    }
+                }
             }
         }
+
+
+
 
         binding.toolbarTitleChatroom.text = chatroomTitle
 
         binding.arrowLeftBack.setOnClickListener {
             utilities.loadFragment(ChatFragment(), fragmentManager)
         }
+
+        binding.sendMessageEditText.addTextChangedListener(object : TextWatcher {
+            private var isTyping = false
+            private var typingHandler = Handler(getMainLooper())
+            private val fiveSeconds: Long = 5000
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                if (!isTyping) {
+                    isTyping = true
+                    updateIsTyping(chatroom, documentId, true)
+                    typingHandler.postDelayed({
+                        isTyping = false
+                        updateIsTyping(chatroom, documentId, false)
+                    }, fiveSeconds)
+                }
+            }
+
+            override fun afterTextChanged(s: Editable?) {}
+        })
+
 
         binding.sendMessageButton.setOnClickListener {
             val timestamp = Timestamp.now()
@@ -124,7 +165,6 @@ class ChatRoomFragment : Fragment(),
                     ""
                 ).also {
                     sendPushNotification(it, chatroom)
-                    Log.d(TAG, "onViewCreated: ${currentUserToken(chatroom)}")
                 }
                 binding.sendMessageEditText.text.clear()
             } else {
@@ -139,6 +179,7 @@ class ChatRoomFragment : Fragment(),
         binding.chatConversationListAdapter.scrollToPosition(post.size - 1)
 
     }
+
 
     private fun sendAndReceivePost(post: Post) {
         val sent = Post(
@@ -246,23 +287,21 @@ class ChatRoomFragment : Fragment(),
         }
     }
 
-    private fun currentUserToken(chatroom: Chatroom) : String {
+    private fun currentUserToken(chatroom: Chatroom): String {
         var currentUserToken = ""
         chatroom.deviceTokens?.forEach { entry ->
             if (entry.key == auth.currentUser?.uid) {
                 currentUserToken = entry.value
-                Log.d(TAG, "currentUserToken: $currentUserToken")
             }
         }
         return currentUserToken
     }
 
-    private fun otherDeviceToken(chatroom: Chatroom) : String {
+    private fun otherDeviceToken(chatroom: Chatroom): String {
         var otherDeviceToken = ""
         chatroom.deviceTokens?.forEach { entry ->
             if (entry.key != auth.currentUser?.uid) {
                 otherDeviceToken = entry.value
-                Log.d(TAG, "otherDeviceToken: $otherDeviceToken")
             }
         }
         return otherDeviceToken
@@ -282,15 +321,15 @@ class ChatRoomFragment : Fragment(),
         }
     }
 
-    private fun isTyping(chatroom: Chatroom, documentId: String) {
+    private fun updateIsTyping(chatroom: Chatroom, documentId: String, isTyping: Boolean) {
         val isTypingDocRef = db.collection("chatrooms").document(documentId)
-        isTypingDocRef.get().addOnSuccessListener { document ->
-            if (document != null) {
-                chatroom.typing?.forEach { entry ->
-                    if (entry.key != auth.currentUser?.uid) {
-                        isTypingDocRef.update("typing", hashMapOf(entry.key to true))
-                    }
-                }
+        chatroom.typing?.forEach { entry ->
+            if (entry.key == auth.currentUser?.uid) {
+                isTypingDocRef.set(
+                    hashMapOf(
+                        "typing" to hashMapOf(entry.key to isTyping)
+                    ), SetOptions.merge()
+                )
             }
         }
     }
