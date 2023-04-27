@@ -99,7 +99,11 @@ class ChatRoomAdapter(private val fragmentManager: FragmentManager? = null) :
                                 arguments = Bundle().apply {
                                     putString(StringConstants.CHATROOM_TITLE, chatroom.chatroomTitle)
                                     putString(StringConstants.DOCUMENT_ID, chatroom.documentId)
-                                    putString(StringConstants.CHATROOM_PICTURE, chatroom.chatroomPicture)
+                                    chatroom.profilePictures?.forEach { entry ->
+                                        if (entry.key != auth.currentUser?.uid) {
+                                            putString(StringConstants.CHATROOM_PICTURE, entry.value)
+                                        }
+                                    }
                                 }
                             },
                             fragmentManager
