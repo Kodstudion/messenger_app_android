@@ -96,7 +96,7 @@ class ChatRoomFragment : Fragment(),
                 chatroom.typing?.forEach { entry ->
                     if (entry.key != auth.currentUser?.uid && entry.value) {
                         chatroom.participantsNames?.get(entry.key)?.let { otherParticipantName ->
-                            binding.userIsTypingTextView.text = otherParticipantName
+                            binding.userIsTypingTextView.text = "$otherParticipantName is typing ..."
                         }
                     } else if (entry.key != auth.currentUser?.uid && !entry.value) {
                         binding.userIsTypingTextView.text = ""
@@ -105,7 +105,7 @@ class ChatRoomFragment : Fragment(),
             }
         }
 
-        getUser(auth.currentUser?.uid.toString()) {userCallbackResult ->
+        getUser(auth.currentUser?.uid.toString()) { userCallbackResult ->
             if (userCallbackResult != null) {
                 user = userCallbackResult
 
@@ -123,6 +123,7 @@ class ChatRoomFragment : Fragment(),
 
         binding.sendMessageEditText.addTextChangedListener(object : TextWatcher {
             private var isTyping = false
+            private var editTexHasValue = false
             private var typingHandler = Handler(getMainLooper())
             private val fiveSeconds: Long = 5000
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -131,27 +132,33 @@ class ChatRoomFragment : Fragment(),
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 handleTextChange(s.toString())
             }
-            private fun handleTextChange (editText: String) {
+
+            private fun handleTextChange(editText: String) {
                 if (editText.isNotEmpty()) {
                     startTyping()
                 } else {
                     stopTyping()
                 }
             }
+
             private fun startTyping() {
                 if (!isTyping) {
                     isTyping = true
+                    editTexHasValue = true
                     updateIsTyping(chatroom, documentId, true)
                 } else {
                     typingHandler.postDelayed({
                         stopTyping()
-                        updateIsTyping(chatroom, documentId, false)
+                        if (editTexHasValue) {
+                            updateIsTyping(chatroom, documentId, false)
+                        }
                     }, fiveSeconds)
                 }
             }
 
             private fun stopTyping() {
                 isTyping = false
+                editTexHasValue = false
                 typingHandler.removeCallbacksAndMessages(null)
                 updateIsTyping(chatroom, documentId, false)
             }
@@ -343,7 +350,7 @@ class ChatRoomFragment : Fragment(),
         }
     }
 
-    private fun getUser(documentId: String, callback: (User?) -> Unit)  {
+    private fun getUser(documentId: String, callback: (User?) -> Unit) {
         val userDocRef = db.collection("users").document(documentId)
         userDocRef.addSnapshotListener { snapshot, _ ->
             snapshot?.let { querySnapshot ->

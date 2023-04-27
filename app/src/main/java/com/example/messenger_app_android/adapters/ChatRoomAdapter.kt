@@ -23,6 +23,8 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import com.makeramen.roundedimageview.RoundedTransformationBuilder
+import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.item_vertical_recyclerview.view.*
 import org.ocpsoft.prettytime.PrettyTime
 import java.sql.Date
@@ -47,10 +49,25 @@ class ChatRoomAdapter(private val fragmentManager: FragmentManager? = null) :
     inner class ItemViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
         fun bind(chatroom: Chatroom) {
+            val auth = Firebase.auth
+
             itemView.apply {
                 from_user.text = chatroom.chatroomTitle
                 recent_message.text = chatroom.recentMessage
                 sender_textview.text = chatroom.sender
+
+                chatroom.profilePictures?.forEach {entry ->
+                    if (entry.key != auth.currentUser?.uid) {
+                        Picasso.get()
+                            .load(entry.value)
+                            .transform(
+                                RoundedTransformationBuilder()
+                                    .cornerRadius(50f)
+                                    .oval(false)
+                                    .build())
+                            .into(chatroom_picture)
+                    }
+                }
 
                 if (sender_textview.text == "") {
                     sender_textview.visibility = View.GONE
