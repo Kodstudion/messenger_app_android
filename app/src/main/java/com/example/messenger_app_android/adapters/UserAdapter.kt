@@ -21,6 +21,7 @@ import com.example.messenger_app_android.utilities.Utilities
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.makeramen.roundedimageview.RoundedTransformationBuilder
+import com.squareup.picasso.MemoryPolicy
 import com.squareup.picasso.Picasso
 
 
@@ -51,6 +52,7 @@ class UserAdapter(
             display_name.text = user.displayName
             Picasso.get()
                 .load(user.profilePicture)
+                .memoryPolicy(MemoryPolicy.NO_CACHE)
                 .transform(RoundedTransformationBuilder()
                     .cornerRadius(radius.toFloat())
                     .oval(false)

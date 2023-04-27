@@ -34,6 +34,7 @@ import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.gson.Gson
+import com.makeramen.roundedimageview.RoundedTransformationBuilder
 import com.squareup.picasso.Picasso
 import kotlinx.coroutines.*
 
@@ -50,6 +51,7 @@ class ChatRoomFragment : Fragment(),
     private lateinit var postAdapter: PostAdapter
     private lateinit var chatroomFragmentViewModel: ChatroomFragmentViewModel
     private lateinit var chatroomTitle: String
+    private lateinit var chatroomPicture: String
     private lateinit var documentId: String
     private lateinit var chatroom: Chatroom
     private lateinit var user: User
@@ -84,6 +86,7 @@ class ChatRoomFragment : Fragment(),
 
         documentId = arguments?.getString(StringConstants.DOCUMENT_ID).toString()
         chatroomTitle = arguments?.getString(StringConstants.CHATROOM_TITLE).toString()
+        chatroomPicture = arguments?.getString(StringConstants.CHATROOM_PICTURE).toString()
         chatroomFragmentViewModel.documentId = documentId
         chatroomFragmentViewModel.attachChatroom(this)
 
@@ -114,8 +117,14 @@ class ChatRoomFragment : Fragment(),
 
 
 
-
         binding.toolbarTitleChatroom.text = chatroomTitle
+        Picasso.get()
+            .load(chatroomPicture)
+            .transform(RoundedTransformationBuilder()
+                .cornerRadius(50f)
+                .oval(false)
+                .build())
+            .into(binding.profilePictureChatroom)
 
         binding.arrowLeftBack.setOnClickListener {
             utilities.loadFragment(ChatFragment(), fragmentManager)

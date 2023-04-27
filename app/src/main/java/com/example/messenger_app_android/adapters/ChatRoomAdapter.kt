@@ -24,6 +24,7 @@ import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.makeramen.roundedimageview.RoundedTransformationBuilder
+import com.squareup.picasso.MemoryPolicy
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.item_vertical_recyclerview.view.*
 import org.ocpsoft.prettytime.PrettyTime
@@ -60,6 +61,7 @@ class ChatRoomAdapter(private val fragmentManager: FragmentManager? = null) :
                     if (entry.key != auth.currentUser?.uid) {
                         Picasso.get()
                             .load(entry.value)
+                            .memoryPolicy(MemoryPolicy.NO_CACHE)
                             .transform(
                                 RoundedTransformationBuilder()
                                     .cornerRadius(50f)
@@ -68,6 +70,7 @@ class ChatRoomAdapter(private val fragmentManager: FragmentManager? = null) :
                             .into(chatroom_picture)
                     }
                 }
+
 
                 if (sender_textview.text == "") {
                     sender_textview.visibility = View.GONE
@@ -96,6 +99,7 @@ class ChatRoomAdapter(private val fragmentManager: FragmentManager? = null) :
                                 arguments = Bundle().apply {
                                     putString(StringConstants.CHATROOM_TITLE, chatroom.chatroomTitle)
                                     putString(StringConstants.DOCUMENT_ID, chatroom.documentId)
+                                    putString(StringConstants.CHATROOM_PICTURE, chatroom.chatroomPicture)
                                 }
                             },
                             fragmentManager
