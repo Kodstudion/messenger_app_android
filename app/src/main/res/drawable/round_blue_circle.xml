@@ -6,11 +6,10 @@
     android:thicknessRatio="2.0"
     android:useLevel="false" >
 
-    <solid
-        android:color="@android:color/transparent" />
+
 
     <stroke
-        android:width="9dp"
-        android:color="@android:color/holo_blue_light" />
+        android:width="1dp"
+        android:color="@android:color/darker_gray" />
 </shape>
 
