@@ -34,8 +34,7 @@
 
         <FrameLayout
             android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:background="@drawable/post_picture_rounded_corners">
+            android:layout_height="20dp">
 
             <ImageView
                 android:id="@+id/profile_picture_sent_post"

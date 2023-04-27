@@ -63,7 +63,7 @@ class ChatRoomAdapter(private val fragmentManager: FragmentManager? = null) :
                 }
 
                 recentMessageElapsedTimeHandler(elapsed_time, chatroom)
-                chatroom.chatroomPicture?.let { chatroom_picture.setImageResource(it) }
+                chatroom_picture.setImageResource(R.drawable.ic_baseline_person_24)
 
                 circleColor(
                     chatroom,

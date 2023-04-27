@@ -20,6 +20,8 @@ import kotlinx.android.synthetic.main.item_horizontal_recyclerview.view.*
 import com.example.messenger_app_android.utilities.Utilities
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.makeramen.roundedimageview.RoundedTransformationBuilder
+import com.squareup.picasso.Picasso
 
 
 const val TAG = "!!!"
@@ -33,21 +35,27 @@ class UserAdapter(
     private val fragmentManager: FragmentManager? = null,
 ) : RecyclerView.Adapter<UserAdapter.ProfileViewHolder>() {
     class ProfileViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
-
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ProfileViewHolder {
         return ProfileViewHolder(
             LayoutInflater.from(parent.context).inflate(
                 R.layout.item_horizontal_recyclerview, parent, false
             )
         )
-    }
 
+    }
     override fun onBindViewHolder(holder: ProfileViewHolder, position: Int) {
         val auth = FirebaseAuth.getInstance()
         val user = users[position]
+        val radius = 50
         holder.itemView.apply {
             display_name.text = user.displayName
-            profile_picture.setImageResource(R.drawable.ic_baseline_person_24)
+            Picasso.get()
+                .load(user.profilePicture)
+                .transform(RoundedTransformationBuilder()
+                    .cornerRadius(radius.toFloat())
+                    .oval(false)
+                    .build())
+                .into(profile_picture)
 
             isUserOnline(
                 user,
@@ -63,6 +71,7 @@ class UserAdapter(
                 )
                 val authCurrentUserDeviceToken =
                     sharedPreferences.getString(R.string.token.toString(), null)
+
                 chatroomHandler(
                     Chatroom(
                         "",
@@ -72,7 +81,7 @@ class UserAdapter(
                         ),
                         null,
                         user.displayName.toString(),
-                        null,
+                        user.profilePicture,
                         hashMapOf(
                             auth.currentUser?.uid.toString() to auth.currentUser?.displayName.toString(),
                             user.uid.toString() to user.displayName.toString()
@@ -91,6 +100,10 @@ class UserAdapter(
                             auth.currentUser?.uid.toString() to false,
                             user.uid.toString() to false
                         ),
+                        hashMapOf(
+                            auth.currentUser?.uid.toString() to auth.currentUser?.photoUrl.toString(),
+                            user.uid.toString() to user.profilePicture.toString())
+
                     ),
                     user.displayName.toString(),
                     position

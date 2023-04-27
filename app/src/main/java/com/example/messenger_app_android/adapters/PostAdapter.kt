@@ -10,7 +10,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.messenger_app_android.R
 import com.example.messenger_app_android.models.Post
 import com.makeramen.roundedimageview.RoundedTransformationBuilder
-import com.squareup.picasso.Callback
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.item_recived_post.view.*
 import kotlinx.android.synthetic.main.item_sent_post.view.*
@@ -61,12 +60,13 @@ class PostAdapter() : ListAdapter<Post, RecyclerView.ViewHolder>(PostDiffCallbac
 
     inner class SentPostHolder(itemView: View) : BaseViewHolder(itemView) {
         override fun bindItem(post: Post) {
+            val radius = 20
             itemView.apply {
                 sent_post_textview.text = post.postBody
                 Picasso.get()
                     .load(post.postPicture)
                     .transform(RoundedTransformationBuilder()
-                        .cornerRadiusDp(20.toFloat())
+                        .cornerRadiusDp(radius.toFloat())
                         .oval(false)
                         .build())
                     .into(profile_picture_sent_post)
@@ -77,8 +77,16 @@ class PostAdapter() : ListAdapter<Post, RecyclerView.ViewHolder>(PostDiffCallbac
 
     inner class ReceivedPostHolder(itemView: View) : BaseViewHolder(itemView) {
         override fun bindItem(post: Post) {
+            val radius = 20
             itemView.apply {
                 received_post_textview.text = post.postBody
+                Picasso.get()
+                    .load(post.postPicture)
+                    .transform(RoundedTransformationBuilder()
+                        .cornerRadiusDp(radius.toFloat())
+                        .oval(false)
+                        .build())
+                    .into(profile_picture_sent_received)
             }
         }
     }

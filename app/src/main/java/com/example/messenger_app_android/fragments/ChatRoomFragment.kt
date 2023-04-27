@@ -161,6 +161,13 @@ class ChatRoomFragment : Fragment(),
         binding.sendMessageButton.setOnClickListener {
             val timestamp = Timestamp.now()
             val postBody = binding.sendMessageEditText.text.toString()
+
+            chatroom.profilePictures?.forEach { entry ->
+                if (entry.key == auth.currentUser?.uid) {
+                    user.profilePicture = entry.value
+                }
+            }
+
             val post = Post(
                 auth.currentUser?.uid,
                 postBody,
