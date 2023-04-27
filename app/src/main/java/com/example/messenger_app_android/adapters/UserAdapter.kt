@@ -129,7 +129,7 @@ class UserAdapter(
                         val participants = document.get("participants") as List<*>
                         if (participants.contains(users[position].uid)) {
                             chatroom.documentId = document.id
-                            joinChatroom(chatroom.documentId, titleOfChat)
+                            joinChatroom(chatroom.documentId, titleOfChat, chatroom)
                             return@addOnSuccessListener
                         }
                     }
@@ -146,18 +146,19 @@ class UserAdapter(
         chatroomDocRef.set(chatroom)
             .addOnSuccessListener {
                 chatroom.documentId = chatroomDocRef.id
-                joinChatroom(chatroom.documentId, titleOfChat)
+                joinChatroom(chatroom.documentId, titleOfChat, chatroom)
             }
             .addOnFailureListener { e ->
                 Log.w("!!!", "Error writing document", e)
             }
     }
 
-    private fun joinChatroom(chatroomId: String, titleOfChat: String) {
+    private fun joinChatroom(chatroomId: String, titleOfChat: String, chatroom: Chatroom) {
         val utilities = Utilities()
         val db = FirebaseFirestore.getInstance()
 
         db.collection("chatrooms").document(chatroomId).get().addOnSuccessListener { snapshot ->
+            val auth = FirebaseAuth.getInstance()
             if (snapshot.exists()) {
                 val documentId = snapshot.id
                 utilities.loadFragment(
@@ -165,6 +166,11 @@ class UserAdapter(
                         arguments = Bundle().apply {
                             putString(StringConstants.CHATROOM_TITLE, titleOfChat)
                             putString(StringConstants.DOCUMENT_ID, documentId)
+                            chatroom.profilePictures?.forEach { entry ->
+                                if (entry.key != auth.currentUser?.uid) {
+                                    putString(StringConstants.CHATROOM_PICTURE, entry.value)
+                                }
+                            }
                         }
                     }, fragmentManager
                 )
