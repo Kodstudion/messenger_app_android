@@ -9,7 +9,7 @@ data class User(
     var uid: String? = null,
     val displayName: String? = null,
     val email: String? = null,
-    val profilePicture: Int? = null,
+    val profilePicture: String? = null,
     var loggedIn: com.google.firebase.Timestamp? = null,
     val deviceToken: String? = null,
     )

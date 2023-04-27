@@ -99,6 +99,7 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView, ChatFragmentUsersVie
         val displayName = auth.currentUser?.displayName
         val email = auth.currentUser?.email
         val userID = auth.currentUser?.uid
+        val profilePicture = auth.currentUser?.photoUrl
 
         binding.signOut.setOnClickListener {
             auth.signOut()
@@ -110,9 +111,9 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView, ChatFragmentUsersVie
             binding.drawerLayout.openDrawer(GravityCompat.START)
         }
 
-        if (userID != null && displayName != null && email != null) {
+        if (userID != null && displayName != null && email != null && profilePicture != null) {
             val timestamp = Timestamp.now()
-            saveUser(userID, displayName, email, timestamp)
+            saveUser(userID, displayName, email, profilePicture.toString(), timestamp)
             updateDeviceToken()
         }
     }
@@ -131,10 +132,11 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView, ChatFragmentUsersVie
         uid: String,
         displayName: String,
         email: String,
+        profilePicture: String,
         timestamp: Timestamp,
 
     ) {
-        val user = User(uid, displayName, email, null, timestamp)
+        val user = User(uid, displayName, email, profilePicture, timestamp)
         db.collection("users").document(uid).set(user)
             .addOnSuccessListener {
                 Log.d("!!!", "DocumentSnapshot successfully written!")

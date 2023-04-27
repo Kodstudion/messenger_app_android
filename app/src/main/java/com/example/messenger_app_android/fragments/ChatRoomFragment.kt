@@ -18,6 +18,7 @@ import com.example.messenger_app_android.adapters.PostAdapter
 import com.example.messenger_app_android.databinding.FragmentChatRoomBinding
 import com.example.messenger_app_android.models.Chatroom
 import com.example.messenger_app_android.models.Post
+import com.example.messenger_app_android.models.User
 import com.example.messenger_app_android.services.RetrofitInstance
 import com.example.messenger_app_android.services.constants.StringConstants
 import com.example.messenger_app_android.services.models.NotificationData
@@ -33,6 +34,7 @@ import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.gson.Gson
+import com.squareup.picasso.Picasso
 import kotlinx.coroutines.*
 
 interface ChatroomFragmentChatroomView {
@@ -50,6 +52,7 @@ class ChatRoomFragment : Fragment(),
     private lateinit var chatroomTitle: String
     private lateinit var documentId: String
     private lateinit var chatroom: Chatroom
+    private lateinit var user: User
 
     val TAG = "!!!"
     override fun onCreateView(
@@ -99,6 +102,13 @@ class ChatRoomFragment : Fragment(),
                         binding.userIsTypingTextView.text = ""
                     }
                 }
+            }
+        }
+
+        getUser(auth.currentUser?.uid.toString()) {userCallbackResult ->
+            if (userCallbackResult != null) {
+                user = userCallbackResult
+
             }
         }
 
@@ -158,9 +168,10 @@ class ChatRoomFragment : Fragment(),
                 chatroomTitle,
                 postBody,
                 timestamp,
+                user.profilePicture
             )
             if (postBody.isNotEmpty()) {
-                sendAndReceivePost(post)
+                sendPost(post)
                 getAndSetPostIsSeen()
                 updateUserStatus(timestamp)
                 updateChatroomLastUpdate(timestamp)
@@ -193,18 +204,10 @@ class ChatRoomFragment : Fragment(),
     }
 
 
-    private fun sendAndReceivePost(post: Post) {
-        val sent = Post(
-            auth.currentUser?.uid,
-            post.postBody,
-            post.fromUser,
-            post.toUser,
-            post.postBody,
-            post.timestamp,
-        )
+    private fun sendPost(post: Post) {
         val postDocRef =
             db.collection("chatrooms").document(documentId).collection("posts").document()
-        postDocRef.set(sent).addOnSuccessListener {
+        postDocRef.set(post).addOnSuccessListener {
 
         }
             .addOnFailureListener {
@@ -326,6 +329,20 @@ class ChatRoomFragment : Fragment(),
                 try {
                     val chatroom = querySnapshot.toObject(Chatroom::class.java)
                     callback(chatroom)
+                } catch (e: Exception) {
+                    Log.e(TAG, e.toString())
+                }
+            }
+        }
+    }
+
+    private fun getUser(documentId: String, callback: (User?) -> Unit)  {
+        val userDocRef = db.collection("users").document(documentId)
+        userDocRef.addSnapshotListener { snapshot, _ ->
+            snapshot?.let { querySnapshot ->
+                try {
+                    val user = querySnapshot.toObject(User::class.java)
+                    callback(user)
                 } catch (e: Exception) {
                     Log.e(TAG, e.toString())
                 }

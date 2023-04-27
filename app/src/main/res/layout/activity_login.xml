@@ -32,6 +32,25 @@
             android:layout_marginTop="50dp"
             android:orientation="vertical">
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <ImageView
+                    android:id="@+id/login_photo_iv"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:src="@drawable/baseline_person_add_alt_1_24"
+                    android:layout_gravity="center"
+                    android:layout_marginStart="12dp"
+                    android:alpha="0.3"
+                    android:focusable="true"
+                    android:clickable="true">
+
+                </ImageView>
+            </LinearLayout>
+
             <androidx.cardview.widget.CardView
                 android:id="@+id/google_sign_in_cv"
                 android:layout_width="wrap_content"

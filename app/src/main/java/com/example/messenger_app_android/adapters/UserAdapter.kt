@@ -47,8 +47,7 @@ class UserAdapter(
         val user = users[position]
         holder.itemView.apply {
             display_name.text = user.displayName
-
-            user.profilePicture?.let { profile_picture.setImageResource(it) }
+            profile_picture.setImageResource(R.drawable.ic_baseline_person_24)
 
             isUserOnline(
                 user,
