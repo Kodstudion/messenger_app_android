@@ -65,9 +65,6 @@ class MessagingServices : FirebaseMessagingService() {
         intent.putExtra(StringConstants.CURRENT_USER_TOKEN, message.data["currentUserToken"])
         intent.putExtra(StringConstants.OTHER_USER_TOKEN, message.data["otherUserToken"])
 
-        Log.d(TAG, "onMessageReceived: ${message.data["currentUserToken"]}")
-
-
     }
 
     override fun onNewToken(newToken: String) {
@@ -78,22 +75,20 @@ class MessagingServices : FirebaseMessagingService() {
 
 class ReplyBroadcastReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
-        val chatroomTitle = intent?.getStringExtra(StringConstants.CHATROOM_TITLE)
-        val documentId = intent?.getStringExtra(StringConstants.DOCUMENT_ID)
-        val currentUserToken =
-            intent?.getStringExtra(StringConstants.CURRENT_USER_TOKEN) ?: ""
+        val chatroomTitle = intent?.getStringExtra(StringConstants.CHATROOM_TITLE) ?: ""
+        val documentId = intent?.getStringExtra(StringConstants.DOCUMENT_ID) ?: ""
+        val currentUserToken = intent?.getStringExtra(StringConstants.CURRENT_USER_TOKEN) ?: ""
         val otherDeviceToken = intent?.getStringExtra(StringConstants.OTHER_USER_TOKEN) ?: ""
         val auth = FirebaseAuth.getInstance()
 
         val remoteInputResult = getMessageText(intent ?: return)
-        Log.d(TAG, "onReceive: $currentUserToken")
 
         NotificationHelper.showMessage(
             context,
             remoteInputResult.toString(),
-            chatroomTitle ?: "",
-            documentId ?: "",
-            chatroomTitle ?: "",
+            chatroomTitle,
+            documentId,
+            chatroomTitle,
             currentUserToken,
             otherDeviceToken
         )
@@ -112,10 +107,10 @@ class ReplyBroadcastReceiver : BroadcastReceiver() {
         sendPush(
             PushNotification(
                 NotificationData(
-                    chatroomTitle ?: "",
+                    chatroomTitle,
                     remoteInputResult.toString(),
                     documentId,
-                    chatroomTitle ?: "",
+                    chatroomTitle,
                     auth.currentUser?.displayName ?: "",
                     currentUserToken,
                     otherDeviceToken
@@ -136,8 +131,6 @@ private fun sendPush(pushNotification: PushNotification) =
                 pushNotification.to = pushNotification.data.currentUserToken
 
             }
-
-            Log.d(TAG, "sendPush:!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ${pushNotification.to}")
 
             val response = RetrofitInstance.api.postNotification(pushNotification)
             if (response.isSuccessful) {

@@ -4,8 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".fragments.ChatRoomFragment"
-    android:fitsSystemWindows="true">
+    android:fitsSystemWindows="true"
+    tools:context=".fragments.ChatRoomFragment">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -54,13 +54,31 @@
             android:id="@+id/chat_conversation_list_adapter"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_marginBottom="10dp"
             android:scrollbars="vertical"
-            app:layout_constraintBottom_toTopOf="@+id/linearLayout"
+            app:layout_constraintBottom_toTopOf="@+id/linearLayout_user_is_typing"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/toolbar_chatroom" />
+            app:layout_constraintTop_toBottomOf="@+id/toolbar_chatroom"
+            android:layout_marginBottom="10dp"/>
 
+
+        <LinearLayout
+            android:id="@+id/linearLayout_user_is_typing"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toTopOf="@+id/linearLayout"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginStart="30dp">
+
+            <TextView
+                android:id="@+id/user_is_typing_text_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="">
+
+            </TextView>
+
+        </LinearLayout>
 
         <LinearLayout
             android:id="@+id/linearLayout"
@@ -79,10 +97,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:background="@drawable/rounded_corners_text_grey"
-                android:hint="Aa"
-                android:maxLines="1"
-                android:inputType="text"
                 android:focusable="true"
+                android:hint="Aa"
+                android:inputType="text"
+                android:maxLines="1"
                 android:paddingStart="10dp"
                 android:paddingEnd="10dp" />
 
