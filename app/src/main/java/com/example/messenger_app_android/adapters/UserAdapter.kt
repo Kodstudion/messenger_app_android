@@ -192,6 +192,7 @@ class UserAdapter(
                 val currentTime = System.currentTimeMillis() - (loggedIn?.seconds?.times(1000) ?: 0)
                 if (currentTime < tenMinutes) {
                     Status.ONLINE
+                    imageView.visibility = View.VISIBLE
                     imageView.setImageResource(imageResOnline)
                 } else {
                     Status.OFFLINE

@@ -9,12 +9,14 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
 import android.view.*
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.messenger_app_android.R
 import com.example.messenger_app_android.adapters.PostAdapter
+import com.example.messenger_app_android.adapters.Status
 import com.example.messenger_app_android.databinding.FragmentChatRoomBinding
 import com.example.messenger_app_android.models.Chatroom
 import com.example.messenger_app_android.models.Post
@@ -113,7 +115,6 @@ class ChatRoomFragment : Fragment(),
                 user = userCallbackResult
             }
         }
-
 
 
         binding.toolbarTitleChatroom.text = chatroomTitle
