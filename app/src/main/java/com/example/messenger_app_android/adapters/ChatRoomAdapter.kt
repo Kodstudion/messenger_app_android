@@ -4,7 +4,6 @@ package com.example.messenger_app_android.adapters
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -83,13 +82,11 @@ class ChatRoomAdapter(private val fragmentManager: FragmentManager? = null) :
                 }
 
                 recentMessageElapsedTimeHandler(elapsed_time, chatroom)
-                chatroom_picture.setImageResource(R.drawable.ic_baseline_person_24)
 
-                circleColor(
+                isPostSeen(
                     chatroom,
-                    chatroom_picture,
-                    R.drawable.round_green_circle,
-                    R.drawable.round_blue_circle
+                    new_post,
+                    R.drawable.ic_baseline_email_24,
                 )
 
                 chatroom_picture.setOnClickListener {
@@ -147,18 +144,17 @@ private fun updateElapsedTimeText(
     elapsedTimeTextView.text = elapsedTime
 }
 
-private fun circleColor(
+private fun isPostSeen(
     chatroom: Chatroom,
     imageView: ImageView,
     imageResIsSeen: Int,
-    imageResIsNotSeen: Int
 ) {
     chatroom.postIsSeen?.forEach { entry ->
         if (entry.key == Firebase.auth.currentUser?.uid) {
             if (!entry.value) {
                 imageView.setImageResource(imageResIsSeen)
             } else {
-                imageView.setImageResource(imageResIsNotSeen)
+                imageView.visibility = View.GONE
             }
         }
     }

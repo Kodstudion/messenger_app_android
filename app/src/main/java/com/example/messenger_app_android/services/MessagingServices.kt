@@ -65,6 +65,9 @@ class MessagingServices : FirebaseMessagingService() {
         intent.putExtra(StringConstants.CURRENT_USER_TOKEN, message.data["currentUserToken"])
         intent.putExtra(StringConstants.OTHER_USER_TOKEN, message.data["otherUserToken"])
 
+        Log.d(TAG, "onMessageReceived: currentUserToken: ${message.data["currentUserToken"]} ")
+        Log.d(TAG, "onMessageReceived: otherUserToken: ${message.data["otherUserToken"]}")
+
     }
 
     override fun onNewToken(newToken: String) {
@@ -125,10 +128,12 @@ private fun sendPush(pushNotification: PushNotification) =
         try {
             if (pushNotification.data.currentUserToken == token) {
                 pushNotification.to = pushNotification.data.otherUserToken
+                Log.d(TAG, "sendPush: ${pushNotification.data.otherUserToken}")
 
             }
             if (pushNotification.data.otherUserToken == token) {
                 pushNotification.to = pushNotification.data.currentUserToken
+                Log.d(TAG, "sendPush: ${pushNotification.data.currentUserToken}")
 
             }
 

@@ -21,16 +21,16 @@
     <FrameLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="30dp"
+        android:layout_marginBottom="23.5dp"
         android:layout_marginStart="10dp"
         app:layout_constraintBottom_toBottomOf="@+id/recent_message"
         app:layout_constraintStart_toEndOf="@+id/from_user">
 
         <ImageView
-            android:id="@+id/online_status"
-            android:layout_width="10dp"
-            android:layout_height="10dp"
-            android:src="@drawable/round_green_circle" />
+            android:id="@+id/new_post"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@drawable/ic_baseline_email_24"/>
 
     </FrameLayout>
 

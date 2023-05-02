@@ -330,6 +330,7 @@ class ChatRoomFragment : Fragment(),
         chatroom.deviceTokens?.forEach { entry ->
             if (entry.key == auth.currentUser?.uid) {
                 currentUserToken = entry.value
+                Log.d(TAG, "currentUserToken: ${entry.value}")
             }
         }
         return currentUserToken
@@ -340,6 +341,7 @@ class ChatRoomFragment : Fragment(),
         chatroom.deviceTokens?.forEach { entry ->
             if (entry.key != auth.currentUser?.uid) {
                 otherDeviceToken = entry.value
+                Log.d(TAG, "otherDeviceToken: ${entry.value}")
             }
         }
         return otherDeviceToken
