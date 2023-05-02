@@ -56,7 +56,7 @@ object NotificationHelper {
         val notificationMessage = NotificationCompat.MessagingStyle.Message(
             message,
             System.currentTimeMillis(),
-            person.name
+            person.toString()
 
         )
         messages.add(notificationMessage)
