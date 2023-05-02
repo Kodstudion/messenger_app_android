@@ -3,6 +3,7 @@ package com.example.messenger_app_android.services.models.utilites
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.app.Person
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -12,6 +13,7 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.RemoteInput
+import androidx.core.graphics.drawable.IconCompat
 import com.example.messenger_app_android.R
 import com.example.messenger_app_android.activities.HomeActivity
 import com.example.messenger_app_android.services.CHANNEL_ID
@@ -32,6 +34,7 @@ object NotificationHelper {
 
     private val messages = mutableListOf<NotificationCompat.MessagingStyle.Message>()
 
+    @RequiresApi(Build.VERSION_CODES.P)
     fun showMessage(
         context: Context,
         message: String,
@@ -42,10 +45,18 @@ object NotificationHelper {
         otherDeviceToken: String,
         profilePicture: String,
     ) {
+
+        val bitmap = BitmapFactory.decodeStream(URL(profilePicture).openConnection().getInputStream())
+        val avatar = IconCompat.createWithBitmap(bitmap).toIcon()
+        val person = Person.Builder()
+            .setName(fromUser)
+            .setIcon(avatar)
+            .build()
+
         val notificationMessage = NotificationCompat.MessagingStyle.Message(
             message,
             System.currentTimeMillis(),
-            fromUser
+            person.name
 
         )
         messages.add(notificationMessage)
@@ -76,17 +87,17 @@ object NotificationHelper {
             .build()
 
 
-        var bitmap: Bitmap? = null
-        try {
-            val url = URL(profilePicture)
-            bitmap = BitmapFactory.decodeStream(url.openConnection().getInputStream())
-        } catch (e: Exception) {
-            Log.d(TAG, "showNotification: ${e.message}")
-        }
+//        var bitmap: Bitmap? = null
+//        try {
+//            val url = URL(profilePicture)
+//            bitmap = BitmapFactory.decodeStream(url.openConnection().getInputStream())
+//        } catch (e: Exception) {
+//            Log.d(TAG, "showNotification: ${e.message}")
+//        }
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_baseline_email_24)
-            .setLargeIcon(bitmap)
+//            .setLargeIcon(bitmap)
             .setAutoCancel(true)
             .setContentIntent(
                 getPendingIntent(
