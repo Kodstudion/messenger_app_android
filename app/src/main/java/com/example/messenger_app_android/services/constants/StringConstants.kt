@@ -10,5 +10,6 @@ class StringConstants {
         const val CURRENT_USER_TOKEN  = "currentUserToken"
         const val OTHER_USER_TOKEN = "otherUserToken"
         const val CHATROOM_PICTURE = "chatroomPicture"
+        const val PROFILE_PICTURE = "profilePicture"
     }
 }

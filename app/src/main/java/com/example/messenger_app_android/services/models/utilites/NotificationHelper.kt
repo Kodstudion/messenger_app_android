@@ -5,6 +5,8 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -16,6 +18,9 @@ import com.example.messenger_app_android.services.CHANNEL_ID
 import com.example.messenger_app_android.services.ReplyBroadcastReceiver
 import com.example.messenger_app_android.services.constants.StringConstants
 import com.google.firebase.auth.FirebaseAuth
+import com.squareup.picasso.Picasso
+import com.squareup.picasso.Picasso.LoadedFrom
+import java.net.URL
 import java.util.*
 
 const val NOTIFICATION_ID = 123
@@ -35,6 +40,7 @@ object NotificationHelper {
         chatroomTitle: String,
         currentUserToken: String,
         otherDeviceToken: String,
+        profilePicture: String,
     ) {
         val notificationMessage = NotificationCompat.MessagingStyle.Message(
             message,
@@ -44,7 +50,7 @@ object NotificationHelper {
         )
         messages.add(notificationMessage)
 
-        showNotification(context, documentId, chatroomTitle, currentUserToken, otherDeviceToken)
+        showNotification(context, documentId, chatroomTitle, currentUserToken, otherDeviceToken, profilePicture)
     }
 
     private fun showNotification(
@@ -53,6 +59,7 @@ object NotificationHelper {
         chatroomTitle: String,
         currentUserToken: String,
         otherDeviceToken: String,
+        profilePicture: String,
     ) {
         val notificationManager =
             context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -68,8 +75,18 @@ object NotificationHelper {
         val remoteInput = RemoteInput.Builder(KEY_TEXT_REPLY)
             .build()
 
+
+        var bitmap: Bitmap? = null
+        try {
+            val url = URL(profilePicture)
+            bitmap = BitmapFactory.decodeStream(url.openConnection().getInputStream())
+        } catch (e: Exception) {
+            Log.d(TAG, "showNotification: ${e.message}")
+        }
+
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_baseline_email_24)
+            .setLargeIcon(bitmap)
             .setAutoCancel(true)
             .setContentIntent(
                 getPendingIntent(
@@ -77,7 +94,8 @@ object NotificationHelper {
                     documentId,
                     chatroomTitle,
                     currentUserToken,
-                    otherDeviceToken
+                    otherDeviceToken,
+                    profilePicture,
                 )
             )
             .addAction(
@@ -111,6 +129,7 @@ object NotificationHelper {
             putExtra(StringConstants.CHATROOM_TITLE, auth.currentUser?.displayName)
             putExtra(StringConstants.CURRENT_USER_TOKEN, currentUserToken)
             putExtra(StringConstants.OTHER_USER_TOKEN, otherDeviceToken)
+            putExtra(StringConstants.PROFILE_PICTURE, auth.currentUser?.photoUrl.toString())
         }
         val replyPendingIntent: PendingIntent = PendingIntent.getBroadcast(
             context,
@@ -130,12 +149,14 @@ object NotificationHelper {
         documentId: String,
         chatroomTitle: String,
         currentUserToken: String,
-        otherDeviceToken: String
+        otherDeviceToken: String,
+        profilePicture: String
     ): PendingIntent? {
         val intent = Intent(context, HomeActivity::class.java)
         intent.putExtra(StringConstants.DOCUMENT_ID, documentId)
         intent.putExtra(StringConstants.CHATROOM_TITLE, chatroomTitle)
         intent.putExtra(StringConstants.OTHER_USER_TOKEN, otherDeviceToken)
+        intent.putExtra(StringConstants.PROFILE_PICTURE, profilePicture)
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
 
         return PendingIntent.getActivity(

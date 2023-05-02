@@ -101,7 +101,8 @@ class ChatRoomFragment : Fragment(),
                 chatroom.typing?.forEach { entry ->
                     if (entry.key != auth.currentUser?.uid && entry.value) {
                         chatroom.participantsNames?.get(entry.key)?.let { otherParticipantName ->
-                            binding.userIsTypingTextView.text = "$otherParticipantName is typing ..."
+                            binding.userIsTypingTextView.text =
+                                "$otherParticipantName is typing ..."
                         }
                     } else if (entry.key != auth.currentUser?.uid && !entry.value) {
                         binding.userIsTypingTextView.text = ""
@@ -120,10 +121,12 @@ class ChatRoomFragment : Fragment(),
         binding.toolbarTitleChatroom.text = chatroomTitle
         Picasso.get()
             .load(chatroomPicture)
-            .transform(RoundedTransformationBuilder()
-                .cornerRadius(50f)
-                .oval(false)
-                .build())
+            .transform(
+                RoundedTransformationBuilder()
+                    .cornerRadius(50f)
+                    .oval(false)
+                    .build()
+            )
             .into(binding.profilePictureChatroom)
 
         binding.arrowLeftBack.setOnClickListener {
@@ -206,7 +209,8 @@ class ChatRoomFragment : Fragment(),
                         chatroomTitle,
                         auth.currentUser?.displayName ?: "",
                         currentUserToken(chatroom),
-                        otherDeviceToken(chatroom)
+                        otherDeviceToken(chatroom),
+                        user.profilePicture ?: ""
                     ),
                     ""
                 ).also {
@@ -330,7 +334,6 @@ class ChatRoomFragment : Fragment(),
         chatroom.deviceTokens?.forEach { entry ->
             if (entry.key == auth.currentUser?.uid) {
                 currentUserToken = entry.value
-                Log.d(TAG, "currentUserToken: ${entry.value}")
             }
         }
         return currentUserToken
@@ -341,7 +344,6 @@ class ChatRoomFragment : Fragment(),
         chatroom.deviceTokens?.forEach { entry ->
             if (entry.key != auth.currentUser?.uid) {
                 otherDeviceToken = entry.value
-                Log.d(TAG, "otherDeviceToken: ${entry.value}")
             }
         }
         return otherDeviceToken

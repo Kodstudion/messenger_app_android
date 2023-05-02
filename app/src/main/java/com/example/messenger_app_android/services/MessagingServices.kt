@@ -56,7 +56,8 @@ class MessagingServices : FirebaseMessagingService() {
             message.data["documentId"] ?: "",
             message.data["chatroomTitle"] ?: "",
             message.data["currentUserToken"] ?: "",
-            message.data["otherUserToken"] ?: ""
+            message.data["otherUserToken"] ?: "",
+            message.data["profilePicture"] ?: "",
         )
         val intent = Intent(this, HomeActivity::class.java)
         intent.putExtra(StringConstants.DOCUMENT_ID, message.data["documentId"])
@@ -64,10 +65,9 @@ class MessagingServices : FirebaseMessagingService() {
         intent.putExtra(StringConstants.FROM_USER, message.data["fromUser"])
         intent.putExtra(StringConstants.CURRENT_USER_TOKEN, message.data["currentUserToken"])
         intent.putExtra(StringConstants.OTHER_USER_TOKEN, message.data["otherUserToken"])
+        intent.putExtra(StringConstants.PROFILE_PICTURE, message.data["profilePicture"])
 
-        Log.d(TAG, "onMessageReceived: currentUserToken: ${message.data["currentUserToken"]} ")
-        Log.d(TAG, "onMessageReceived: otherUserToken: ${message.data["otherUserToken"]}")
-
+        Log.d(TAG, "onMessageReceived: ${message.data["profilePicture"]}")
     }
 
     override fun onNewToken(newToken: String) {
@@ -83,6 +83,9 @@ class ReplyBroadcastReceiver : BroadcastReceiver() {
         val currentUserToken = intent?.getStringExtra(StringConstants.CURRENT_USER_TOKEN) ?: ""
         val otherDeviceToken = intent?.getStringExtra(StringConstants.OTHER_USER_TOKEN) ?: ""
         val auth = FirebaseAuth.getInstance()
+        val profilePicture = intent?.getStringExtra(StringConstants.PROFILE_PICTURE) ?: ""
+
+        Log.d(TAG, "onReceive: $profilePicture")
 
         val remoteInputResult = getMessageText(intent ?: return)
 
@@ -93,7 +96,8 @@ class ReplyBroadcastReceiver : BroadcastReceiver() {
             documentId,
             chatroomTitle,
             currentUserToken,
-            otherDeviceToken
+            otherDeviceToken,
+            profilePicture
         )
 
         val timestamp = Timestamp.now()
@@ -103,9 +107,10 @@ class ReplyBroadcastReceiver : BroadcastReceiver() {
             auth.currentUser?.displayName,
             chatroomTitle,
             remoteInputResult.toString(),
-            timestamp
+            timestamp,
+            profilePicture
         )
-        setSentPushNotice(pushNotice, documentId ?: return, remoteInputResult.toString())
+        setSentPushNotice(pushNotice, documentId, remoteInputResult.toString())
 
         sendPush(
             PushNotification(
@@ -116,7 +121,8 @@ class ReplyBroadcastReceiver : BroadcastReceiver() {
                     chatroomTitle,
                     auth.currentUser?.displayName ?: "",
                     currentUserToken,
-                    otherDeviceToken
+                    otherDeviceToken,
+                    profilePicture
                 ), ""
             )
         )
@@ -159,7 +165,8 @@ private fun setSentPushNotice(post: Post, documentId: String, messageText: CharS
         post.fromUser,
         post.toUser,
         post.postBody,
-        post.timestamp
+        post.timestamp,
+        post.postPicture
     )
 
     val pushNoticeDocRef =
