@@ -68,7 +68,6 @@ class MessagingServices : FirebaseMessagingService() {
         intent.putExtra(StringConstants.OTHER_USER_TOKEN, message.data["otherUserToken"])
         intent.putExtra(StringConstants.PROFILE_PICTURE, message.data["profilePicture"])
 
-        Log.d(TAG, "onMessageReceived: ${message.data["profilePicture"]}")
     }
 
     override fun onNewToken(newToken: String) {

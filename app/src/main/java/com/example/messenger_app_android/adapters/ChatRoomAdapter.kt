@@ -70,7 +70,6 @@ class ChatRoomAdapter(private val fragmentManager: FragmentManager? = null) :
                     }
                 }
 
-
                 if (sender_textview.text == "") {
                     sender_textview.visibility = View.GONE
                     val layoutParams = recent_message.layoutParams as ViewGroup.MarginLayoutParams
@@ -86,7 +85,7 @@ class ChatRoomAdapter(private val fragmentManager: FragmentManager? = null) :
                 isPostSeen(
                     chatroom,
                     new_post,
-                    R.drawable.ic_baseline_email_24,
+                    R.drawable.ic_baseline_chat_bubble_24,
                 )
 
                 chatroom_picture.setOnClickListener {
@@ -149,8 +148,9 @@ private fun isPostSeen(
     imageView: ImageView,
     imageResIsSeen: Int,
 ) {
+    val auth = Firebase.auth
     chatroom.postIsSeen?.forEach { entry ->
-        if (entry.key == Firebase.auth.currentUser?.uid) {
+        if (entry.key == auth.currentUser?.uid) {
             if (!entry.value) {
                 imageView.setImageResource(imageResIsSeen)
             } else {

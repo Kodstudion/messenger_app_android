@@ -3,20 +3,16 @@ package com.example.messenger_app_android.fragments
 import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper.getMainLooper
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
 import android.view.*
-import android.widget.ImageView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.messenger_app_android.R
 import com.example.messenger_app_android.adapters.PostAdapter
-import com.example.messenger_app_android.adapters.Status
 import com.example.messenger_app_android.databinding.FragmentChatRoomBinding
 import com.example.messenger_app_android.models.Chatroom
 import com.example.messenger_app_android.models.Post
@@ -39,6 +35,8 @@ import com.google.gson.Gson
 import com.makeramen.roundedimageview.RoundedTransformationBuilder
 import com.squareup.picasso.Picasso
 import kotlinx.coroutines.*
+import java.util.*
+import kotlin.collections.HashMap
 
 interface ChatroomFragmentChatroomView {
     fun setPost(post: MutableList<Post>)
@@ -135,44 +133,42 @@ class ChatRoomFragment : Fragment(),
 
         binding.sendMessageEditText.addTextChangedListener(object : TextWatcher {
             private var isTyping = false
-            private var editTexHasValue = false
-            private var typingHandler = Handler(getMainLooper())
+            private var timer: Timer? = null
             private val fiveSeconds: Long = 5000
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun afterTextChanged(s: Editable?) {}
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                handleTextChange(s.toString())
-            }
-
-            private fun handleTextChange(editText: String) {
-                if (editText.isNotEmpty()) {
-                    startTyping()
-                } else {
-                    stopTyping()
-                }
+                startTyping()
             }
 
             private fun startTyping() {
                 if (!isTyping) {
                     isTyping = true
-                    editTexHasValue = true
                     updateIsTyping(chatroom, documentId, true)
                 } else {
-                    typingHandler.postDelayed({
-                        stopTyping()
-                        if (editTexHasValue) {
-                            updateIsTyping(chatroom, documentId, false)
-                        }
-                    }, fiveSeconds)
+                   resetTimer()
                 }
             }
 
             private fun stopTyping() {
                 isTyping = false
-                editTexHasValue = false
-                typingHandler.removeCallbacksAndMessages(null)
+                timer?.cancel()
                 updateIsTyping(chatroom, documentId, false)
+            }
+
+            private fun startTimer() {
+                timer = Timer()
+                timer?.schedule(object : TimerTask() {
+                    override fun run() {
+                        stopTyping()
+                    }
+                }, fiveSeconds)
+            }
+
+            private fun resetTimer() {
+                timer?.cancel()
+                startTimer()
             }
         })
 
@@ -186,6 +182,7 @@ class ChatRoomFragment : Fragment(),
                     user.profilePicture = entry.value
                 }
             }
+
 
             val post = Post(
                 auth.currentUser?.uid,

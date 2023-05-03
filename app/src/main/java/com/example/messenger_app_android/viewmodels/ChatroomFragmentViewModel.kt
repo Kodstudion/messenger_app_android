@@ -16,7 +16,6 @@ class ChatroomFragmentViewModel : ViewModel() {
     val TAG = "!!!"
     private var chatroomView: ChatroomFragmentChatroomView? = null
     private val db = Firebase.firestore
-    private val auth = FirebaseAuth.getInstance()
 
     lateinit var documentId: String
 
@@ -24,22 +23,6 @@ class ChatroomFragmentViewModel : ViewModel() {
         chatroomView = chatroomFragmentChatroomView
         listenForPostUpdates()
     }
-
-
-
-    fun updateResentMessageText(resentMessage: String) {
-        val recentMessageDocRef = db.collection("chatrooms").document(documentId)
-        recentMessageDocRef.get().addOnSuccessListener { document ->
-            if (document != null) {
-                recentMessageDocRef.update("recentMessage", resentMessage)
-            } else {
-                Log.d(TAG, "No such document")
-            }
-        }.addOnFailureListener { exception ->
-            Log.d(TAG, "get failed with ", exception)
-        }
-    }
-
     private fun listenForPostUpdates() {
         db.collection("chatrooms").document(documentId).collection("posts").orderBy(
             "timestamp", Query.Direction.ASCENDING
@@ -63,6 +46,19 @@ class ChatroomFragmentViewModel : ViewModel() {
             error?.let {
                 Log.d(TAG, "listenForPostUpdates: $it")
             }
+        }
+    }
+
+    fun updateResentMessageText(resentMessage: String) {
+        val recentMessageDocRef = db.collection("chatrooms").document(documentId)
+        recentMessageDocRef.get().addOnSuccessListener { document ->
+            if (document != null) {
+                recentMessageDocRef.update("recentMessage", resentMessage)
+            } else {
+                Log.d(TAG, "No such document")
+            }
+        }.addOnFailureListener { exception ->
+            Log.d(TAG, "get failed with ", exception)
         }
     }
 }
