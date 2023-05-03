@@ -3,7 +3,6 @@ package com.example.messenger_app_android.services.models.utilites
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.app.Person
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -11,7 +10,9 @@ import android.graphics.BitmapFactory
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.core.app.Person
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationCompat.MessagingStyle.Message
 import androidx.core.app.RemoteInput
 import androidx.core.graphics.drawable.IconCompat
 import com.example.messenger_app_android.R
@@ -20,8 +21,6 @@ import com.example.messenger_app_android.services.CHANNEL_ID
 import com.example.messenger_app_android.services.ReplyBroadcastReceiver
 import com.example.messenger_app_android.services.constants.StringConstants
 import com.google.firebase.auth.FirebaseAuth
-import com.squareup.picasso.Picasso
-import com.squareup.picasso.Picasso.LoadedFrom
 import java.net.URL
 import java.util.*
 
@@ -46,22 +45,26 @@ object NotificationHelper {
         profilePicture: String,
     ) {
 
-        val bitmap = BitmapFactory.decodeStream(URL(profilePicture).openConnection().getInputStream())
-        val avatar = IconCompat.createWithBitmap(bitmap).toIcon()
         val person = Person.Builder()
             .setName(fromUser)
-            .setIcon(avatar)
+            .setIcon(IconCompat.createWithBitmap(getBitMapFromUrl(profilePicture) ?: return))
             .build()
 
-        val notificationMessage = NotificationCompat.MessagingStyle.Message(
+        val notificationMessage = Message(
             message,
             System.currentTimeMillis(),
-            person.toString()
-
+            person
         )
         messages.add(notificationMessage)
 
-        showNotification(context, documentId, chatroomTitle, currentUserToken, otherDeviceToken, profilePicture)
+        showNotification(
+            context,
+            documentId,
+            chatroomTitle,
+            currentUserToken,
+            otherDeviceToken,
+            profilePicture
+        )
     }
 
     private fun showNotification(
@@ -86,18 +89,8 @@ object NotificationHelper {
         val remoteInput = RemoteInput.Builder(KEY_TEXT_REPLY)
             .build()
 
-
-//        var bitmap: Bitmap? = null
-//        try {
-//            val url = URL(profilePicture)
-//            bitmap = BitmapFactory.decodeStream(url.openConnection().getInputStream())
-//        } catch (e: Exception) {
-//            Log.d(TAG, "showNotification: ${e.message}")
-//        }
-
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_baseline_email_24)
-//            .setLargeIcon(bitmap)
             .setAutoCancel(true)
             .setContentIntent(
                 getPendingIntent(
@@ -114,7 +107,8 @@ object NotificationHelper {
                     context,
                     documentId,
                     currentUserToken,
-                    otherDeviceToken
+                    otherDeviceToken,
+                    profilePicture,
                 )
                     .addRemoteInput(remoteInput)
                     .build()
@@ -129,7 +123,8 @@ object NotificationHelper {
         context: Context,
         documentId: String,
         currentUserToken: String,
-        otherDeviceToken: String
+        otherDeviceToken: String,
+        profilePicture: String,
     ): NotificationCompat.Action.Builder {
         val TAG = "!!!"
         val auth = FirebaseAuth.getInstance()
@@ -140,7 +135,7 @@ object NotificationHelper {
             putExtra(StringConstants.CHATROOM_TITLE, auth.currentUser?.displayName)
             putExtra(StringConstants.CURRENT_USER_TOKEN, currentUserToken)
             putExtra(StringConstants.OTHER_USER_TOKEN, otherDeviceToken)
-            putExtra(StringConstants.PROFILE_PICTURE, auth.currentUser?.photoUrl.toString())
+            putExtra(StringConstants.PROFILE_PICTURE, profilePicture)
         }
         val replyPendingIntent: PendingIntent = PendingIntent.getBroadcast(
             context,
@@ -191,6 +186,17 @@ object NotificationHelper {
             lightColor = R.color.purple_200
         }
         notificationManager.createNotificationChannel(channel)
+    }
+
+    private fun getBitMapFromUrl(url: String): Bitmap? {
+        var bitmap: Bitmap? = null
+        try {
+            val avatar = URL(url)
+            bitmap = BitmapFactory.decodeStream(avatar.openConnection().getInputStream())
+        } catch (e: Exception) {
+            Log.d(TAG, "showNotification: ${e.message}")
+        }
+        return bitmap
     }
 
 }

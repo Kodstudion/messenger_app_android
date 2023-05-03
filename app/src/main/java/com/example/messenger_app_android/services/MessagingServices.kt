@@ -77,6 +77,7 @@ class MessagingServices : FirebaseMessagingService() {
 }
 
 class ReplyBroadcastReceiver : BroadcastReceiver() {
+    @RequiresApi(Build.VERSION_CODES.P)
     override fun onReceive(context: Context, intent: Intent?) {
         val chatroomTitle = intent?.getStringExtra(StringConstants.CHATROOM_TITLE) ?: ""
         val documentId = intent?.getStringExtra(StringConstants.DOCUMENT_ID) ?: ""
