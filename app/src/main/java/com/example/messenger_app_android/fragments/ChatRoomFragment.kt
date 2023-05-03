@@ -210,7 +210,7 @@ class ChatRoomFragment : Fragment(),
                         auth.currentUser?.displayName ?: "",
                         currentUserToken(chatroom),
                         otherDeviceToken(chatroom),
-                  "https://lh3.googleusercontent.com/a/AGNmyxZ20hNnlOLHg2scb__LwXKz7BKDS9Qo8RKC9kxx=s96-c"
+                        user.profilePicture ?: ""
                     ),
                     ""
                 ).also {
