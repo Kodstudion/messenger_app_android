@@ -85,9 +85,6 @@ class ReplyBroadcastReceiver : BroadcastReceiver() {
         val currentUserToken = intent?.getStringExtra(StringConstants.CURRENT_USER_TOKEN) ?: ""
         val otherDeviceToken = intent?.getStringExtra(StringConstants.OTHER_USER_TOKEN) ?: ""
         val auth = FirebaseAuth.getInstance()
-        val profilePicture = intent?.getStringExtra(StringConstants.PROFILE_PICTURE) ?: ""
-
-        Log.d(TAG, "onReceive: $profilePicture")
 
         val remoteInputResult = getMessageText(intent ?: return)
 
@@ -99,7 +96,7 @@ class ReplyBroadcastReceiver : BroadcastReceiver() {
             chatroomTitle,
             currentUserToken,
             otherDeviceToken,
-            profilePicture
+            auth.currentUser?.photoUrl.toString()
         )
 
         val timestamp = Timestamp.now()
@@ -110,8 +107,9 @@ class ReplyBroadcastReceiver : BroadcastReceiver() {
             chatroomTitle,
             remoteInputResult.toString(),
             timestamp,
-            profilePicture
+            auth.currentUser?.photoUrl.toString()
         )
+
         setSentPushNotice(pushNotice, documentId, remoteInputResult.toString())
 
         sendPush(
@@ -124,7 +122,7 @@ class ReplyBroadcastReceiver : BroadcastReceiver() {
                     auth.currentUser?.displayName ?: "",
                     currentUserToken,
                     otherDeviceToken,
-                    profilePicture
+                    auth.currentUser?.photoUrl.toString()
                 ), ""
             )
         )
