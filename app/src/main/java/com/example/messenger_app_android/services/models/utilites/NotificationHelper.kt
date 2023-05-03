@@ -31,7 +31,7 @@ val TAG = "!!!"
 
 object NotificationHelper {
 
-    private val messages = mutableListOf<NotificationCompat.MessagingStyle.Message>()
+    private val messages = mutableListOf<Message>()
 
     @RequiresApi(Build.VERSION_CODES.P)
     fun showMessage(
@@ -44,10 +44,10 @@ object NotificationHelper {
         otherDeviceToken: String,
         profilePicture: String,
     ) {
-
+        
         val person = Person.Builder()
             .setName(fromUser)
-            .setIcon(IconCompat.createWithBitmap(getBitMapFromUrl(profilePicture) ?: return))
+            .setIcon(getBitMapFromUrl(profilePicture)?.let { IconCompat.createWithBitmap(it) })
             .build()
 
         val notificationMessage = Message(

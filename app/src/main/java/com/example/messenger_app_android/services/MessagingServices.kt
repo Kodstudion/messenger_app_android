@@ -46,7 +46,8 @@ class MessagingServices : FirebaseMessagingService() {
             }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
+    @RequiresApi(Build.VERSION_CODES.P)
     override fun onMessageReceived(message: RemoteMessage) {
         super.onMessageReceived(message)
         NotificationHelper.showMessage(
