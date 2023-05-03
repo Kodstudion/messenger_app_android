@@ -88,16 +88,18 @@ class ReplyBroadcastReceiver : BroadcastReceiver() {
 
         val remoteInputResult = getMessageText(intent ?: return)
 
-        NotificationHelper.showMessage(
-            context,
-            remoteInputResult.toString(),
-            chatroomTitle,
-            documentId,
-            chatroomTitle,
-            currentUserToken,
-            otherDeviceToken,
-            auth.currentUser?.photoUrl.toString()
-        )
+        CoroutineScope(Dispatchers.IO).launch {
+            NotificationHelper.showMessage(
+                context,
+                remoteInputResult.toString(),
+                chatroomTitle,
+                documentId,
+                chatroomTitle,
+                currentUserToken,
+                otherDeviceToken,
+                auth.currentUser?.photoUrl.toString()
+            )
+        }
 
         val timestamp = Timestamp.now()
         val pushNotice = Post(
