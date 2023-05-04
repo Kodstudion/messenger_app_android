@@ -74,7 +74,12 @@ class ChatRoomAdapter(private val fragmentManager: FragmentManager? = null) :
                     if (entry.key != auth.currentUser?.uid) {
                         sender_textview.text = null
                     } else {
-                        sender_textview.text = "You:"}
+                        if (recent_message.text == "") {
+                            sender_textview.text = "Start Chatting!"
+                        } else {
+                            sender_textview.text = "You:"
+                        }
+                    }
                 }
 
 

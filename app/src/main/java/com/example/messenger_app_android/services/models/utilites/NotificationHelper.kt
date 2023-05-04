@@ -21,6 +21,8 @@ import com.example.messenger_app_android.services.CHANNEL_ID
 import com.example.messenger_app_android.services.ReplyBroadcastReceiver
 import com.example.messenger_app_android.services.constants.StringConstants
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import java.net.URL
 import java.util.*
 
@@ -198,5 +200,4 @@ object NotificationHelper {
         }
         return bitmap
     }
-
 }

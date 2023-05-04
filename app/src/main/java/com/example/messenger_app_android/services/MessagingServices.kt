@@ -22,6 +22,7 @@ import com.example.messenger_app_android.services.models.utilites.NotificationHe
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -172,7 +173,43 @@ private fun setSentPushNotice(post: Post, documentId: String, messageText: CharS
 
     val pushNoticeDocRef =
         db.collection("chatrooms").document(documentId).collection("posts").document()
-    pushNoticeDocRef.set(sent)
+    pushNoticeDocRef.set(sent).addOnSuccessListener {
+        updateRecentMessage(documentId, messageText.toString())
+        updatePostIsSeen(documentId)
+    }
+}
+
+private fun updateRecentMessage(documentId: String, recentMessage: String) {
+    val db = FirebaseFirestore.getInstance()
+    val recentMessageDocRef = db.collection("chatrooms").document(documentId)
+    recentMessageDocRef.get().addOnSuccessListener { document ->
+        if (document != null) {
+            recentMessageDocRef.update("recentMessage", recentMessage)
+        }
+    }
+}
+
+private fun updatePostIsSeen(documentId: String) {
+    val db = FirebaseFirestore.getInstance()
+    val auth = FirebaseAuth.getInstance()
+    val postIsSeenDocRef = db.collection("chatrooms").document(documentId)
+    postIsSeenDocRef.get().addOnSuccessListener { document ->
+        if (document != null) {
+            val postIsSeen = document.data?.get("postIsSeen") as? HashMap<*, *>
+            val keys = postIsSeen?.keys
+            if (keys != null) {
+                for (key in keys) {
+                    if (key != auth.currentUser?.uid) {
+                        postIsSeenDocRef.set(
+                            hashMapOf(
+                                "postIsSeen" to hashMapOf(key to false)
+                            ), SetOptions.merge()
+                        )
+                    }
+                }
+            }
+        }
+    }
 }
 
 private fun getMessageText(intent: Intent): CharSequence? {
