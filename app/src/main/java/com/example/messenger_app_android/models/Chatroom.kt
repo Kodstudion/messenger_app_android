@@ -13,7 +13,7 @@ data class Chatroom(
     val chatroomPicture: String? = null,
     var participantsNames: HashMap<String, String>? = null,
     var lastUpdated: com.google.firebase.Timestamp? = null,
-    var sender: String? = null,
+    var sender: HashMap<String, String>? = null,
     var postIsSeen: HashMap<String, Boolean>? = null,
     val deviceTokens: HashMap<String, String>? = null,
     var typing: HashMap<String, Boolean>? = null,

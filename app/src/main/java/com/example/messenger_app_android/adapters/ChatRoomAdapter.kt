@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.messenger_app_android.R
 import com.example.messenger_app_android.fragments.ChatRoomFragment
 import com.example.messenger_app_android.models.Chatroom
+import com.example.messenger_app_android.models.User
 import com.example.messenger_app_android.services.constants.StringConstants
 import com.example.messenger_app_android.utilities.Utilities
 import com.google.firebase.auth.ktx.auth
@@ -54,9 +55,8 @@ class ChatRoomAdapter(private val fragmentManager: FragmentManager? = null) :
             itemView.apply {
                 from_user.text = chatroom.chatroomTitle
                 recent_message.text = chatroom.recentMessage
-                sender_textview.text = chatroom.sender
 
-                chatroom.profilePictures?.forEach {entry ->
+                chatroom.profilePictures?.forEach { entry ->
                     if (entry.key != auth.currentUser?.uid) {
                         Picasso.get()
                             .load(entry.value)
@@ -70,15 +70,21 @@ class ChatRoomAdapter(private val fragmentManager: FragmentManager? = null) :
                     }
                 }
 
-                if (sender_textview.text == "") {
-                    sender_textview.visibility = View.GONE
-                    val layoutParams = recent_message.layoutParams as ViewGroup.MarginLayoutParams
-                    layoutParams.marginStart = 50
-                    recent_message.layoutParams = layoutParams
-
-                } else {
-                    sender_textview.visibility = View.VISIBLE
+                chatroom.sender?.forEach { entry ->
+                    if (entry.key != auth.currentUser?.uid) {
+                        sender_textview.text = null
+                    } else {
+                        sender_textview.text = "You:"}
                 }
+
+
+//                if (chatroom.sender == null) {
+//                    chatroom.sender = View.GONE.toString()
+//
+//
+//                } else {
+//                    chatroom.sender = View.VISIBLE.toString()
+//                }
 
                 recentMessageElapsedTimeHandler(elapsed_time, chatroom)
 
@@ -176,6 +182,31 @@ private fun updatePostIsSeen(chatroom: Chatroom) {
         }
     }
 }
+
+//private fun isUserOnline(
+//    user: User,
+//    imageView: ImageView,
+//    imageResOnline: Int,
+//    imageResOffline: Int
+//) {
+//    val timeHandler = Handler(Looper.getMainLooper())
+//    val tenMinutes: Long = 10 * 60 * 1000
+//    val loggedIn = user.loggedIn
+//    timeHandler.post(object : Runnable {
+//        override fun run() {
+//            val currentTime = System.currentTimeMillis() - (loggedIn?.seconds?.times(1000) ?: 0)
+//            if (currentTime < tenMinutes) {
+//                Status.ONLINE
+//                imageView.setImageResource(imageResOnline)
+//            } else {
+//                Status.OFFLINE
+//                imageView.setImageResource(imageResOffline)
+//                imageView.visibility = View.GONE
+//            }
+//            timeHandler.postDelayed(this, tenMinutes)
+//        }
+//    })
+//}
 
 
 

@@ -198,6 +198,7 @@ class ChatRoomFragment : Fragment(),
                 getAndSetPostIsSeen()
                 updateUserStatus(timestamp)
                 updateChatroomLastUpdate(timestamp)
+                updateSender(chatroom, documentId, postBody)
                 PushNotification(
                     NotificationData(
                         auth.currentUser?.displayName ?: "",
@@ -386,7 +387,24 @@ class ChatRoomFragment : Fragment(),
             }
         }
     }
+
+    private fun updateSender(chatroom: Chatroom, documentId: String, recentMessage: String) {
+        val senderDocRef = db.collection("chatrooms").document(documentId)
+        chatroom.sender?.forEach { entry ->
+            if (entry.key == auth.currentUser?.uid) {
+                senderDocRef.set(
+                    hashMapOf(
+                        "sender" to hashMapOf(entry.key to recentMessage)
+                    ), SetOptions.merge()
+                )
+            } else {
+                senderDocRef.update("sender", hashMapOf(auth.currentUser?.uid to recentMessage))
+            }
+        }
+    }
 }
+
+
 
 
 

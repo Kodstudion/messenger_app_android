@@ -1,6 +1,8 @@
 package com.example.messenger_app_android.viewmodels
 
 import android.util.Log
+import android.view.View
+import androidx.core.app.NavUtils
 import androidx.lifecycle.ViewModel
 import com.example.messenger_app_android.adapters.UserAdapter
 import com.example.messenger_app_android.fragments.ChatFragmentChatroomsView
@@ -50,7 +52,6 @@ class ChatFragmentViewModel() : ViewModel() {
                                 chatroom.participantsNames?.forEach { entry ->
                                     if (entry.key != auth.currentUser?.uid) {
                                         chatroom.chatroomTitle = entry.value
-                                        chatroom.sender = "You:"
                                     }
                                 }
                                 newChatroom.add(chatroom)
