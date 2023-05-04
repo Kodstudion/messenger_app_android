@@ -175,8 +175,8 @@ private fun setSentPushNotice(post: Post, documentId: String, messageText: CharS
         db.collection("chatrooms").document(documentId).collection("posts").document()
     pushNoticeDocRef.set(sent).addOnSuccessListener {
         updateRecentMessage(documentId, messageText.toString())
+        updatePostIsSeen(documentId)
     }
-//    updatePostIsSeen(documentId)
 }
 
 private fun updateRecentMessage(documentId: String, recentMessage: String) {
@@ -199,10 +199,10 @@ private fun updatePostIsSeen(documentId: String) {
             val keys = postIsSeen?.keys
             if (keys != null) {
                 for (key in keys) {
-                    if (key != auth.currentUser?.uid) {
+                    if (key == auth.currentUser?.uid) {
                         postIsSeenDocRef.set(
                             hashMapOf(
-                                "postIsSeen" to hashMapOf(key to false)
+                                "postIsSeen" to hashMapOf(key to true)
                             ), SetOptions.merge()
                         )
                     }

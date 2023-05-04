@@ -62,8 +62,8 @@ class UserAdapter(
             isUserOnline(
                 user,
                 online_status_user,
-                R.drawable.round_green_circle,
-                R.drawable.round_blue_circle
+//                R.drawable.round_green_circle,
+//                R.drawable.round_blue_circle
             )
 
             profile_picture.setOnClickListener {
@@ -183,8 +183,8 @@ class UserAdapter(
     private fun isUserOnline(
         user: User,
         imageView: ImageView,
-        imageResOnline: Int,
-        imageResOffline: Int
+//        imageResOnline: Int,
+//        imageResOffline: Int
     ) {
         val timeHandler = Handler(getMainLooper())
         val tenMinutes: Long = 10 * 60 * 1000
@@ -194,10 +194,9 @@ class UserAdapter(
                 val currentTime = System.currentTimeMillis() - (loggedIn?.seconds?.times(1000) ?: 0)
                 if (currentTime < tenMinutes) {
                     Status.ONLINE
-                    imageView.setImageResource(imageResOnline)
+                    imageView.visibility = View.VISIBLE
                 } else {
                     Status.OFFLINE
-                    imageView.setImageResource(imageResOffline)
                     imageView.visibility = View.GONE
                 }
                 timeHandler.postDelayed(this, tenMinutes)

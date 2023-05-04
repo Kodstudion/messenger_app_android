@@ -96,7 +96,6 @@ class ChatRoomAdapter(private val fragmentManager: FragmentManager? = null) :
                 isPostSeen(
                     chatroom,
                     new_post,
-                    R.drawable.ic_baseline_chat_bubble_24,
                 )
 
                 chatroom_picture.setOnClickListener {
@@ -157,13 +156,12 @@ private fun updateElapsedTimeText(
 private fun isPostSeen(
     chatroom: Chatroom,
     imageView: ImageView,
-    imageResIsSeen: Int,
 ) {
     val auth = Firebase.auth
     chatroom.postIsSeen?.forEach { entry ->
         if (entry.key == auth.currentUser?.uid) {
             if (!entry.value) {
-                imageView.setImageResource(imageResIsSeen)
+                imageView.visibility = View.VISIBLE
             } else {
                 imageView.visibility = View.GONE
             }

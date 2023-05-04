@@ -27,6 +27,7 @@
 
         <ImageView
             android:id="@+id/new_post"
+            android:visibility="gone"
             android:layout_width="20dp"
             android:layout_height="20dp"
             android:src="@drawable/ic_baseline_chat_bubble_24"/>
