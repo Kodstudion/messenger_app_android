@@ -197,19 +197,23 @@ private fun updatePostIsSeen(documentId: String) {
         if (document != null) {
             val postIsSeen = document.data?.get("postIsSeen") as? HashMap<*, *>
             val keys = postIsSeen?.keys
+            val map = hashMapOf<String, MutableMap<String, Boolean>>(
+                "postIsSeen" to mutableMapOf(),
+            )
+
             if (keys != null) {
                 for (key in keys) {
-                    if (key != auth.currentUser?.uid) {
-                        postIsSeenDocRef.set(
-                            hashMapOf(
-                                "postIsSeen" to hashMapOf(key to false), "postIsSeen" to hashMapOf(
-                                    auth.currentUser?.uid to true
-                                )
-                            ), SetOptions.merge()
-                        )
+                    if (key == auth.currentUser?.uid) {
+                        map["postIsSeen"]?.put(key.toString(), true)
+                    } else {
+                        map["postIsSeen"]?.put(key.toString(), false)
                     }
                 }
             }
+
+            postIsSeenDocRef.set(
+                map, SetOptions.merge()
+            )
         }
     }
 }
