@@ -3,6 +3,8 @@ package com.example.messenger_app_android.fragments
 import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
@@ -133,7 +135,8 @@ class ChatRoomFragment : Fragment(),
 
         binding.sendMessageEditText.addTextChangedListener(object : TextWatcher {
             private var isTyping = false
-            private var timer: Timer? = null
+            private var handler = Handler(Looper.getMainLooper())
+            private var isTypingRunnable: Runnable? = null
             private val fiveSeconds: Long = 5000
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun afterTextChanged(s: Editable?) {}
@@ -147,27 +150,29 @@ class ChatRoomFragment : Fragment(),
                     isTyping = true
                     updateIsTyping(chatroom, documentId, true)
                 } else {
-                   resetTimer()
+                    resetTimer()
                 }
             }
 
             private fun stopTyping() {
                 isTyping = false
-                timer?.cancel()
+                isTypingRunnable?.let {
+                    handler.removeCallbacks(it)
+                    isTypingRunnable = null
+                }
                 updateIsTyping(chatroom, documentId, false)
             }
 
             private fun startTimer() {
-                timer = Timer()
-                timer?.schedule(object : TimerTask() {
-                    override fun run() {
-                        stopTyping()
-                    }
-                }, fiveSeconds)
+                isTypingRunnable = Runnable { stopTyping() }
+                handler.postDelayed(isTypingRunnable ?: return, fiveSeconds)
             }
 
             private fun resetTimer() {
-                timer?.cancel()
+                isTypingRunnable?.let {
+                    handler.removeCallbacks(it)
+                    isTypingRunnable = null
+                }
                 startTimer()
             }
         })
@@ -176,7 +181,6 @@ class ChatRoomFragment : Fragment(),
         binding.sendMessageButton.setOnClickListener {
             val timestamp = Timestamp.now()
             val postBody = binding.sendMessageEditText.text.toString()
-
             chatroom.profilePictures?.forEach { entry ->
                 if (entry.key == auth.currentUser?.uid) {
                     user.profilePicture = entry.value

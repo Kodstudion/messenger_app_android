@@ -175,8 +175,8 @@ private fun setSentPushNotice(post: Post, documentId: String, messageText: CharS
         db.collection("chatrooms").document(documentId).collection("posts").document()
     pushNoticeDocRef.set(sent).addOnSuccessListener {
         updateRecentMessage(documentId, messageText.toString())
-        updatePostIsSeen(documentId)
     }
+//    updatePostIsSeen(documentId)
 }
 
 private fun updateRecentMessage(documentId: String, recentMessage: String) {
