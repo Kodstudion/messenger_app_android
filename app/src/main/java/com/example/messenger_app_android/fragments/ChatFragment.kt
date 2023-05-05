@@ -14,10 +14,12 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.core.view.GravityCompat
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.messenger_app_android.R
 import com.example.messenger_app_android.activities.LoginActivity
 import com.example.messenger_app_android.adapters.ChatRoomAdapter
+import com.example.messenger_app_android.adapters.ChatRoomAdapterCallback
 import com.example.messenger_app_android.adapters.UserAdapter
 import com.example.messenger_app_android.databinding.FragmentChatBinding
 import com.example.messenger_app_android.models.Chatroom
@@ -31,20 +33,17 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.FirebaseMessaging
+import kotlinx.coroutines.flow.collect
 
 
 val TAG = "!!!"
 
 interface ChatFragmentChatroomsView {
     fun setChatroom(chatroom: MutableList<Chatroom>)
-}
-
-interface ChatFragmentUsersView {
-
     fun setUsers(user: MutableList<User>)
 }
 
-class ChatFragment : Fragment(), ChatFragmentChatroomsView, ChatFragmentUsersView {
+class ChatFragment : Fragment(), ChatFragmentChatroomsView {
 
     private lateinit var auth: FirebaseAuth
     private lateinit var db: FirebaseFirestore
@@ -69,8 +68,7 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView, ChatFragmentUsersVie
     ): View? {
         binding = FragmentChatBinding.inflate(layoutInflater, container, false)
         chatFragmentViewModel = ViewModelProvider(this)[ChatFragmentViewModel::class.java]
-        chatFragmentViewModel.attachChatrooms(this)
-        chatFragmentViewModel.attachUsers(this)
+        chatFragmentViewModel.attach(this)
 
         return binding.root
 
@@ -81,11 +79,23 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView, ChatFragmentUsersVie
         db = Firebase.firestore
         auth = Firebase.auth
 
+        lifecycleScope.launchWhenCreated {
+            chatFragmentViewModel.dataLoaded.collect { loaded ->
+                if (loaded) {
+                    chatroomAdapter.submitList(chatFragmentViewModel.chatrooms)
+                }
+            }
+        }
+
         askNotificationPermission()
 
         val fragmentManager = requireActivity().supportFragmentManager
         userAdapter = UserAdapter(mutableListOf(), fragmentManager)
-        chatroomAdapter = ChatRoomAdapter(fragmentManager)
+        chatroomAdapter = ChatRoomAdapter(fragmentManager, object : ChatRoomAdapterCallback {
+            override fun getUser(userId: String): User? {
+                return chatFragmentViewModel.getUser(userId)
+            }
+        })
 
 
         binding.horizontalRecyclerview.layoutManager =

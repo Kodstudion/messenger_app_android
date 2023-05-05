@@ -34,13 +34,21 @@ import java.sql.Date
 private lateinit var user: User
 val utilities = Utilities()
 
-class ChatRoomAdapter(private val fragmentManager: FragmentManager? = null) :
+interface ChatRoomAdapterCallback {
+    fun getUser(userId: String): User?
+}
+
+class ChatRoomAdapter(
+    private val fragmentManager: FragmentManager? = null,
+    private val callback: ChatRoomAdapterCallback
+) :
     ListAdapter<Chatroom, ChatRoomAdapter.ItemViewHolder>(ChatroomDiffCallBack()) {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemViewHolder {
         return ItemViewHolder(
             LayoutInflater.from(parent.context).inflate(
                 R.layout.item_vertical_recyclerview, parent, false
-            )
+            ),
+            callback
         )
     }
 
@@ -48,7 +56,8 @@ class ChatRoomAdapter(private val fragmentManager: FragmentManager? = null) :
         holder.bind(getItem(position))
     }
 
-    inner class ItemViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    inner class ItemViewHolder(itemView: View, private val callback: ChatRoomAdapterCallback) :
+        RecyclerView.ViewHolder(itemView) {
 
         fun bind(chatroom: Chatroom) {
             val auth = Firebase.auth
@@ -84,14 +93,11 @@ class ChatRoomAdapter(private val fragmentManager: FragmentManager? = null) :
                     }
                 }
 
-                getUser { userCallbackResult ->
-                    if (userCallbackResult != null) {
-                        user = userCallbackResult
-                        attachUser(user, online_status_chatroom_adapter)
-
-                    }
+                chatroom.participants?.find {
+                    it != auth.currentUser?.uid
+                }?.let {
+                    callback.getUser(it)
                 }
-
 
 //                if (chatroom.sender == null) {
 //                    chatroom.sender = View.GONE.toString()
@@ -195,16 +201,6 @@ private fun updatePostIsSeen(chatroom: Chatroom) {
                     )
                 ), SetOptions.merge()
             )
-        }
-    }
-}
-
-private fun getUser(callback: (User?) -> Unit) {
-    val db = Firebase.firestore
-    db.collection("users").get().addOnSuccessListener { document ->
-        document?.documents?.forEach { snapshot ->
-            val user = snapshot.toObject(User::class.java)
-            callback(user)
         }
     }
 }
