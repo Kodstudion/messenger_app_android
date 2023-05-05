@@ -47,75 +47,75 @@ interface ChatroomFragmentChatroomView {
 class ChatRoomFragment : Fragment(),
     ChatroomFragmentChatroomView {
 
-    private lateinit var auth: FirebaseAuth
-    private lateinit var db: FirebaseFirestore
-    private lateinit var binding: FragmentChatRoomBinding
-    private lateinit var postAdapter: PostAdapter
-    private lateinit var chatroomFragmentViewModel: ChatroomFragmentViewModel
-    private lateinit var chatroomTitle: String
-    private lateinit var chatroomPicture: String
-    private lateinit var documentId: String
-    private lateinit var chatroom: Chatroom
-    private lateinit var user: User
+          private lateinit var auth: FirebaseAuth
+        private lateinit var db: FirebaseFirestore
+        private lateinit var binding: FragmentChatRoomBinding
+        private lateinit var postAdapter: PostAdapter
+        private lateinit var chatroomFragmentViewModel: ChatroomFragmentViewModel
+        private lateinit var chatroomTitle: String
+        private lateinit var chatroomPicture: String
+        private lateinit var documentId: String
+        private lateinit var chatroom: Chatroom
+        private lateinit var user: User
 
-    val TAG = "!!!"
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        binding = FragmentChatRoomBinding.inflate(layoutInflater, container, false)
-        chatroomFragmentViewModel = ViewModelProvider(
-            this,
-            ChatroomFragmentViewModelFactory()
-        )[ChatroomFragmentViewModel::class.java]
+        val TAG = "!!!"
+        override fun onCreateView(
+            inflater: LayoutInflater, container: ViewGroup?,
+            savedInstanceState: Bundle?
+        ): View? {
+            binding = FragmentChatRoomBinding.inflate(layoutInflater, container, false)
+            chatroomFragmentViewModel = ViewModelProvider(
+                this,
+                ChatroomFragmentViewModelFactory()
+            )[ChatroomFragmentViewModel::class.java]
 
-        postAdapter = PostAdapter()
-        val layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
-        layoutManager.stackFromEnd = true
-        binding.chatConversationListAdapter.layoutManager = layoutManager
+            postAdapter = PostAdapter()
+            val layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
+            layoutManager.stackFromEnd = true
+            binding.chatConversationListAdapter.layoutManager = layoutManager
 
-        binding.chatConversationListAdapter.adapter = postAdapter
+            binding.chatConversationListAdapter.adapter = postAdapter
 
 
-        return binding.root
-    }
+            return binding.root
+        }
 
-    @SuppressLint("ClickableViewAccessibility")
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        db = Firebase.firestore
-        auth = Firebase.auth
+        @SuppressLint("ClickableViewAccessibility")
+        override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+            super.onViewCreated(view, savedInstanceState)
+            db = Firebase.firestore
+            auth = Firebase.auth
 
-        documentId = arguments?.getString(StringConstants.DOCUMENT_ID).toString()
-        chatroomTitle = arguments?.getString(StringConstants.CHATROOM_TITLE).toString()
-        chatroomPicture = arguments?.getString(StringConstants.CHATROOM_PICTURE).toString()
-        chatroomFragmentViewModel.documentId = documentId
-        chatroomFragmentViewModel.attachChatroom(this)
+            documentId = arguments?.getString(StringConstants.DOCUMENT_ID).toString()
+            chatroomTitle = arguments?.getString(StringConstants.CHATROOM_TITLE).toString()
+            chatroomPicture = arguments?.getString(StringConstants.CHATROOM_PICTURE).toString()
+            chatroomFragmentViewModel.documentId = documentId
+            chatroomFragmentViewModel.attachChatroom(this)
 
-        val utilities = Utilities();
-        val fragmentManager = requireActivity().supportFragmentManager
+            val utilities = Utilities();
+            val fragmentManager = requireActivity().supportFragmentManager
 
-        getChatroom(documentId) { chatroomCallbackResult ->
-            if (chatroomCallbackResult != null) {
-                chatroom = chatroomCallbackResult
-                chatroom.typing?.forEach { entry ->
-                    if (entry.key != auth.currentUser?.uid && entry.value) {
-                        chatroom.participantsNames?.get(entry.key)?.let { otherParticipantName ->
-                            binding.userIsTypingTextView.text =
-                                "$otherParticipantName is typing ..."
+            getChatroom(documentId) { chatroomCallbackResult ->
+                if (chatroomCallbackResult != null) {
+                    chatroom = chatroomCallbackResult
+                    chatroom.typing?.forEach { entry ->
+                        if (entry.key != auth.currentUser?.uid && entry.value) {
+                            chatroom.participantsNames?.get(entry.key)?.let { otherParticipantName ->
+                                binding.userIsTypingTextView.text =
+                                    "$otherParticipantName is typing ..."
+                            }
+                        } else if (entry.key != auth.currentUser?.uid && !entry.value) {
+                            binding.userIsTypingTextView.text = ""
                         }
-                    } else if (entry.key != auth.currentUser?.uid && !entry.value) {
-                        binding.userIsTypingTextView.text = ""
                     }
                 }
             }
-        }
 
-        getUser(auth.currentUser?.uid.toString()) { userCallbackResult ->
-            if (userCallbackResult != null) {
-                user = userCallbackResult
+            getUser(auth.currentUser?.uid.toString()) { userCallbackResult ->
+                if (userCallbackResult != null) {
+                    user = userCallbackResult
+                }
             }
-        }
 
 
         binding.toolbarTitleChatroom.text = chatroomTitle
@@ -231,7 +231,6 @@ class ChatRoomFragment : Fragment(),
         binding.chatConversationListAdapter.scrollToPosition(post.size - 1)
 
     }
-
 
     private fun sendPost(post: Post) {
         val postDocRef =

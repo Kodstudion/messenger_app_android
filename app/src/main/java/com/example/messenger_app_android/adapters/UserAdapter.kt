@@ -62,8 +62,6 @@ class UserAdapter(
             isUserOnline(
                 user,
                 online_status_user,
-//                R.drawable.round_green_circle,
-//                R.drawable.round_blue_circle
             )
 
             profile_picture.setOnClickListener {
@@ -183,8 +181,6 @@ class UserAdapter(
     private fun isUserOnline(
         user: User,
         imageView: ImageView,
-//        imageResOnline: Int,
-//        imageResOffline: Int
     ) {
         val timeHandler = Handler(getMainLooper())
         val tenMinutes: Long = 10 * 60 * 1000

@@ -44,6 +44,7 @@
 
         <ImageView
             android:id="@+id/online_status_chatroom_adapter"
+            android:visibility="gone"
             android:layout_width="10dp"
             android:layout_height="10dp"
             android:src="@drawable/round_green_circle" />

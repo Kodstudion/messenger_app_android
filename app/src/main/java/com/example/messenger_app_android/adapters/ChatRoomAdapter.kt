@@ -4,6 +4,7 @@ package com.example.messenger_app_android.adapters
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -30,7 +31,7 @@ import kotlinx.android.synthetic.main.item_vertical_recyclerview.view.*
 import org.ocpsoft.prettytime.PrettyTime
 import java.sql.Date
 
-
+private lateinit var user: User
 val utilities = Utilities()
 
 class ChatRoomAdapter(private val fragmentManager: FragmentManager? = null) :
@@ -65,7 +66,8 @@ class ChatRoomAdapter(private val fragmentManager: FragmentManager? = null) :
                                 RoundedTransformationBuilder()
                                     .cornerRadius(50f)
                                     .oval(false)
-                                    .build())
+                                    .build()
+                            )
                             .into(chatroom_picture)
                     }
                 }
@@ -79,6 +81,14 @@ class ChatRoomAdapter(private val fragmentManager: FragmentManager? = null) :
                         } else {
                             sender_textview.text = "You:"
                         }
+                    }
+                }
+
+                getUser { userCallbackResult ->
+                    if (userCallbackResult != null) {
+                        user = userCallbackResult
+                        attachUser(user, online_status_chatroom_adapter)
+
                     }
                 }
 
@@ -103,7 +113,10 @@ class ChatRoomAdapter(private val fragmentManager: FragmentManager? = null) :
                         utilities.loadFragment(
                             ChatRoomFragment().apply {
                                 arguments = Bundle().apply {
-                                    putString(StringConstants.CHATROOM_TITLE, chatroom.chatroomTitle)
+                                    putString(
+                                        StringConstants.CHATROOM_TITLE,
+                                        chatroom.chatroomTitle
+                                    )
                                     putString(StringConstants.DOCUMENT_ID, chatroom.documentId)
                                     chatroom.profilePictures?.forEach { entry ->
                                         if (entry.key != auth.currentUser?.uid) {
@@ -186,30 +199,42 @@ private fun updatePostIsSeen(chatroom: Chatroom) {
     }
 }
 
-//private fun isUserOnline(
-//    user: User,
-//    imageView: ImageView,
-//    imageResOnline: Int,
-//    imageResOffline: Int
-//) {
-//    val timeHandler = Handler(Looper.getMainLooper())
-//    val tenMinutes: Long = 10 * 60 * 1000
-//    val loggedIn = user.loggedIn
-//    timeHandler.post(object : Runnable {
-//        override fun run() {
-//            val currentTime = System.currentTimeMillis() - (loggedIn?.seconds?.times(1000) ?: 0)
-//            if (currentTime < tenMinutes) {
-//                Status.ONLINE
-//                imageView.setImageResource(imageResOnline)
-//            } else {
-//                Status.OFFLINE
-//                imageView.setImageResource(imageResOffline)
-//                imageView.visibility = View.GONE
-//            }
-//            timeHandler.postDelayed(this, tenMinutes)
-//        }
-//    })
-//}
+private fun getUser(callback: (User?) -> Unit) {
+    val db = Firebase.firestore
+    db.collection("users").get().addOnSuccessListener { document ->
+        document?.documents?.forEach { snapshot ->
+            val user = snapshot.toObject(User::class.java)
+            callback(user)
+        }
+    }
+}
+
+private fun attachUser(currentUser: User, onlineStatusChatroomAdapter: ImageView) {
+    user = currentUser
+    isUserOnline(currentUser, onlineStatusChatroomAdapter)
+}
+
+private fun isUserOnline(
+    user: User,
+    imageView: ImageView,
+) {
+    val timeHandler = Handler(Looper.getMainLooper())
+    val tenMinutes: Long = 10 * 60 * 1000
+    val loggedIn = user.loggedIn
+    timeHandler.post(object : Runnable {
+        override fun run() {
+            val currentTime = System.currentTimeMillis() - (loggedIn?.seconds?.times(1000) ?: 0)
+            if (currentTime < tenMinutes) {
+                Status.ONLINE
+                imageView.visibility = View.VISIBLE
+            } else {
+                Status.OFFLINE
+                imageView.visibility = View.GONE
+            }
+            timeHandler.postDelayed(this, tenMinutes)
+        }
+    })
+}
 
 
 
