@@ -42,7 +42,8 @@ interface ChatroomAdapterCallback {
 
 class ChatRoomAdapter(
     private val fragmentManager: FragmentManager? = null,
-    private val callback: ChatroomAdapterCallback) :
+    private val callback: ChatroomAdapterCallback
+) :
     ListAdapter<Chatroom, ChatRoomAdapter.ItemViewHolder>(ChatroomDiffCallBack()) {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemViewHolder {
         return ItemViewHolder(
@@ -57,7 +58,8 @@ class ChatRoomAdapter(
         holder.bind(getItem(position))
     }
 
-    inner class ItemViewHolder(itemView: View, private val callback: ChatroomAdapterCallback) : RecyclerView.ViewHolder(itemView) {
+    inner class ItemViewHolder(itemView: View, private val callback: ChatroomAdapterCallback) :
+        RecyclerView.ViewHolder(itemView) {
 
         fun bind(chatroom: Chatroom) {
             val auth = Firebase.auth
@@ -84,7 +86,8 @@ class ChatRoomAdapter(
                 chatroom.sender?.forEach { entry ->
                     if (entry.key != auth.currentUser?.uid) {
                         sender_textview.text = null
-                        val layoutParams = recent_message.layoutParams as ViewGroup.MarginLayoutParams
+                        val layoutParams =
+                            recent_message.layoutParams as ViewGroup.MarginLayoutParams
                         layoutParams.leftMargin = 1
                         recent_message.layoutParams = layoutParams
 
@@ -99,8 +102,8 @@ class ChatRoomAdapter(
 
                 chatroom.participants?.find {
                     it != auth.currentUser?.uid
-                }?.let {userId ->
-                   val user = callback.getUsers(userId)
+                }?.let { userId ->
+                    val user = callback.getUsers(userId)
                     if (user != null) {
                         attachUser(user, online_status_chatroom_adapter)
                     }
@@ -113,7 +116,7 @@ class ChatRoomAdapter(
                     new_post,
                 )
 
-                chatroom_picture.setOnClickListener {
+                chatroom_chatroom_item.setOnClickListener {
                     if (chatroom.chatroomTitle != null) {
                         utilities.loadFragment(
                             ChatRoomFragment().apply {
@@ -132,103 +135,129 @@ class ChatRoomAdapter(
                             },
                             fragmentManager
                         )
+                        updatePostIsSeen(chatroom)
                     }
-                    updatePostIsSeen(chatroom)
+
+                    chatroom_picture.setOnClickListener {
+                        if (chatroom.chatroomTitle != null) {
+                            utilities.loadFragment(
+                                ChatRoomFragment().apply {
+                                    arguments = Bundle().apply {
+                                        putString(
+                                            StringConstants.CHATROOM_TITLE,
+                                            chatroom.chatroomTitle
+                                        )
+                                        putString(StringConstants.DOCUMENT_ID, chatroom.documentId)
+                                        chatroom.profilePictures?.forEach { entry ->
+                                            if (entry.key != auth.currentUser?.uid) {
+                                                putString(
+                                                    StringConstants.CHATROOM_PICTURE,
+                                                    entry.value
+                                                )
+                                            }
+                                        }
+                                    }
+                                },
+                                fragmentManager
+                            )
+                        }
+                        updatePostIsSeen(chatroom)
+                    }
                 }
             }
         }
     }
-}
 
-class ChatroomDiffCallBack : DiffUtil.ItemCallback<Chatroom>() {
-    override fun areItemsTheSame(oldItem: Chatroom, newItem: Chatroom): Boolean {
-        return oldItem == newItem
-    }
-
-    override fun areContentsTheSame(oldItem: Chatroom, newItem: Chatroom): Boolean {
-        return oldItem.chatroomTitle == newItem.chatroomTitle
-    }
-}
-
-private fun recentMessageElapsedTimeHandler(elapsedTimeTextView: TextView, chatroom: Chatroom) {
-    val timeHandler = Handler(Looper.getMainLooper())
-    val minute: Long = 60 * 1000
-    val lastUpdated = chatroom.lastUpdated ?: return
-    timeHandler.post(object : Runnable {
-        override fun run() {
-            val currentTime = System.currentTimeMillis() - lastUpdated.seconds * 1000
-            updateElapsedTimeText(elapsedTimeTextView, currentTime)
-            timeHandler.postDelayed(this, minute)
+    class ChatroomDiffCallBack : DiffUtil.ItemCallback<Chatroom>() {
+        override fun areItemsTheSame(oldItem: Chatroom, newItem: Chatroom): Boolean {
+            return oldItem == newItem
         }
-    })
-}
 
-private fun updateElapsedTimeText(
-    elapsedTimeTextView: TextView,
-    currentTime: Long,
-) {
-    val elapsedTime = PrettyTime().format(Date(System.currentTimeMillis() - currentTime))
-    elapsedTimeTextView.text = elapsedTime
-}
+        override fun areContentsTheSame(oldItem: Chatroom, newItem: Chatroom): Boolean {
+            return oldItem.chatroomTitle == newItem.chatroomTitle
+        }
+    }
 
-private fun isPostSeen(
-    chatroom: Chatroom,
-    imageView: ImageView,
-) {
-    val auth = Firebase.auth
-    chatroom.postIsSeen?.forEach { entry ->
-        if (entry.key == auth.currentUser?.uid) {
-            if (!entry.value) {
-                imageView.visibility = View.VISIBLE
-            } else {
-                imageView.visibility = View.GONE
+    private fun recentMessageElapsedTimeHandler(elapsedTimeTextView: TextView, chatroom: Chatroom) {
+        val timeHandler = Handler(Looper.getMainLooper())
+        val minute: Long = 60 * 1000
+        val lastUpdated = chatroom.lastUpdated ?: return
+        timeHandler.post(object : Runnable {
+            override fun run() {
+                val currentTime = System.currentTimeMillis() - lastUpdated.seconds * 1000
+                updateElapsedTimeText(elapsedTimeTextView, currentTime)
+                timeHandler.postDelayed(this, minute)
+            }
+        })
+    }
+
+    private fun updateElapsedTimeText(
+        elapsedTimeTextView: TextView,
+        currentTime: Long,
+    ) {
+        val elapsedTime = PrettyTime().format(Date(System.currentTimeMillis() - currentTime))
+        elapsedTimeTextView.text = elapsedTime
+    }
+
+    private fun isPostSeen(
+        chatroom: Chatroom,
+        imageView: ImageView,
+    ) {
+        val auth = Firebase.auth
+        chatroom.postIsSeen?.forEach { entry ->
+            if (entry.key == auth.currentUser?.uid) {
+                if (!entry.value) {
+                    imageView.visibility = View.VISIBLE
+                } else {
+                    imageView.visibility = View.GONE
+                }
             }
         }
     }
-}
 
-private fun updatePostIsSeen(chatroom: Chatroom) {
-    val db = Firebase.firestore
-    val auth = Firebase.auth
-    chatroom.postIsSeen?.forEach { entry ->
-        if (entry.key == auth.currentUser?.uid) {
-            val postIsSeenDocRef = db.collection("chatrooms").document(chatroom.documentId)
-            postIsSeenDocRef.set(
-                hashMapOf(
-                    "postIsSeen" to hashMapOf(
-                        entry.key to true
-                    )
-                ), SetOptions.merge()
-            )
+    private fun updatePostIsSeen(chatroom: Chatroom) {
+        val db = Firebase.firestore
+        val auth = Firebase.auth
+        chatroom.postIsSeen?.forEach { entry ->
+            if (entry.key == auth.currentUser?.uid) {
+                val postIsSeenDocRef = db.collection("chatrooms").document(chatroom.documentId)
+                postIsSeenDocRef.set(
+                    hashMapOf(
+                        "postIsSeen" to hashMapOf(
+                            entry.key to true
+                        )
+                    ), SetOptions.merge()
+                )
+            }
         }
     }
-}
 
-private fun attachUser(currentUser: User, onlineStatusChatroomAdapter: ImageView) {
-    user = currentUser
-    isUserOnline(currentUser, onlineStatusChatroomAdapter)
-}
+    private fun attachUser(currentUser: User, onlineStatusChatroomAdapter: ImageView) {
+        user = currentUser
+        isUserOnline(currentUser, onlineStatusChatroomAdapter)
+    }
 
-private fun isUserOnline(
-    user: User,
-    imageView: ImageView,
-) {
-    val timeHandler = Handler(Looper.getMainLooper())
-    val tenMinutes: Long = 10 * 60 * 1000
-    val loggedIn = user.loggedIn
-    timeHandler.post(object : Runnable {
-        override fun run() {
-            val currentTime = System.currentTimeMillis() - (loggedIn?.seconds?.times(1000) ?: 0)
-            if (currentTime < tenMinutes) {
-                Status.ONLINE
-                imageView.visibility = View.VISIBLE
-            } else {
-                Status.OFFLINE
-                imageView.visibility = View.GONE
+    private fun isUserOnline(
+        user: User,
+        imageView: ImageView,
+    ) {
+        val timeHandler = Handler(Looper.getMainLooper())
+        val tenMinutes: Long = 10 * 60 * 1000
+        val loggedIn = user.loggedIn
+        timeHandler.post(object : Runnable {
+            override fun run() {
+                val currentTime = System.currentTimeMillis() - (loggedIn?.seconds?.times(1000) ?: 0)
+                if (currentTime < tenMinutes) {
+                    Status.ONLINE
+                    imageView.visibility = View.VISIBLE
+                } else {
+                    Status.OFFLINE
+                    imageView.visibility = View.GONE
+                }
+                timeHandler.postDelayed(this, tenMinutes)
             }
-            timeHandler.postDelayed(this, tenMinutes)
-        }
-    })
+        })
+    }
 }
 
 
