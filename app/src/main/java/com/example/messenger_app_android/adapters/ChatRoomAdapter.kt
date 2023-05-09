@@ -84,6 +84,10 @@ class ChatRoomAdapter(
                 chatroom.sender?.forEach { entry ->
                     if (entry.key != auth.currentUser?.uid) {
                         sender_textview.text = null
+                        val layoutParams = recent_message.layoutParams as ViewGroup.MarginLayoutParams
+                        layoutParams.leftMargin = 1
+                        recent_message.layoutParams = layoutParams
+
                     } else {
                         if (recent_message.text == "") {
                             sender_textview.text = "Start Chatting!"
@@ -95,10 +99,12 @@ class ChatRoomAdapter(
 
                 chatroom.participants?.find {
                     it != auth.currentUser?.uid
-                }?.let {
-                    callback.getUsers(it)
+                }?.let {userId ->
+                   val user = callback.getUsers(userId)
+                    if (user != null) {
+                        attachUser(user, online_status_chatroom_adapter)
+                    }
                 }
-
 
                 recentMessageElapsedTimeHandler(elapsed_time, chatroom)
 

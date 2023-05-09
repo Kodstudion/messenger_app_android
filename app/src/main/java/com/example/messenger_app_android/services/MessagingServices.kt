@@ -207,17 +207,6 @@ private fun updateSender(documentId: String, recentMessage: String) {
             }
         }
     }
-//    chatroom.sender?.forEach { entry ->
-//        if (entry.key == auth.currentUser?.uid) {
-//            senderDocRef.set(
-//                hashMapOf(
-//                    "sender" to hashMapOf(entry.key to recentMessage)
-//                ), SetOptions.merge()
-//            )
-//        } else {
-//            senderDocRef.update("sender", hashMapOf(auth.currentUser?.uid to recentMessage))
-//        }
-//    }
 }
 
 private fun updatePostIsSeen(documentId: String) {

@@ -18,5 +18,4 @@ data class Chatroom(
     val deviceTokens: HashMap<String, String>? = null,
     var typing: HashMap<String, Boolean>? = null,
     val profilePictures: HashMap<String, String>? = null,
-    var user: User? = null,
 )
