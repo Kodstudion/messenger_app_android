@@ -138,31 +138,31 @@ class ChatRoomAdapter(
                         updatePostIsSeen(chatroom)
                     }
 
-                    chatroom_picture.setOnClickListener {
-                        if (chatroom.chatroomTitle != null) {
-                            utilities.loadFragment(
-                                ChatRoomFragment().apply {
-                                    arguments = Bundle().apply {
-                                        putString(
-                                            StringConstants.CHATROOM_TITLE,
-                                            chatroom.chatroomTitle
-                                        )
-                                        putString(StringConstants.DOCUMENT_ID, chatroom.documentId)
-                                        chatroom.profilePictures?.forEach { entry ->
-                                            if (entry.key != auth.currentUser?.uid) {
-                                                putString(
-                                                    StringConstants.CHATROOM_PICTURE,
-                                                    entry.value
-                                                )
-                                            }
-                                        }
-                                    }
-                                },
-                                fragmentManager
-                            )
-                        }
-                        updatePostIsSeen(chatroom)
-                    }
+//                    chatroom_picture.setOnClickListener {
+//                        if (chatroom.chatroomTitle != null) {
+//                            utilities.loadFragment(
+//                                ChatRoomFragment().apply {
+//                                    arguments = Bundle().apply {
+//                                        putString(
+//                                            StringConstants.CHATROOM_TITLE,
+//                                            chatroom.chatroomTitle
+//                                        )
+//                                        putString(StringConstants.DOCUMENT_ID, chatroom.documentId)
+//                                        chatroom.profilePictures?.forEach { entry ->
+//                                            if (entry.key != auth.currentUser?.uid) {
+//                                                putString(
+//                                                    StringConstants.CHATROOM_PICTURE,
+//                                                    entry.value
+//                                                )
+//                                            }
+//                                        }
+//                                    }
+//                                },
+//                                fragmentManager
+//                            )
+//                        }
+//                        updatePostIsSeen(chatroom)
+//                    }
                 }
             }
         }
