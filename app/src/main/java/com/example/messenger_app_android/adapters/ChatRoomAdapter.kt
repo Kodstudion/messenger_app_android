@@ -27,20 +27,29 @@ import com.google.firebase.ktx.Firebase
 import com.makeramen.roundedimageview.RoundedTransformationBuilder
 import com.squareup.picasso.MemoryPolicy
 import com.squareup.picasso.Picasso
+import kotlinx.android.synthetic.main.activity_login.view.*
 import kotlinx.android.synthetic.main.item_vertical_recyclerview.view.*
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.ocpsoft.prettytime.PrettyTime
 import java.sql.Date
 
 private lateinit var user: User
 val utilities = Utilities()
 
-class ChatRoomAdapter(private val fragmentManager: FragmentManager? = null) :
+interface ChatroomAdapterCallback {
+    fun getUsers(userId: String): User?
+}
+
+class ChatRoomAdapter(
+    private val fragmentManager: FragmentManager? = null,
+    private val callback: ChatroomAdapterCallback) :
     ListAdapter<Chatroom, ChatRoomAdapter.ItemViewHolder>(ChatroomDiffCallBack()) {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemViewHolder {
         return ItemViewHolder(
             LayoutInflater.from(parent.context).inflate(
                 R.layout.item_vertical_recyclerview, parent, false
-            )
+            ),
+            callback
         )
     }
 
@@ -48,7 +57,7 @@ class ChatRoomAdapter(private val fragmentManager: FragmentManager? = null) :
         holder.bind(getItem(position))
     }
 
-    inner class ItemViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    inner class ItemViewHolder(itemView: View, private val callback: ChatroomAdapterCallback) : RecyclerView.ViewHolder(itemView) {
 
         fun bind(chatroom: Chatroom) {
             val auth = Firebase.auth
@@ -84,22 +93,12 @@ class ChatRoomAdapter(private val fragmentManager: FragmentManager? = null) :
                     }
                 }
 
-                getUser { userCallbackResult ->
-                    if (userCallbackResult != null) {
-                        user = userCallbackResult
-                        attachUser(user, online_status_chatroom_adapter)
-
-                    }
+                chatroom.participants?.find {
+                    it != auth.currentUser?.uid
+                }?.let {
+                    callback.getUsers(it)
                 }
 
-
-//                if (chatroom.sender == null) {
-//                    chatroom.sender = View.GONE.toString()
-//
-//
-//                } else {
-//                    chatroom.sender = View.VISIBLE.toString()
-//                }
 
                 recentMessageElapsedTimeHandler(elapsed_time, chatroom)
 
@@ -195,16 +194,6 @@ private fun updatePostIsSeen(chatroom: Chatroom) {
                     )
                 ), SetOptions.merge()
             )
-        }
-    }
-}
-
-private fun getUser(callback: (User?) -> Unit) {
-    val db = Firebase.firestore
-    db.collection("users").get().addOnSuccessListener { document ->
-        document?.documents?.forEach { snapshot ->
-            val user = snapshot.toObject(User::class.java)
-            callback(user)
         }
     }
 }

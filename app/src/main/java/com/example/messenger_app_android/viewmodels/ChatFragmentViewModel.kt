@@ -1,12 +1,9 @@
 package com.example.messenger_app_android.viewmodels
 
 import android.util.Log
-import android.view.View
-import androidx.core.app.NavUtils
 import androidx.lifecycle.ViewModel
 import com.example.messenger_app_android.adapters.UserAdapter
 import com.example.messenger_app_android.fragments.ChatFragmentChatroomsView
-import com.example.messenger_app_android.fragments.ChatFragmentUsersView
 import com.example.messenger_app_android.models.Chatroom
 import com.example.messenger_app_android.models.User
 
@@ -14,6 +11,7 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.flow.MutableStateFlow
 
 
 class ChatFragmentViewModel() : ViewModel() {
@@ -21,20 +19,19 @@ class ChatFragmentViewModel() : ViewModel() {
     val TAG = "!!!"
 
     private var chatroomsView: ChatFragmentChatroomsView? = null
-    private var usersView: ChatFragmentUsersView? = null
     private val db = Firebase.firestore
     private val auth = Firebase.auth
     private lateinit var userAdapter: UserAdapter
+    private val users = mutableListOf<User>()
+    internal var chatrooms = mutableListOf<Chatroom>()
 
-    fun attachChatrooms(chatroomsChatFragmentView: ChatFragmentChatroomsView) {
-        chatroomsView = chatroomsChatFragmentView
-        listenForChatroomUpdates()
-    }
+    val dataLoaded = MutableStateFlow(false)
 
-    fun attachUsers(usersChatFragmentView: ChatFragmentUsersView) {
-        usersView = usersChatFragmentView
-//
+
+    fun attach(chatFragmentChatroomsView: ChatFragmentChatroomsView) {
+        chatroomsView = chatFragmentChatroomsView
         listenForUsersUpdates()
+        listenForChatroomUpdates()
     }
 
     private fun listenForChatroomUpdates() {
@@ -44,20 +41,17 @@ class ChatFragmentViewModel() : ViewModel() {
             .addSnapshotListener { snapshot, error ->
                 snapshot?.let { querySnapshot ->
                     try {
-                        val newChatroom = mutableListOf<Chatroom>()
+                        val updatedChatrooms = mutableListOf<Chatroom>()
                         for (document in querySnapshot.documents) {
                             val chatroom = document.toObject<Chatroom>()
                             chatroom?.documentId = document.id
                             if (chatroom != null) {
-                                chatroom.participantsNames?.forEach { entry ->
-                                    if (entry.key != auth.currentUser?.uid) {
-                                        chatroom.chatroomTitle = entry.value
-                                    }
-                                }
-                                newChatroom.add(chatroom)
+                                showChatroomTitle(chatroom)
+                                updatedChatrooms.add(chatroom)
                             }
                         }
-                        chatroomsView?.setChatroom(newChatroom)
+                        chatroomsView?.setChatroom(updatedChatrooms)
+                        dataLoaded.value = chatrooms.isNotEmpty() && users.isNotEmpty()
 
                     } catch (e: Exception) {
                         Log.d(TAG, "listenForItemUpdates: $e")
@@ -74,7 +68,7 @@ class ChatFragmentViewModel() : ViewModel() {
         db.collection("users").addSnapshotListener { snapshot, _ ->
             snapshot?.let { querySnapshot ->
                 try {
-                    val users = mutableListOf<User>()
+                    users.clear()
                     for (document in querySnapshot.documents) {
                         val user = document.toObject<User>()
                         if (user?.uid == auth.currentUser?.uid) {
@@ -84,12 +78,23 @@ class ChatFragmentViewModel() : ViewModel() {
                             users.add(user)
                         }
                     }
-                    usersView?.setUsers(users)
+                    chatroomsView?.setUsers(users)
+                    dataLoaded.value = chatrooms.isNotEmpty() && users.isNotEmpty()
                 } catch (e: Exception) {
                     Log.d(TAG, "listenForItemUpdates: $e")
                 }
             }
         }
+    }
+    private fun showChatroomTitle(chatroom: Chatroom) {
+        chatroom.participantsNames?.forEach { entry ->
+            if (entry.key != auth.currentUser?.uid) {
+                chatroom.chatroomTitle = entry.value
+            }
+        }
+    }
+    fun getUser(userId: String): User? {
+        return users.find { it.uid == userId }
     }
 }
 

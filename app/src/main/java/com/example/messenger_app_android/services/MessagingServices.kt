@@ -13,6 +13,7 @@ import com.example.messenger_app_android.activities.HomeActivity
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import androidx.core.app.RemoteInput
+import com.example.messenger_app_android.models.Chatroom
 import com.example.messenger_app_android.models.Post
 import com.example.messenger_app_android.services.MessagingServices.Companion.token
 import com.example.messenger_app_android.services.constants.StringConstants
@@ -33,6 +34,7 @@ import java.util.*
 val TAG = "!!!"
 const val CHANNEL_ID = "messenger_app_android"
 private const val KEY_TEXT_REPLY = "key_text_reply"
+
 
 
 class MessagingServices : FirebaseMessagingService() {
@@ -136,12 +138,10 @@ private fun sendPush(pushNotification: PushNotification) =
         try {
             if (pushNotification.data.currentUserToken == token) {
                 pushNotification.to = pushNotification.data.otherUserToken
-                Log.d(TAG, "sendPush: ${pushNotification.data.otherUserToken}")
 
             }
             if (pushNotification.data.otherUserToken == token) {
                 pushNotification.to = pushNotification.data.currentUserToken
-                Log.d(TAG, "sendPush: ${pushNotification.data.currentUserToken}")
 
             }
 
@@ -176,6 +176,7 @@ private fun setSentPushNotice(post: Post, documentId: String, messageText: CharS
     pushNoticeDocRef.set(sent).addOnSuccessListener {
         updateRecentMessage(documentId, messageText.toString())
         updatePostIsSeen(documentId)
+        updateSender(documentId, messageText.toString())
     }
 }
 
@@ -187,6 +188,36 @@ private fun updateRecentMessage(documentId: String, recentMessage: String) {
             recentMessageDocRef.update("recentMessage", recentMessage)
         }
     }
+}
+
+private fun updateSender(documentId: String, recentMessage: String) {
+    val db = FirebaseFirestore.getInstance()
+    val auth = FirebaseAuth.getInstance()
+    val senderDocRef = db.collection("chatrooms").document(documentId)
+    senderDocRef.get().addOnSuccessListener { document ->
+        if (document != null) {
+            val sender = document.data?.get("sender") as? HashMap<*, *>
+            val keys = sender?.keys
+            if (keys != null) {
+                for (key in keys) {
+                    if (key != auth.currentUser?.uid) {
+                        senderDocRef.update("sender", hashMapOf(auth.currentUser?.uid to recentMessage))
+                    }
+                }
+            }
+        }
+    }
+//    chatroom.sender?.forEach { entry ->
+//        if (entry.key == auth.currentUser?.uid) {
+//            senderDocRef.set(
+//                hashMapOf(
+//                    "sender" to hashMapOf(entry.key to recentMessage)
+//                ), SetOptions.merge()
+//            )
+//        } else {
+//            senderDocRef.update("sender", hashMapOf(auth.currentUser?.uid to recentMessage))
+//        }
+//    }
 }
 
 private fun updatePostIsSeen(documentId: String) {
