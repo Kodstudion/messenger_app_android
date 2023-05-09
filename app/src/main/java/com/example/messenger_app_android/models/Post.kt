@@ -13,6 +13,7 @@ data class Post(
     val toUser: String? = null,
     val recentMessage: String? = null,
     val timestamp: com.google.firebase.Timestamp? = null,
+    val postPicture: String? = null,
     ) {
 
     fun getMessageType(): PostType {

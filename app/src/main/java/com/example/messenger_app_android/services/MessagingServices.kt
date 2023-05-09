@@ -13,6 +13,7 @@ import com.example.messenger_app_android.activities.HomeActivity
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import androidx.core.app.RemoteInput
+import com.example.messenger_app_android.models.Chatroom
 import com.example.messenger_app_android.models.Post
 import com.example.messenger_app_android.services.MessagingServices.Companion.token
 import com.example.messenger_app_android.services.constants.StringConstants
@@ -22,6 +23,7 @@ import com.example.messenger_app_android.services.models.utilites.NotificationHe
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -32,6 +34,7 @@ import java.util.*
 val TAG = "!!!"
 const val CHANNEL_ID = "messenger_app_android"
 private const val KEY_TEXT_REPLY = "key_text_reply"
+
 
 
 class MessagingServices : FirebaseMessagingService() {
@@ -46,7 +49,8 @@ class MessagingServices : FirebaseMessagingService() {
             }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
+    @RequiresApi(Build.VERSION_CODES.P)
     override fun onMessageReceived(message: RemoteMessage) {
         super.onMessageReceived(message)
         NotificationHelper.showMessage(
@@ -56,7 +60,8 @@ class MessagingServices : FirebaseMessagingService() {
             message.data["documentId"] ?: "",
             message.data["chatroomTitle"] ?: "",
             message.data["currentUserToken"] ?: "",
-            message.data["otherUserToken"] ?: ""
+            message.data["otherUserToken"] ?: "",
+            message.data["profilePicture"] ?: "",
         )
         val intent = Intent(this, HomeActivity::class.java)
         intent.putExtra(StringConstants.DOCUMENT_ID, message.data["documentId"])
@@ -64,6 +69,7 @@ class MessagingServices : FirebaseMessagingService() {
         intent.putExtra(StringConstants.FROM_USER, message.data["fromUser"])
         intent.putExtra(StringConstants.CURRENT_USER_TOKEN, message.data["currentUserToken"])
         intent.putExtra(StringConstants.OTHER_USER_TOKEN, message.data["otherUserToken"])
+        intent.putExtra(StringConstants.PROFILE_PICTURE, message.data["profilePicture"])
 
     }
 
@@ -74,6 +80,7 @@ class MessagingServices : FirebaseMessagingService() {
 }
 
 class ReplyBroadcastReceiver : BroadcastReceiver() {
+    @RequiresApi(Build.VERSION_CODES.P)
     override fun onReceive(context: Context, intent: Intent?) {
         val chatroomTitle = intent?.getStringExtra(StringConstants.CHATROOM_TITLE) ?: ""
         val documentId = intent?.getStringExtra(StringConstants.DOCUMENT_ID) ?: ""
@@ -83,15 +90,18 @@ class ReplyBroadcastReceiver : BroadcastReceiver() {
 
         val remoteInputResult = getMessageText(intent ?: return)
 
-        NotificationHelper.showMessage(
-            context,
-            remoteInputResult.toString(),
-            chatroomTitle,
-            documentId,
-            chatroomTitle,
-            currentUserToken,
-            otherDeviceToken
-        )
+        CoroutineScope(Dispatchers.IO).launch {
+            NotificationHelper.showMessage(
+                context,
+                remoteInputResult.toString(),
+                chatroomTitle,
+                documentId,
+                chatroomTitle,
+                currentUserToken,
+                otherDeviceToken,
+                auth.currentUser?.photoUrl.toString()
+            )
+        }
 
         val timestamp = Timestamp.now()
         val pushNotice = Post(
@@ -100,9 +110,11 @@ class ReplyBroadcastReceiver : BroadcastReceiver() {
             auth.currentUser?.displayName,
             chatroomTitle,
             remoteInputResult.toString(),
-            timestamp
+            timestamp,
+            auth.currentUser?.photoUrl.toString()
         )
-        setSentPushNotice(pushNotice, documentId ?: return, remoteInputResult.toString())
+
+        setSentPushNotice(pushNotice, documentId, remoteInputResult.toString())
 
         sendPush(
             PushNotification(
@@ -113,7 +125,8 @@ class ReplyBroadcastReceiver : BroadcastReceiver() {
                     chatroomTitle,
                     auth.currentUser?.displayName ?: "",
                     currentUserToken,
-                    otherDeviceToken
+                    otherDeviceToken,
+                    auth.currentUser?.photoUrl.toString()
                 ), ""
             )
         )
@@ -154,12 +167,75 @@ private fun setSentPushNotice(post: Post, documentId: String, messageText: CharS
         post.fromUser,
         post.toUser,
         post.postBody,
-        post.timestamp
+        post.timestamp,
+        post.postPicture
     )
 
     val pushNoticeDocRef =
         db.collection("chatrooms").document(documentId).collection("posts").document()
-    pushNoticeDocRef.set(sent)
+    pushNoticeDocRef.set(sent).addOnSuccessListener {
+        updateRecentMessage(documentId, messageText.toString())
+        updatePostIsSeen(documentId)
+        updateSender(documentId, messageText.toString())
+    }
+}
+
+private fun updateRecentMessage(documentId: String, recentMessage: String) {
+    val db = FirebaseFirestore.getInstance()
+    val recentMessageDocRef = db.collection("chatrooms").document(documentId)
+    recentMessageDocRef.get().addOnSuccessListener { document ->
+        if (document != null) {
+            recentMessageDocRef.update("recentMessage", recentMessage)
+        }
+    }
+}
+
+private fun updateSender(documentId: String, recentMessage: String) {
+    val db = FirebaseFirestore.getInstance()
+    val auth = FirebaseAuth.getInstance()
+    val senderDocRef = db.collection("chatrooms").document(documentId)
+    senderDocRef.get().addOnSuccessListener { document ->
+        if (document != null) {
+            val sender = document.data?.get("sender") as? HashMap<*, *>
+            val keys = sender?.keys
+            if (keys != null) {
+                for (key in keys) {
+                    if (key != auth.currentUser?.uid) {
+                        senderDocRef.update("sender", hashMapOf(auth.currentUser?.uid to recentMessage))
+                    }
+                }
+            }
+        }
+    }
+}
+
+private fun updatePostIsSeen(documentId: String) {
+    val db = FirebaseFirestore.getInstance()
+    val auth = FirebaseAuth.getInstance()
+    val postIsSeenDocRef = db.collection("chatrooms").document(documentId)
+    postIsSeenDocRef.get().addOnSuccessListener { document ->
+        if (document != null) {
+            val postIsSeen = document.data?.get("postIsSeen") as? HashMap<*, *>
+            val keys = postIsSeen?.keys
+            val map = hashMapOf<String, MutableMap<String, Boolean>>(
+                "postIsSeen" to mutableMapOf(),
+            )
+
+            if (keys != null) {
+                for (key in keys) {
+                    if (key == auth.currentUser?.uid) {
+                        map["postIsSeen"]?.put(key.toString(), true)
+                    } else {
+                        map["postIsSeen"]?.put(key.toString(), false)
+                    }
+                }
+            }
+
+            postIsSeenDocRef.set(
+                map, SetOptions.merge()
+            )
+        }
+    }
 }
 
 private fun getMessageText(intent: Intent): CharSequence? {

@@ -9,14 +9,17 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.messenger_app_android.R
 import com.example.messenger_app_android.models.Post
+import com.makeramen.roundedimageview.RoundedTransformationBuilder
+import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.item_recived_post.view.*
 import kotlinx.android.synthetic.main.item_sent_post.view.*
+
 
 enum class PostType {
     SENT, RECEIVED
 }
 
-class PostAdapter() : ListAdapter<Post, RecyclerView.ViewHolder> (PostDiffCallback()) {
+class PostAdapter() : ListAdapter<Post, RecyclerView.ViewHolder>(PostDiffCallback()) {
 
     abstract class BaseViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         abstract fun bindItem(post: Post)
@@ -57,8 +60,16 @@ class PostAdapter() : ListAdapter<Post, RecyclerView.ViewHolder> (PostDiffCallba
 
     inner class SentPostHolder(itemView: View) : BaseViewHolder(itemView) {
         override fun bindItem(post: Post) {
+            val radius = 20
             itemView.apply {
                 sent_post_textview.text = post.postBody
+                Picasso.get()
+                    .load(post.postPicture)
+                    .transform(RoundedTransformationBuilder()
+                        .cornerRadiusDp(radius.toFloat())
+                        .oval(false)
+                        .build())
+                    .into(profile_picture_sent_post)
             }
         }
 
@@ -66,8 +77,16 @@ class PostAdapter() : ListAdapter<Post, RecyclerView.ViewHolder> (PostDiffCallba
 
     inner class ReceivedPostHolder(itemView: View) : BaseViewHolder(itemView) {
         override fun bindItem(post: Post) {
+            val radius = 20
             itemView.apply {
                 received_post_textview.text = post.postBody
+                Picasso.get()
+                    .load(post.postPicture)
+                    .transform(RoundedTransformationBuilder()
+                        .cornerRadiusDp(radius.toFloat())
+                        .oval(false)
+                        .build())
+                    .into(profile_picture_sent_received)
             }
         }
     }
@@ -80,7 +99,7 @@ class PostAdapter() : ListAdapter<Post, RecyclerView.ViewHolder> (PostDiffCallba
     }
 }
 
-class PostDiffCallback: DiffUtil.ItemCallback<Post>() {
+class PostDiffCallback : DiffUtil.ItemCallback<Post>() {
     override fun areItemsTheSame(oldItem: Post, newItem: Post): Boolean {
         return oldItem == newItem
     }

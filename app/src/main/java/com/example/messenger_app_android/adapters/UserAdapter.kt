@@ -20,6 +20,9 @@ import kotlinx.android.synthetic.main.item_horizontal_recyclerview.view.*
 import com.example.messenger_app_android.utilities.Utilities
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.makeramen.roundedimageview.RoundedTransformationBuilder
+import com.squareup.picasso.MemoryPolicy
+import com.squareup.picasso.Picasso
 
 
 const val TAG = "!!!"
@@ -33,28 +36,32 @@ class UserAdapter(
     private val fragmentManager: FragmentManager? = null,
 ) : RecyclerView.Adapter<UserAdapter.ProfileViewHolder>() {
     class ProfileViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
-
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ProfileViewHolder {
         return ProfileViewHolder(
             LayoutInflater.from(parent.context).inflate(
                 R.layout.item_horizontal_recyclerview, parent, false
             )
         )
-    }
 
+    }
     override fun onBindViewHolder(holder: ProfileViewHolder, position: Int) {
         val auth = FirebaseAuth.getInstance()
         val user = users[position]
+        val radius = 50
         holder.itemView.apply {
             display_name.text = user.displayName
-
-            user.profilePicture?.let { profile_picture.setImageResource(it) }
+            Picasso.get()
+                .load(user.profilePicture)
+                .memoryPolicy(MemoryPolicy.NO_CACHE)
+                .transform(RoundedTransformationBuilder()
+                    .cornerRadius(radius.toFloat())
+                    .oval(false)
+                    .build())
+                .into(profile_picture)
 
             isUserOnline(
                 user,
-                profile_picture,
-                R.drawable.round_green_circle,
-                R.drawable.round_blue_circle
+                online_status_user,
             )
 
             profile_picture.setOnClickListener {
@@ -64,6 +71,7 @@ class UserAdapter(
                 )
                 val authCurrentUserDeviceToken =
                     sharedPreferences.getString(R.string.token.toString(), null)
+
                 chatroomHandler(
                     Chatroom(
                         "",
@@ -73,13 +81,13 @@ class UserAdapter(
                         ),
                         null,
                         user.displayName.toString(),
-                        null,
+                        user.profilePicture,
                         hashMapOf(
                             auth.currentUser?.uid.toString() to auth.currentUser?.displayName.toString(),
                             user.uid.toString() to user.displayName.toString()
                         ),
                         null,
-                        null,
+                        hashMapOf(auth.currentUser?.uid.toString() to ""),
                         hashMapOf(
                             auth.currentUser?.uid.toString() to true,
                             user.uid.toString() to true
@@ -92,6 +100,10 @@ class UserAdapter(
                             auth.currentUser?.uid.toString() to false,
                             user.uid.toString() to false
                         ),
+                        hashMapOf(
+                            auth.currentUser?.uid.toString() to auth.currentUser?.photoUrl.toString(),
+                            user.uid.toString() to user.profilePicture.toString())
+
                     ),
                     user.displayName.toString(),
                     position
@@ -115,7 +127,7 @@ class UserAdapter(
                         val participants = document.get("participants") as List<*>
                         if (participants.contains(users[position].uid)) {
                             chatroom.documentId = document.id
-                            joinChatroom(chatroom.documentId, titleOfChat)
+                            joinChatroom(chatroom.documentId, titleOfChat, chatroom)
                             return@addOnSuccessListener
                         }
                     }
@@ -132,18 +144,19 @@ class UserAdapter(
         chatroomDocRef.set(chatroom)
             .addOnSuccessListener {
                 chatroom.documentId = chatroomDocRef.id
-                joinChatroom(chatroom.documentId, titleOfChat)
+                joinChatroom(chatroom.documentId, titleOfChat, chatroom)
             }
             .addOnFailureListener { e ->
                 Log.w("!!!", "Error writing document", e)
             }
     }
 
-    private fun joinChatroom(chatroomId: String, titleOfChat: String) {
+    private fun joinChatroom(chatroomId: String, titleOfChat: String, chatroom: Chatroom) {
         val utilities = Utilities()
         val db = FirebaseFirestore.getInstance()
 
         db.collection("chatrooms").document(chatroomId).get().addOnSuccessListener { snapshot ->
+            val auth = FirebaseAuth.getInstance()
             if (snapshot.exists()) {
                 val documentId = snapshot.id
                 utilities.loadFragment(
@@ -151,6 +164,11 @@ class UserAdapter(
                         arguments = Bundle().apply {
                             putString(StringConstants.CHATROOM_TITLE, titleOfChat)
                             putString(StringConstants.DOCUMENT_ID, documentId)
+                            chatroom.profilePictures?.forEach { entry ->
+                                if (entry.key != auth.currentUser?.uid) {
+                                    putString(StringConstants.CHATROOM_PICTURE, entry.value)
+                                }
+                            }
                         }
                     }, fragmentManager
                 )
@@ -163,8 +181,6 @@ class UserAdapter(
     private fun isUserOnline(
         user: User,
         imageView: ImageView,
-        imageResOnline: Int,
-        imageResOffline: Int
     ) {
         val timeHandler = Handler(getMainLooper())
         val tenMinutes: Long = 10 * 60 * 1000
@@ -174,10 +190,10 @@ class UserAdapter(
                 val currentTime = System.currentTimeMillis() - (loggedIn?.seconds?.times(1000) ?: 0)
                 if (currentTime < tenMinutes) {
                     Status.ONLINE
-                    imageView.setImageResource(imageResOnline)
+                    imageView.visibility = View.VISIBLE
                 } else {
                     Status.OFFLINE
-                    imageView.setImageResource(imageResOffline)
+                    imageView.visibility = View.GONE
                 }
                 timeHandler.postDelayed(this, tenMinutes)
             }

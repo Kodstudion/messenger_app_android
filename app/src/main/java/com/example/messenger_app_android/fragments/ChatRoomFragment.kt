@@ -4,7 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Bundle
 import android.os.Handler
-import android.os.Looper.getMainLooper
+import android.os.Looper
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
@@ -18,6 +18,7 @@ import com.example.messenger_app_android.adapters.PostAdapter
 import com.example.messenger_app_android.databinding.FragmentChatRoomBinding
 import com.example.messenger_app_android.models.Chatroom
 import com.example.messenger_app_android.models.Post
+import com.example.messenger_app_android.models.User
 import com.example.messenger_app_android.services.RetrofitInstance
 import com.example.messenger_app_android.services.constants.StringConstants
 import com.example.messenger_app_android.services.models.NotificationData
@@ -33,7 +34,11 @@ import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.gson.Gson
+import com.makeramen.roundedimageview.RoundedTransformationBuilder
+import com.squareup.picasso.Picasso
 import kotlinx.coroutines.*
+import java.util.*
+import kotlin.collections.HashMap
 
 interface ChatroomFragmentChatroomView {
     fun setPost(post: MutableList<Post>)
@@ -42,70 +47,87 @@ interface ChatroomFragmentChatroomView {
 class ChatRoomFragment : Fragment(),
     ChatroomFragmentChatroomView {
 
-    private lateinit var auth: FirebaseAuth
-    private lateinit var db: FirebaseFirestore
-    private lateinit var binding: FragmentChatRoomBinding
-    private lateinit var postAdapter: PostAdapter
-    private lateinit var chatroomFragmentViewModel: ChatroomFragmentViewModel
-    private lateinit var chatroomTitle: String
-    private lateinit var documentId: String
-    private lateinit var chatroom: Chatroom
+          private lateinit var auth: FirebaseAuth
+        private lateinit var db: FirebaseFirestore
+        private lateinit var binding: FragmentChatRoomBinding
+        private lateinit var postAdapter: PostAdapter
+        private lateinit var chatroomFragmentViewModel: ChatroomFragmentViewModel
+        private lateinit var chatroomTitle: String
+        private lateinit var chatroomPicture: String
+        private lateinit var documentId: String
+        private lateinit var chatroom: Chatroom
+        private lateinit var user: User
 
-    val TAG = "!!!"
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        binding = FragmentChatRoomBinding.inflate(layoutInflater, container, false)
-        chatroomFragmentViewModel = ViewModelProvider(
-            this,
-            ChatroomFragmentViewModelFactory()
-        )[ChatroomFragmentViewModel::class.java]
+        val TAG = "!!!"
+        override fun onCreateView(
+            inflater: LayoutInflater, container: ViewGroup?,
+            savedInstanceState: Bundle?
+        ): View? {
+            binding = FragmentChatRoomBinding.inflate(layoutInflater, container, false)
+            chatroomFragmentViewModel = ViewModelProvider(
+                this,
+                ChatroomFragmentViewModelFactory()
+            )[ChatroomFragmentViewModel::class.java]
 
-        postAdapter = PostAdapter()
-        val layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
-        layoutManager.stackFromEnd = true
-        binding.chatConversationListAdapter.layoutManager = layoutManager
+            postAdapter = PostAdapter()
+            val layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
+            layoutManager.stackFromEnd = true
+            binding.chatConversationListAdapter.layoutManager = layoutManager
 
-        binding.chatConversationListAdapter.adapter = postAdapter
+            binding.chatConversationListAdapter.adapter = postAdapter
 
 
-        return binding.root
-    }
+            return binding.root
+        }
 
-    @SuppressLint("ClickableViewAccessibility")
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        db = Firebase.firestore
-        auth = Firebase.auth
+        @SuppressLint("ClickableViewAccessibility")
+        override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+            super.onViewCreated(view, savedInstanceState)
+            db = Firebase.firestore
+            auth = Firebase.auth
 
-        documentId = arguments?.getString(StringConstants.DOCUMENT_ID).toString()
-        chatroomTitle = arguments?.getString(StringConstants.CHATROOM_TITLE).toString()
-        chatroomFragmentViewModel.documentId = documentId
-        chatroomFragmentViewModel.attachChatroom(this)
+            documentId = arguments?.getString(StringConstants.DOCUMENT_ID).toString()
+            chatroomTitle = arguments?.getString(StringConstants.CHATROOM_TITLE).toString()
+            chatroomPicture = arguments?.getString(StringConstants.CHATROOM_PICTURE).toString()
+            chatroomFragmentViewModel.documentId = documentId
+            chatroomFragmentViewModel.attachChatroom(this)
 
-        val utilities = Utilities();
-        val fragmentManager = requireActivity().supportFragmentManager
+            val utilities = Utilities();
+            val fragmentManager = requireActivity().supportFragmentManager
 
-        getChatroom(documentId) { chatroomCallbackResult ->
-            if (chatroomCallbackResult != null) {
-                chatroom = chatroomCallbackResult
-                chatroom.typing?.forEach { entry ->
-                    if (entry.key != auth.currentUser?.uid && entry.value) {
-                        chatroom.participantsNames?.get(entry.key)?.let { otherParticipantName ->
-                            binding.userIsTypingTextView.text = otherParticipantName
+            getChatroom(documentId) { chatroomCallbackResult ->
+                if (chatroomCallbackResult != null) {
+                    chatroom = chatroomCallbackResult
+                    chatroom.typing?.forEach { entry ->
+                        if (entry.key != auth.currentUser?.uid && entry.value) {
+                            chatroom.participantsNames?.get(entry.key)?.let { otherParticipantName ->
+                                binding.userIsTypingTextView.text =
+                                    "$otherParticipantName is typing ..."
+                            }
+                        } else if (entry.key != auth.currentUser?.uid && !entry.value) {
+                            binding.userIsTypingTextView.text = ""
                         }
-                    } else if (entry.key != auth.currentUser?.uid && !entry.value) {
-                        binding.userIsTypingTextView.text = ""
                     }
                 }
             }
-        }
 
-
+            getUser(auth.currentUser?.uid.toString()) { userCallbackResult ->
+                if (userCallbackResult != null) {
+                    user = userCallbackResult
+                }
+            }
 
 
         binding.toolbarTitleChatroom.text = chatroomTitle
+        Picasso.get()
+            .load(chatroomPicture)
+            .transform(
+                RoundedTransformationBuilder()
+                    .cornerRadius(50f)
+                    .oval(false)
+                    .build()
+            )
+            .into(binding.profilePictureChatroom)
 
         binding.arrowLeftBack.setOnClickListener {
             utilities.loadFragment(ChatFragment(), fragmentManager)
@@ -113,37 +135,45 @@ class ChatRoomFragment : Fragment(),
 
         binding.sendMessageEditText.addTextChangedListener(object : TextWatcher {
             private var isTyping = false
-            private var typingHandler = Handler(getMainLooper())
+            private var handler = Handler(Looper.getMainLooper())
+            private var isTypingRunnable: Runnable? = null
             private val fiveSeconds: Long = 5000
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun afterTextChanged(s: Editable?) {}
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                handleTextChange(s.toString())
+                startTyping()
             }
-            private fun handleTextChange (editText: String) {
-                if (editText.isNotEmpty()) {
-                    startTyping()
-                } else {
-                    stopTyping()
-                }
-            }
+
             private fun startTyping() {
                 if (!isTyping) {
                     isTyping = true
                     updateIsTyping(chatroom, documentId, true)
                 } else {
-                    typingHandler.postDelayed({
-                        stopTyping()
-                        updateIsTyping(chatroom, documentId, false)
-                    }, fiveSeconds)
+                    resetTimer()
                 }
             }
 
             private fun stopTyping() {
                 isTyping = false
-                typingHandler.removeCallbacksAndMessages(null)
+                isTypingRunnable?.let {
+                    handler.removeCallbacks(it)
+                    isTypingRunnable = null
+                }
                 updateIsTyping(chatroom, documentId, false)
+            }
+
+            private fun startTimer() {
+                isTypingRunnable = Runnable { stopTyping() }
+                handler.postDelayed(isTypingRunnable ?: return, fiveSeconds)
+            }
+
+            private fun resetTimer() {
+                isTypingRunnable?.let {
+                    handler.removeCallbacks(it)
+                    isTypingRunnable = null
+                }
+                startTimer()
             }
         })
 
@@ -151,6 +181,13 @@ class ChatRoomFragment : Fragment(),
         binding.sendMessageButton.setOnClickListener {
             val timestamp = Timestamp.now()
             val postBody = binding.sendMessageEditText.text.toString()
+            chatroom.profilePictures?.forEach { entry ->
+                if (entry.key == auth.currentUser?.uid) {
+                    user.profilePicture = entry.value
+                }
+            }
+
+
             val post = Post(
                 auth.currentUser?.uid,
                 postBody,
@@ -158,12 +195,14 @@ class ChatRoomFragment : Fragment(),
                 chatroomTitle,
                 postBody,
                 timestamp,
+                user.profilePicture
             )
             if (postBody.isNotEmpty()) {
-                sendAndReceivePost(post)
+                sendPost(post)
                 getAndSetPostIsSeen()
                 updateUserStatus(timestamp)
                 updateChatroomLastUpdate(timestamp)
+                updateSender(chatroom, documentId, postBody)
                 PushNotification(
                     NotificationData(
                         auth.currentUser?.displayName ?: "",
@@ -172,7 +211,8 @@ class ChatRoomFragment : Fragment(),
                         chatroomTitle,
                         auth.currentUser?.displayName ?: "",
                         currentUserToken(chatroom),
-                        otherDeviceToken(chatroom)
+                        otherDeviceToken(chatroom),
+                        user.profilePicture ?: ""
                     ),
                     ""
                 ).also {
@@ -192,19 +232,10 @@ class ChatRoomFragment : Fragment(),
 
     }
 
-
-    private fun sendAndReceivePost(post: Post) {
-        val sent = Post(
-            auth.currentUser?.uid,
-            post.postBody,
-            post.fromUser,
-            post.toUser,
-            post.postBody,
-            post.timestamp,
-        )
+    private fun sendPost(post: Post) {
         val postDocRef =
             db.collection("chatrooms").document(documentId).collection("posts").document()
-        postDocRef.set(sent).addOnSuccessListener {
+        postDocRef.set(post).addOnSuccessListener {
 
         }
             .addOnFailureListener {
@@ -333,6 +364,20 @@ class ChatRoomFragment : Fragment(),
         }
     }
 
+    private fun getUser(documentId: String, callback: (User?) -> Unit) {
+        val userDocRef = db.collection("users").document(documentId)
+        userDocRef.addSnapshotListener { snapshot, _ ->
+            snapshot?.let { querySnapshot ->
+                try {
+                    val user = querySnapshot.toObject(User::class.java)
+                    callback(user)
+                } catch (e: Exception) {
+                    Log.e(TAG, e.toString())
+                }
+            }
+        }
+    }
+
     private fun updateIsTyping(chatroom: Chatroom, documentId: String, isTyping: Boolean) {
         val isTypingDocRef = db.collection("chatrooms").document(documentId)
         chatroom.typing?.forEach { entry ->
@@ -345,7 +390,24 @@ class ChatRoomFragment : Fragment(),
             }
         }
     }
+
+    private fun updateSender(chatroom: Chatroom, documentId: String, recentMessage: String) {
+        val senderDocRef = db.collection("chatrooms").document(documentId)
+        chatroom.sender?.forEach { entry ->
+            if (entry.key == auth.currentUser?.uid) {
+                senderDocRef.set(
+                    hashMapOf(
+                        "sender" to hashMapOf(entry.key to recentMessage)
+                    ), SetOptions.merge()
+                )
+            } else {
+                senderDocRef.update("sender", hashMapOf(auth.currentUser?.uid to recentMessage))
+            }
+        }
+    }
 }
+
+
 
 
 

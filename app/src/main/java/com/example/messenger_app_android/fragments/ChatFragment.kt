@@ -14,10 +14,12 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.core.view.GravityCompat
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.messenger_app_android.R
 import com.example.messenger_app_android.activities.LoginActivity
 import com.example.messenger_app_android.adapters.ChatRoomAdapter
+import com.example.messenger_app_android.adapters.ChatroomAdapterCallback
 import com.example.messenger_app_android.adapters.UserAdapter
 import com.example.messenger_app_android.databinding.FragmentChatBinding
 import com.example.messenger_app_android.models.Chatroom
@@ -31,20 +33,18 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.FirebaseMessaging
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectLatest
 
 
 val TAG = "!!!"
 
 interface ChatFragmentChatroomsView {
     fun setChatroom(chatroom: MutableList<Chatroom>)
-}
-
-interface ChatFragmentUsersView {
-
     fun setUsers(user: MutableList<User>)
 }
 
-class ChatFragment : Fragment(), ChatFragmentChatroomsView, ChatFragmentUsersView {
+class ChatFragment : Fragment(), ChatFragmentChatroomsView {
 
     private lateinit var auth: FirebaseAuth
     private lateinit var db: FirebaseFirestore
@@ -69,8 +69,7 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView, ChatFragmentUsersVie
     ): View? {
         binding = FragmentChatBinding.inflate(layoutInflater, container, false)
         chatFragmentViewModel = ViewModelProvider(this)[ChatFragmentViewModel::class.java]
-        chatFragmentViewModel.attachChatrooms(this)
-        chatFragmentViewModel.attachUsers(this)
+        chatFragmentViewModel.attach(this)
 
         return binding.root
 
@@ -81,11 +80,25 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView, ChatFragmentUsersVie
         db = Firebase.firestore
         auth = Firebase.auth
 
+        lifecycleScope.launchWhenCreated {
+            chatFragmentViewModel.dataLoaded.collect { dataLoaded ->
+                if (dataLoaded) {
+                  chatroomAdapter.submitList(chatFragmentViewModel.chatrooms)
+                }
+            }
+        }
+
+
+
         askNotificationPermission()
 
         val fragmentManager = requireActivity().supportFragmentManager
-        userAdapter = UserAdapter(mutableListOf(), fragmentManager)
-        chatroomAdapter = ChatRoomAdapter(fragmentManager)
+        userAdapter = UserAdapter(mutableListOf(),fragmentManager)
+        chatroomAdapter = ChatRoomAdapter(fragmentManager, object : ChatroomAdapterCallback {
+            override fun getUsers(userId: String): User? {
+                return chatFragmentViewModel.getUser(userId)
+            }
+        })
 
 
         binding.horizontalRecyclerview.layoutManager =
@@ -99,6 +112,7 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView, ChatFragmentUsersVie
         val displayName = auth.currentUser?.displayName
         val email = auth.currentUser?.email
         val userID = auth.currentUser?.uid
+        val profilePicture = auth.currentUser?.photoUrl
 
         binding.signOut.setOnClickListener {
             auth.signOut()
@@ -110,9 +124,9 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView, ChatFragmentUsersVie
             binding.drawerLayout.openDrawer(GravityCompat.START)
         }
 
-        if (userID != null && displayName != null && email != null) {
+        if (userID != null && displayName != null && email != null && profilePicture != null) {
             val timestamp = Timestamp.now()
-            saveUser(userID, displayName, email, timestamp)
+            saveUser(userID, displayName, email, profilePicture.toString(), timestamp)
             updateDeviceToken()
         }
     }
@@ -131,10 +145,11 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView, ChatFragmentUsersVie
         uid: String,
         displayName: String,
         email: String,
+        profilePicture: String,
         timestamp: Timestamp,
 
     ) {
-        val user = User(uid, displayName, email, null, timestamp)
+        val user = User(uid, displayName, email, profilePicture, timestamp)
         db.collection("users").document(uid).set(user)
             .addOnSuccessListener {
                 Log.d("!!!", "DocumentSnapshot successfully written!")

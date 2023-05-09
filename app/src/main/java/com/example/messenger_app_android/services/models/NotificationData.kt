@@ -7,5 +7,6 @@ data class NotificationData(
     val chatroomTitle: String,
     val fromUser: String,
     val currentUserToken: String,
-    val otherUserToken: String
+    val otherUserToken: String,
+    val profilePicture: String,
 )

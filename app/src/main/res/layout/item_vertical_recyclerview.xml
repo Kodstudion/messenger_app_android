@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/chatroom_chatroom_item"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="150dp">
+    android:layout_height="150dp"
+    android:clickable="true"
+    android:focusable="true">
 
     <ImageView
         android:id="@+id/chatroom_picture"
@@ -17,6 +20,39 @@
         android:focusable="true">
 
     </ImageView>
+
+    <FrameLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="40dp"
+        app:layout_constraintBottom_toBottomOf="@+id/recent_message"
+        app:layout_constraintStart_toEndOf="@+id/from_user">
+
+        <ImageView
+            android:id="@+id/new_post"
+            android:visibility="gone"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@drawable/ic_baseline_chat_bubble_24"/>
+
+    </FrameLayout>
+
+    <FrameLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="30dp"
+        app:layout_constraintBottom_toBottomOf="@+id/sender_textview"
+        app:layout_constraintEnd_toStartOf="@+id/from_user"
+        app:layout_constraintStart_toEndOf="@+id/chatroom_picture">
+
+        <ImageView
+            android:id="@+id/online_status_chatroom_adapter"
+            android:visibility="gone"
+            android:layout_width="10dp"
+            android:layout_height="10dp"
+            android:src="@drawable/round_green_circle" />
+
+    </FrameLayout>
 
     <TextView
         android:id="@+id/from_user"
@@ -39,7 +75,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="3dp"
         android:layout_marginStart="20dp"
-        android:text="sender:"
+        android:text="Start Chatting!"
         app:layout_constraintStart_toEndOf="@+id/chatroom_picture"
         app:layout_constraintTop_toBottomOf="@+id/from_user">
 

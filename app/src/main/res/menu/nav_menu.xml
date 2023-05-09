@@ -4,15 +4,15 @@
 
     <item android:id="@+id/chat_fragment"
         android:icon="@drawable/ic_baseline_chat_bubble_24"
-        android:title="Chats"/>
+        android:title="Chattar"/>
 
     <item android:id="@+id/persons_fragment"
         android:icon="@drawable/ic_baseline_person_24"
-        android:title="Persons"/>
+        android:title="Personer"/>
 
 
     <item android:id="@+id/settings_fragment"
         android:icon="@drawable/ic_baseline_settings_24"
-        android:title="Settings"/>
+        android:title="Inställningar"/>
 
 </menu>

@@ -9,7 +9,8 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:layout_marginTop="10dp">
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar_chatroom"
@@ -37,6 +38,20 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                android:layout_marginEnd="10dp">
+
+                <ImageView
+                    android:id="@+id/online_status_user"
+                    android:layout_width="10dp"
+                    android:layout_height="10dp"
+                    android:src="@drawable/round_green_circle"/>
+
+            </FrameLayout>
 
             <TextView
                 android:id="@+id/toolbar_title_chatroom"
@@ -45,7 +60,8 @@
                 android:layout_gravity="center"
                 android:text="Namn på konversation"
                 android:textColor="@color/black"
-                android:textSize="24sp" />
+                android:textSize="20sp"
+                android:textStyle="bold"/>
 
 
         </androidx.appcompat.widget.Toolbar>

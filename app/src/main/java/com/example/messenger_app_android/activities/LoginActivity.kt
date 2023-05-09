@@ -5,11 +5,13 @@ import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.content.IntentSender
+import android.net.Uri
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.cardview.widget.CardView
 import com.example.messenger_app_android.R
@@ -29,6 +31,9 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageException
+import com.squareup.picasso.Picasso
 
 class LoginActivity : AppCompatActivity() {
 
@@ -111,6 +116,7 @@ class LoginActivity : AppCompatActivity() {
                     val idToken = credential.googleIdToken
                     val username = credential.id
                     val password = credential.password
+                    val photoUri = credential.profilePictureUri
 
                     when {
                         idToken != null -> {
@@ -121,8 +127,11 @@ class LoginActivity : AppCompatActivity() {
                         password != null -> {
                             Log.d(TAG, "onActivityResult: Got password")
                         }
+                        photoUri != null -> {
+                            Log.d(TAG, "onActivityResult: Got photo")
+                        }
                         else -> {
-                            Log.d(TAG, "onActivityResult: No ID token or password")
+                            Log.d(TAG, "onActivityResult: No ID token or password or photo")
                         }
                     }
 
@@ -140,9 +149,9 @@ class LoginActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-//        createNotificationChannel()
         val currentUser = auth.currentUser
-        updateUI(currentUser)
+        val photoUri = auth.currentUser?.photoUrl
+        updateUI(currentUser, photoUri)
     }
 
     private fun firebaseAuthWithGoogle(idToken: String) {
@@ -151,38 +160,24 @@ class LoginActivity : AppCompatActivity() {
             if (task.isSuccessful) {
                 Log.d(TAG, "firebaseAuthWithGoogle: Success logged in")
                 val user = auth.currentUser
-                updateUI(user)
+                val photoUri = user?.photoUrl
+                updateUI(user, photoUri)
+
             } else {
                 Log.d(TAG, "firebaseAuthWithGoogle: FAILED")
-                updateUI(null)
+                updateUI(null, null)
             }
         }
     }
 
 
-    private fun updateUI(user: FirebaseUser?) {
+    private fun updateUI(user: FirebaseUser?, photoUri: Uri?) {
         user?.let {
             val intent = Intent(this, HomeActivity::class.java)
+            intent.putExtra("photoUri", photoUri)
             startActivity((intent))
         }
     }
-
-//    private fun createNotificationChannel() {
-//        // Create the NotificationChannel, but only on API 26+ because
-//        // the NotificationChannel class is new and not in the support library
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-//            val name = getString(R.string.channel_name)
-//            val descriptionText = "janne"
-//            val importance = NotificationManager.IMPORTANCE_DEFAULT
-//            val channel = NotificationChannel("1", name, importance).apply {
-//                description = descriptionText
-//            }
-//            // Register the channel with the system
-//            val notificationManager: NotificationManager =
-//                getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-//            notificationManager.createNotificationChannel(channel)
-//        }
-//    }
 }
 
 
