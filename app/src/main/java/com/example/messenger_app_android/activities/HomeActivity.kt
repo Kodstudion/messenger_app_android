@@ -54,14 +54,16 @@ class HomeActivity : AppCompatActivity() {
     private fun loadFragmentFromPushNotice(utilities: Utilities) {
         val documentId = intent.getStringExtra(StringConstants.DOCUMENT_ID)
         val chatroomTitle = intent.getStringExtra(StringConstants.CHATROOM_TITLE)
+        val chatroomPicture = intent.getStringExtra(StringConstants.CHATROOM_PICTURE)
         if (documentId != null) {
             val chatroomFragment = ChatRoomFragment().apply {
                 arguments = Bundle().apply {
                     putString(StringConstants.DOCUMENT_ID, documentId)
                     putString(StringConstants.CHATROOM_TITLE, chatroomTitle)
+                    putString(StringConstants.CHATROOM_PICTURE, chatroomPicture)
+
                 }
             }
-            Log.d(TAG, "loadFragmentFromPushNotice: $chatroomTitle")
             utilities.loadFragment(chatroomFragment, supportFragmentManager)
         } else {
             utilities.loadFragment(ChatFragment(), supportFragmentManager)
