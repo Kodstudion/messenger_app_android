@@ -6,12 +6,55 @@
     android:layout_height="match_parent"
     tools:context=".activities.LoginActivity">
 
-    <View
-        android:id="@+id/view"
+    <ImageView
+        android:id="@+id/background_iv"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@android:color/darker_gray"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <FrameLayout
+        android:id="@+id/frameLayout"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        app:layout_constraintBottom_toTopOf="@+id/card_view"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="Chatter"
+            android:textColor="@color/white"
+            android:textSize="45sp"
+            android:textStyle="bold">
+
+        </TextView>
+
+    </FrameLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        app:layout_constraintBottom_toBottomOf="@+id/frameLayout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginBottom="30dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="Make Friends"
+            android:textColor="@color/white"
+            android:textSize="20sp">
+
+        </TextView>
+
+    </FrameLayout>
+
+
 
     <androidx.cardview.widget.CardView
         android:id="@+id/card_view"
@@ -22,7 +65,7 @@
         app:cardElevation="30dp"
         app:layout_constraintBaseline_toBottomOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/view"
+        app:layout_constraintTop_toTopOf="@+id/background_iv"
         app:layout_editor_absoluteX="30dp"
         tools:layout_editor_absoluteX="30dp">
 
@@ -41,9 +84,7 @@
                     android:id="@+id/login_photo_iv"
                     android:layout_width="100dp"
                     android:layout_height="100dp"
-                    android:src="@drawable/baseline_person_add_alt_1_24"
                     android:layout_gravity="center"
-                    android:layout_marginStart="12dp"
                     android:alpha="0.3"
                     android:focusable="true"
                     android:clickable="true">
@@ -79,7 +120,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
-                        android:text="Login With Google"
+                        android:text="Loggga in med Google"
                         android:textAlignment="center"
                         android:textColor="@color/white"
                         android:textSize="16sp" />
@@ -94,7 +135,7 @@
                 android:id="@+id/sign_in_with_email_tv"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Or Sign In With Email"
+                android:text="Eller logga in med E-mailadress"
                 android:textAlignment="center" />
 
         </LinearLayout>

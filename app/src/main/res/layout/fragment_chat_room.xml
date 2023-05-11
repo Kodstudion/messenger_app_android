@@ -57,12 +57,47 @@
                 android:id="@+id/toolbar_title_chatroom"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
                 android:text="Namn på konversation"
                 android:textColor="@color/black"
                 android:textSize="20sp"
                 android:textStyle="bold"/>
 
+
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end">
+
+                <FrameLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="35dp"
+                    android:layout_marginEnd="10dp"
+                    android:layout_marginTop="2dp">
+
+                    <ImageView
+                        android:layout_width="25dp"
+                        android:layout_height="22dp"
+                        android:src="@drawable/baseline_phone_24">
+
+                    </ImageView>
+
+                </FrameLayout>
+
+                <FrameLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+                    <ImageView
+                        android:layout_width="25dp"
+                        android:layout_height="25dp"
+                        android:src="@drawable/baseline_videocam_24">
+
+                    </ImageView>
+
+                </FrameLayout>
+
+            </FrameLayout>
 
         </androidx.appcompat.widget.Toolbar>
 
