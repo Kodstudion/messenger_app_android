@@ -118,11 +118,6 @@ class ChatRoomFragment : Fragment(),
             }
         }
 
-
-
-
-
-
         binding.arrowLeftBack.setOnClickListener {
             utilities.loadFragment(ChatFragment(), fragmentManager)
         }

@@ -4,9 +4,11 @@ import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 
 import android.os.Bundle
+import android.provider.MediaStore
 import android.util.Log
 import android.view.*
 import androidx.activity.result.contract.ActivityResultContracts
@@ -33,6 +35,9 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.FirebaseMessaging
+import com.google.firebase.storage.FirebaseStorage
+import com.makeramen.roundedimageview.RoundedTransformationBuilder
+import com.squareup.picasso.Picasso
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 
@@ -52,6 +57,8 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView {
     private lateinit var userAdapter: UserAdapter
     private lateinit var chatroomAdapter: ChatRoomAdapter
     private lateinit var chatFragmentViewModel: ChatFragmentViewModel
+
+    private val PICK_IMAGE_REQUEST = 1
 
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
@@ -87,8 +94,6 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView {
                 }
             }
         }
-
-
 
         askNotificationPermission()
 
@@ -128,6 +133,12 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView {
             val timestamp = Timestamp.now()
             saveUser(userID, displayName, email, profilePicture.toString(), timestamp)
             updateDeviceToken()
+            Picasso.get().load(profilePicture).transform(
+                RoundedTransformationBuilder()
+                    .cornerRadiusDp(50f)
+                    .oval(false)
+                    .build()
+            ).into(binding.toolBarProfilePicture)
         }
     }
 
@@ -185,7 +196,6 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView {
             }
         }
     }
-
 }
 
 
