@@ -63,14 +63,6 @@ class MessagingServices : FirebaseMessagingService() {
             message.data["otherUserToken"] ?: "",
             message.data["profilePicture"] ?: "",
         )
-        val intent = Intent(this, HomeActivity::class.java)
-        intent.putExtra(StringConstants.DOCUMENT_ID, message.data["documentId"])
-        intent.putExtra(StringConstants.CHATROOM_TITLE, message.data["chatroomTitle"])
-        intent.putExtra(StringConstants.FROM_USER, message.data["fromUser"])
-        intent.putExtra(StringConstants.CURRENT_USER_TOKEN, message.data["currentUserToken"])
-        intent.putExtra(StringConstants.OTHER_USER_TOKEN, message.data["otherUserToken"])
-        intent.putExtra(StringConstants.PROFILE_PICTURE, message.data["profilePicture"])
-
     }
 
     override fun onNewToken(newToken: String) {

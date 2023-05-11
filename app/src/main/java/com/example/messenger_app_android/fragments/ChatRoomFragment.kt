@@ -366,7 +366,7 @@ class ChatRoomFragment : Fragment(),
         return chatroomTitle
     }
 
-    private fun setChatroomPicture(chatroom: Chatroom) : String {
+    private fun setChatroomPicture(chatroom: Chatroom): String {
         var chatroomPicture = ""
         chatroom.profilePictures?.forEach { entry ->
             if (entry.key != auth.currentUser?.uid) {

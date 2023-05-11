@@ -27,7 +27,7 @@
             android:layout_gravity="center"
             android:text="Chatter"
             android:textColor="@color/white"
-            android:textSize="50sp"
+            android:textSize="45sp"
             android:textStyle="bold">
 
         </TextView>
