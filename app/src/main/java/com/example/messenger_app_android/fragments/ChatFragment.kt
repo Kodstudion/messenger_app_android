@@ -1,6 +1,7 @@
 package com.example.messenger_app_android.fragments
 
 import android.Manifest
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -32,11 +33,13 @@ import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.storage.FirebaseStorage
 import com.makeramen.roundedimageview.RoundedTransformationBuilder
+import com.squareup.picasso.MemoryPolicy
 import com.squareup.picasso.Picasso
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
@@ -90,7 +93,7 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView {
         lifecycleScope.launchWhenCreated {
             chatFragmentViewModel.dataLoaded.collect { dataLoaded ->
                 if (dataLoaded) {
-                  chatroomAdapter.submitList(chatFragmentViewModel.chatrooms)
+                    chatroomAdapter.submitList(chatFragmentViewModel.chatrooms)
                 }
             }
         }
@@ -98,7 +101,7 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView {
         askNotificationPermission()
 
         val fragmentManager = requireActivity().supportFragmentManager
-        userAdapter = UserAdapter(mutableListOf(),fragmentManager)
+        userAdapter = UserAdapter(mutableListOf(), fragmentManager)
         chatroomAdapter = ChatRoomAdapter(fragmentManager, object : ChatroomAdapterCallback {
             override fun getUsers(userId: String): User? {
                 return chatFragmentViewModel.getUser(userId)
@@ -129,16 +132,29 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView {
             binding.drawerLayout.openDrawer(GravityCompat.START)
         }
 
+        binding.toolBarProfilePicture.setOnClickListener {
+            openImagePicker()
+        }
+
         if (userID != null && displayName != null && email != null && profilePicture != null) {
             val timestamp = Timestamp.now()
+            Log.d(TAG, "onViewCreated: $profilePicture")
             saveUser(userID, displayName, email, profilePicture.toString(), timestamp)
             updateDeviceToken()
-            Picasso.get().load(profilePicture).transform(
+            Picasso.get().load(profilePicture).memoryPolicy(MemoryPolicy.NO_CACHE).transform(
                 RoundedTransformationBuilder()
                     .cornerRadiusDp(50f)
                     .oval(false)
                     .build()
             ).into(binding.toolBarProfilePicture)
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK) {
+            val imageUri = data?.data
+            handleSelectedImage(imageUri)
         }
     }
 
@@ -159,7 +175,7 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView {
         profilePicture: String,
         timestamp: Timestamp,
 
-    ) {
+        ) {
         val user = User(uid, displayName, email, profilePicture, timestamp)
         db.collection("users").document(uid).set(user)
             .addOnSuccessListener {
@@ -170,29 +186,89 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView {
                 Log.w("!!!", "Error writing document", e)
             }
     }
+
     private fun updateDeviceToken() {
         val db = Firebase.firestore
         val auth = Firebase.auth
-        MessagingServices.sharedPreferences = requireActivity().getSharedPreferences(R.string.sharedPreferences.toString(), Context.MODE_PRIVATE)
+        MessagingServices.sharedPreferences = requireActivity().getSharedPreferences(
+            R.string.sharedPreferences.toString(),
+            Context.MODE_PRIVATE
+        )
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
             if (!task.isSuccessful) {
                 Log.w(TAG, "Fetching FCM registration token failed", task.exception)
                 return@addOnCompleteListener
             }
             MessagingServices.token = task.result
-            db.collection("users").document(auth.currentUser?.uid ?: "").update("deviceToken", MessagingServices.token)
+            db.collection("users").document(auth.currentUser?.uid ?: "")
+                .update("deviceToken", MessagingServices.token)
         }
     }
+
     private fun askNotificationPermission() {
         // This is only necessary for API level >= 33 (TIRAMISU)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.POST_NOTIFICATIONS) ==
+            if (ContextCompat.checkSelfPermission(
+                    requireContext(),
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) ==
                 PackageManager.PERMISSION_GRANTED
             ) {
                 // FCM SDK (and your app) can post notifications.
-            }  else {
+            } else {
                 // Directly ask for the permission
                 requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+    }
+
+    private fun openImagePicker() {
+        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+        startActivityForResult(intent, PICK_IMAGE_REQUEST)
+    }
+
+    private fun handleSelectedImage(imageUri: Uri?) {
+        imageUri?.let { uri ->
+            val storageRef = FirebaseStorage.getInstance().reference
+            val db = Firebase.firestore
+            val imageFileName = "images/profile_pictures/${auth.currentUser?.uid}.jpg"
+            val imageRef = storageRef.child(imageFileName)
+            imageRef.putFile(uri).addOnSuccessListener { taskSnapshot ->
+                Log.d(TAG, "handleSelectedImage: ${taskSnapshot.metadata?.path}")
+                imageRef.downloadUrl.addOnSuccessListener { uri ->
+                    Picasso.get().load(uri).fit().transform(
+                        RoundedTransformationBuilder()
+                            .cornerRadius(100f)
+                            .oval(true)
+                            .build()
+                    ).into(binding.toolBarProfilePicture)
+
+                    db.collection("users").document(auth.currentUser?.uid ?: "").update(
+                        "profilePicture", uri
+                    )
+
+                    db.collection("chatrooms").get().addOnSuccessListener { documents ->
+                        documents?.forEach { document ->
+                            val chatroom = document.toObject(Chatroom::class.java)
+                            if (chatroom.documentId == document.id) {
+                                chatroom.profilePictures?.forEach { entry ->
+                                    if (entry.key == auth.currentUser?.uid) {
+                                        val profilePictureDocRef =
+                                            db.collection("chatrooms").document(document.id)
+                                        profilePictureDocRef.set(
+                                            hashMapOf(
+                                                "profilePictures" to hashMapOf(
+                                                    entry.key to uri)
+                                            ), SetOptions.merge()
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }.addOnFailureListener { e ->
+                Log.e(TAG, "handleSelectedImage: $e")
             }
         }
     }

@@ -103,10 +103,11 @@ class ChatRoomFragment : Fragment(),
             binding.toolbarTitleChatroom.text = setChatroomTitle(chatroom)
             Picasso.get()
                 .load(setChatroomPicture(chatroom))
+                .fit()
                 .transform(
                     RoundedTransformationBuilder()
                         .cornerRadius(50f)
-                        .oval(false)
+                        .oval(true)
                         .build()
                 )
                 .into(binding.profilePictureChatroom)

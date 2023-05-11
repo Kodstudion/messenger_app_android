@@ -53,9 +53,10 @@ class UserAdapter(
             Picasso.get()
                 .load(user.profilePicture)
                 .memoryPolicy(MemoryPolicy.NO_CACHE)
+                .fit()
                 .transform(RoundedTransformationBuilder()
                     .cornerRadius(radius)
-                    .oval(false)
+                    .oval(true)
                     .build())
                 .into(profile_picture)
 

@@ -74,15 +74,17 @@ class ChatRoomAdapter(
                     recent_message.text = chatroom.recentMessage
                 }
 
+
                 chatroom.profilePictures?.forEach { entry ->
                     if (entry.key != auth.currentUser?.uid) {
                         Picasso.get()
                             .load(entry.value)
+                            .fit()
                             .memoryPolicy(MemoryPolicy.NO_CACHE)
                             .transform(
                                 RoundedTransformationBuilder()
                                     .cornerRadius(50f)
-                                    .oval(false)
+                                    .oval(true)
                                     .build()
                             )
                             .into(chatroom_picture)
