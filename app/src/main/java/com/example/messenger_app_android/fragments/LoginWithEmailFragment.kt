@@ -32,6 +32,7 @@ class LoginWithEmailFragment : Fragment() {
         return binding.root
 
     }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         auth = FirebaseAuth.getInstance()
@@ -61,6 +62,7 @@ class LoginWithEmailFragment : Fragment() {
                 }
         }
     }
+
     private fun updateUI(user: FirebaseUser?) {
         user?.let {
             val intent = Intent(context, HomeActivity::class.java)

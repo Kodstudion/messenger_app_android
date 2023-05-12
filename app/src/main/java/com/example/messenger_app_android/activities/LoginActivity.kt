@@ -72,10 +72,6 @@ class LoginActivity : AppCompatActivity() {
         Picasso.get().load(viewBackgroundUrl).fit().centerCrop().into(backgroundView)
 
 
-//        loginPhoto.setOnClickListener {
-//            openImagePicker()
-//        }
-
         onTapClient = Identity.getSignInClient(this)
         signInRequest = BeginSignInRequest.builder()
             .setPasswordRequestOptions(
@@ -125,10 +121,6 @@ class LoginActivity : AppCompatActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-//        if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK) {
-//            val imageUri = data?.data
-//            handleSelectedImage(imageUri)
-//        }
         when (requestCode) {
             REQ_ONE_TAP -> {
                 try {
@@ -198,33 +190,6 @@ class LoginActivity : AppCompatActivity() {
             startActivity((intent))
         }
     }
-
-//    private fun openImagePicker() {
-//        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-//        startActivityForResult(intent, PICK_IMAGE_REQUEST)
-//    }
-//
-//    private fun handleSelectedImage(imageUri: Uri?) {
-//        imageUri?.let { uri ->
-//            val storageRef = FirebaseStorage.getInstance().reference
-//            val imageFileName = "images/profile_pictures/${auth.currentUser?.uid}.jpg"
-//            val imageRef = storageRef.child(imageFileName)
-//
-//            imageRef.putFile(uri).addOnSuccessListener { taskSnapshot ->
-//                Log.d(TAG, "handleSelectedImage: ${taskSnapshot.metadata?.path}")
-//                imageRef.downloadUrl.addOnSuccessListener { uri ->
-//                    Picasso.get().load(uri).fit().transform(
-//                        RoundedTransformationBuilder()
-//                            .cornerRadius(100f)
-//                            .oval(true)
-//                            .build()
-//                    ).into(loginPhoto)
-//                }
-//            }.addOnFailureListener { e ->
-//                Log.e(TAG, "handleSelectedImage: $e")
-//            }
-//        }
-//    }
 }
 
 

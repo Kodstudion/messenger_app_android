@@ -23,6 +23,7 @@ import com.example.messenger_app_android.services.constants.StringConstants
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
+import com.squareup.picasso.Picasso
 import java.net.URL
 import java.util.*
 

@@ -35,6 +35,7 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.storage.FirebaseStorage
@@ -136,20 +137,33 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView {
             openImagePicker()
         }
 
-        if (userID != null && displayName != null && email != null && profilePicture != null) {
+        if (userID != null && displayName != null && email != null) {
             val timestamp = Timestamp.now()
-            Log.d(TAG, "onViewCreated: $profilePicture")
-            saveUser(userID, displayName, email, profilePicture.toString(), timestamp)
-            updateDeviceToken()
-            Picasso.get()
-                .load(profilePicture)
-                .memoryPolicy(MemoryPolicy.NO_CACHE)
-                .transform(
-                RoundedTransformationBuilder()
-                    .cornerRadiusDp(50f)
-                    .oval(false)
-                    .build()
-            ).into(binding.toolBarProfilePicture)
+            db.collection("users").document(userID).get().addOnSuccessListener { document ->
+                if (!document.exists()) {
+                    saveUser(
+                        userID,
+                        displayName,
+                        email,
+                        profilePicture.toString(),
+                        timestamp
+                    )
+                } else {
+                    val user = document.toObject<User>()
+                    Picasso.get()
+                        .load(user?.profilePicture)
+                        .fit()
+                        .memoryPolicy(MemoryPolicy.NO_CACHE)
+                        .transform(
+                            RoundedTransformationBuilder()
+                                .cornerRadiusDp(50f)
+                                .oval(false)
+                                .build()
+                        ).into(binding.toolBarProfilePicture)
+                    updateDeviceToken()
+                }
+            }
+
         }
     }
 
@@ -183,6 +197,7 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView {
         db.collection("users").document(uid).set(user)
             .addOnSuccessListener {
                 Log.d("!!!", "DocumentSnapshot successfully written!")
+                updateDeviceToken()
 
             }
             .addOnFailureListener { e ->
@@ -193,7 +208,7 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView {
     private fun updateDeviceToken() {
         val db = Firebase.firestore
         val auth = Firebase.auth
-        MessagingServices.sharedPreferences = requireActivity().getSharedPreferences(
+        MessagingServices.sharedPreferences = context?.getSharedPreferences(
             R.string.sharedPreferences.toString(),
             Context.MODE_PRIVATE
         )
@@ -261,7 +276,8 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView {
                                         profilePictureDocRef.set(
                                             hashMapOf(
                                                 "profilePictures" to hashMapOf(
-                                                    entry.key to uri)
+                                                    entry.key to uri
+                                                )
                                             ), SetOptions.merge()
                                         )
                                     }
