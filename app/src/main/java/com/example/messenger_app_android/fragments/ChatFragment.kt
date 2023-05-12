@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
@@ -28,6 +29,7 @@ import com.example.messenger_app_android.databinding.FragmentChatBinding
 import com.example.messenger_app_android.models.Chatroom
 import com.example.messenger_app_android.models.User
 import com.example.messenger_app_android.services.MessagingServices
+import com.example.messenger_app_android.services.constants.StringConstants
 import com.example.messenger_app_android.viewmodels.ChatFragmentViewModel
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
@@ -161,9 +163,9 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView {
                                 .build()
                         ).into(binding.toolBarProfilePicture)
                     updateDeviceToken()
+                    storeProfilePictureUrl(user)
                 }
             }
-
         }
     }
 
@@ -291,6 +293,14 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView {
             }
         }
     }
+
+    private fun storeProfilePictureUrl(user: User?) {
+        val sharedPreferences = context?.getSharedPreferences(R.string.sharedPreferences.toString(), Context.MODE_PRIVATE)
+        val editor = sharedPreferences?.edit()
+        editor?.putString(StringConstants.PROFILE_PICTURE_URL, user?.profilePicture)
+        editor?.apply()
+    }
+
 }
 
 

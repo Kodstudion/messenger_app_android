@@ -2,6 +2,7 @@ package com.example.messenger_app_android.activities
 
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.content.IntentSender
 import android.net.Uri
@@ -17,6 +18,7 @@ import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
 import com.example.messenger_app_android.R
 import com.example.messenger_app_android.fragments.LoginWithEmailFragment
+import com.example.messenger_app_android.services.constants.StringConstants
 import com.example.messenger_app_android.utilities.Utilities
 import com.google.android.gms.auth.api.identity.BeginSignInRequest
 import com.google.android.gms.auth.api.identity.Identity
@@ -60,6 +62,14 @@ class LoginActivity : AppCompatActivity() {
         val viewBackgroundUrl =
             "https://image.winudf.com/v2/image/Y29tLmNvZGVGYWN0b3J5LndhV2FsbHBhcGVyc19zY3JlZW5fMV8xNTMwNTY4MzE5XzA2Nw/screen-1.jpg?fakeurl=1&type=.webp"
         val utilities = Utilities()
+        val sharedPreferences = this.getSharedPreferences(
+            R.string.sharedPreferences.toString(),Context.MODE_PRIVATE
+        )
+        val storedProfilePictureUrl = sharedPreferences.getString(
+            StringConstants.PROFILE_PICTURE_URL, null
+        )
+
+        Log.d(TAG, "onCreate: $storedProfilePictureUrl")
 
         googleSignInCV = findViewById(R.id.google_sign_in_cv)
         auth = Firebase.auth
@@ -70,6 +80,8 @@ class LoginActivity : AppCompatActivity() {
         loginPhoto = findViewById(R.id.login_photo_iv)
 
         Picasso.get().load(viewBackgroundUrl).fit().centerCrop().into(backgroundView)
+        Picasso.get().load(storedProfilePictureUrl).fit().centerCrop().into(loginPhoto)
+
 
 
         onTapClient = Identity.getSignInClient(this)
