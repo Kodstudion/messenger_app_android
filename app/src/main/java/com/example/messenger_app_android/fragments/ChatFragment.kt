@@ -141,7 +141,10 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView {
             Log.d(TAG, "onViewCreated: $profilePicture")
             saveUser(userID, displayName, email, profilePicture.toString(), timestamp)
             updateDeviceToken()
-            Picasso.get().load(profilePicture).memoryPolicy(MemoryPolicy.NO_CACHE).transform(
+            Picasso.get()
+                .load(profilePicture)
+                .memoryPolicy(MemoryPolicy.NO_CACHE)
+                .transform(
                 RoundedTransformationBuilder()
                     .cornerRadiusDp(50f)
                     .oval(false)
