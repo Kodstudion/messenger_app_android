@@ -60,14 +60,13 @@ class PostAdapter() : ListAdapter<Post, RecyclerView.ViewHolder>(PostDiffCallbac
 
     inner class SentPostHolder(itemView: View) : BaseViewHolder(itemView) {
         override fun bindItem(post: Post) {
-            val radius = 20
             itemView.apply {
                 sent_post_textview.text = post.postBody
                 Picasso.get()
                     .load(post.postPicture)
                     .transform(RoundedTransformationBuilder()
-                        .cornerRadiusDp(radius.toFloat())
-                        .oval(false)
+                        .cornerRadiusDp(50f)
+                        .oval(true)
                         .build())
                     .into(profile_picture_sent_post)
             }
@@ -77,14 +76,13 @@ class PostAdapter() : ListAdapter<Post, RecyclerView.ViewHolder>(PostDiffCallbac
 
     inner class ReceivedPostHolder(itemView: View) : BaseViewHolder(itemView) {
         override fun bindItem(post: Post) {
-            val radius = 20
             itemView.apply {
                 received_post_textview.text = post.postBody
                 Picasso.get()
                     .load(post.postPicture)
                     .transform(RoundedTransformationBuilder()
-                        .cornerRadiusDp(radius.toFloat())
-                        .oval(false)
+                        .cornerRadiusDp(50f)
+                        .oval(true)
                         .build())
                     .into(profile_picture_sent_received)
             }

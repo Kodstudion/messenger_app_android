@@ -15,9 +15,7 @@
         android:layout_marginStart="10dp"
         android:background="@drawable/profile_picture"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:clickable="true"
-        android:focusable="true">
+        app:layout_constraintTop_toTopOf="parent">
 
     </ImageView>
 

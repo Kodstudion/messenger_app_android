@@ -2,6 +2,7 @@ package com.example.messenger_app_android.fragments
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -44,9 +45,12 @@ class LoginWithEmailFragment : Fragment() {
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
                         val user = auth.currentUser
+                        val email = binding.emailEt.text.toString()
+                        val username = email.substringBefore("@").replaceFirstChar { it.uppercase() }
+
                         user?.let {
                             val displayName = UserProfileChangeRequest.Builder()
-                                .setDisplayName(binding.emailEt.text.toString())
+                                .setDisplayName(username)
                                 .build()
                             user.updateProfile(displayName)
                             updateUI(user)
@@ -58,6 +62,7 @@ class LoginWithEmailFragment : Fragment() {
                 }
         }
     }
+
     private fun updateUI(user: FirebaseUser?) {
         user?.let {
             val intent = Intent(context, HomeActivity::class.java)

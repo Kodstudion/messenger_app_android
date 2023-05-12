@@ -47,15 +47,16 @@ class UserAdapter(
     override fun onBindViewHolder(holder: ProfileViewHolder, position: Int) {
         val auth = FirebaseAuth.getInstance()
         val user = users[position]
-        val radius = 50
+        val radius = 50f
         holder.itemView.apply {
             display_name.text = user.displayName
             Picasso.get()
                 .load(user.profilePicture)
                 .memoryPolicy(MemoryPolicy.NO_CACHE)
+                .fit()
                 .transform(RoundedTransformationBuilder()
-                    .cornerRadius(radius.toFloat())
-                    .oval(false)
+                    .cornerRadius(radius)
+                    .oval(true)
                     .build())
                 .into(profile_picture)
 

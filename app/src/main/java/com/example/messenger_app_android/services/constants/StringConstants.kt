@@ -11,5 +11,6 @@ class StringConstants {
         const val OTHER_USER_TOKEN = "otherUserToken"
         const val CHATROOM_PICTURE = "chatroomPicture"
         const val PROFILE_PICTURE = "profilePicture"
+        const val PROFILE_PICTURE_URL = "profilePictureUrl"
     }
 }

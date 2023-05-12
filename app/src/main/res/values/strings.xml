@@ -11,5 +11,6 @@
     <string name="sharedPreferences">SharedPreferences</string>
     <string name="titleOfChat">Title of chat</string>
     <string name="documentId">DocumentId</string>
+    <string name="profile_picture_url">ProfilePictureUrl</string>
 
 </resources>

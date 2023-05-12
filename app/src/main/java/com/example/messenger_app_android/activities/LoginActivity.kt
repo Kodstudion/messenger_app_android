@@ -1,19 +1,24 @@
 package com.example.messenger_app_android.activities
 
 
+import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.content.IntentSender
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.provider.MediaStore
 import android.util.Log
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.cardview.widget.CardView
+import androidx.core.content.ContextCompat
 import com.example.messenger_app_android.R
 import com.example.messenger_app_android.fragments.LoginWithEmailFragment
+import com.example.messenger_app_android.services.constants.StringConstants
 import com.example.messenger_app_android.utilities.Utilities
 import com.google.android.gms.auth.api.identity.BeginSignInRequest
 import com.google.android.gms.auth.api.identity.Identity
@@ -22,11 +27,15 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.CommonStatusCodes
+import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.FirebaseStorage
+import com.makeramen.roundedimageview.RoundedTransformationBuilder
 import com.squareup.picasso.Picasso
 
 class LoginActivity : AppCompatActivity() {
@@ -50,20 +59,28 @@ class LoginActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
-        val loginPhotoUrl = "https://www.obrienprinting.com/wp-content/uploads/2013/09/logo-icon.png"
-        val viewBackgroundUrl = "https://image.winudf.com/v2/image/Y29tLmNvZGVGYWN0b3J5LndhV2FsbHBhcGVyc19zY3JlZW5fMV8xNTMwNTY4MzE5XzA2Nw/screen-1.jpg?fakeurl=1&type=.webp"
+        val viewBackgroundUrl =
+            "https://image.winudf.com/v2/image/Y29tLmNvZGVGYWN0b3J5LndhV2FsbHBhcGVyc19zY3JlZW5fMV8xNTMwNTY4MzE5XzA2Nw/screen-1.jpg?fakeurl=1&type=.webp"
         val utilities = Utilities()
+        val sharedPreferences = this.getSharedPreferences(
+            R.string.sharedPreferences.toString(),Context.MODE_PRIVATE
+        )
+        val storedProfilePictureUrl = sharedPreferences.getString(
+            StringConstants.PROFILE_PICTURE_URL, null
+        )
+
+        Log.d(TAG, "onCreate: $storedProfilePictureUrl")
 
         googleSignInCV = findViewById(R.id.google_sign_in_cv)
         auth = Firebase.auth
+
         emailLogin = findViewById(R.id.sign_in_with_email_tv)
         loginWithEmailFrameLayout = findViewById(R.id.fragment_container)
         backgroundView = findViewById(R.id.background_iv)
         loginPhoto = findViewById(R.id.login_photo_iv)
 
         Picasso.get().load(viewBackgroundUrl).fit().centerCrop().into(backgroundView)
-        Picasso.get().load(loginPhotoUrl).into(loginPhoto)
-
+        Picasso.get().load(storedProfilePictureUrl).fit().centerCrop().into(loginPhoto)
 
 
 
@@ -113,6 +130,7 @@ class LoginActivity : AppCompatActivity() {
 
 
     }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         when (requestCode) {
