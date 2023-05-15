@@ -11,5 +11,4 @@ class Utilities {
         transaction?.replace(R.id.fragment_container, fragment)
         transaction?.commit()
     }
-
 }

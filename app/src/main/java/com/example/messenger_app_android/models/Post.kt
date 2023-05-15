@@ -15,7 +15,6 @@ data class Post(
     val timestamp: com.google.firebase.Timestamp? = null,
     val postPicture: String? = null,
     ) {
-
     fun getMessageType(): PostType {
         val auth = FirebaseAuth.getInstance()
         return if (userId == auth.currentUser?.uid) {

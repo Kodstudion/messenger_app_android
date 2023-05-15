@@ -69,7 +69,6 @@ class LoginActivity : AppCompatActivity() {
             StringConstants.PROFILE_PICTURE_URL, null
         )
 
-        Log.d(TAG, "onCreate: $storedProfilePictureUrl")
 
         googleSignInCV = findViewById(R.id.google_sign_in_cv)
         auth = Firebase.auth
@@ -80,7 +79,12 @@ class LoginActivity : AppCompatActivity() {
         loginPhoto = findViewById(R.id.login_photo_iv)
 
         Picasso.get().load(viewBackgroundUrl).fit().centerCrop().into(backgroundView)
-        Picasso.get().load(storedProfilePictureUrl).fit().centerCrop().into(loginPhoto)
+        Picasso.get().load(storedProfilePictureUrl)
+            .fit().centerCrop()
+            .transform(RoundedTransformationBuilder()
+            .cornerRadius(50f)
+            .oval(true)
+            .build()).into(loginPhoto)
 
 
 

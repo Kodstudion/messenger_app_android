@@ -2,9 +2,11 @@ package com.example.messenger_app_android.fragments
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.provider.MediaStore
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
@@ -59,6 +61,7 @@ class ChatRoomFragment : Fragment(),
     private lateinit var user: User
 
     val TAG = "!!!"
+    private val PICK_IMAGE_REQUEST = 1
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -121,6 +124,10 @@ class ChatRoomFragment : Fragment(),
 
         binding.arrowLeftBack.setOnClickListener {
             utilities.loadFragment(ChatFragment(), fragmentManager)
+        }
+
+        binding.sendPhotoIv.setOnClickListener {
+           openImagePicker()
         }
 
         binding.sendMessageEditText.addTextChangedListener(object : TextWatcher {
@@ -426,6 +433,11 @@ class ChatRoomFragment : Fragment(),
                 senderDocRef.update("sender", hashMapOf(auth.currentUser?.uid to recentMessage))
             }
         }
+    }
+
+    private fun openImagePicker() {
+        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+        startActivityForResult(intent, PICK_IMAGE_REQUEST)
     }
 }
 

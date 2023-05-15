@@ -1,11 +1,14 @@
 package com.example.messenger_app_android.viewmodels
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import com.example.messenger_app_android.R
 import com.example.messenger_app_android.adapters.UserAdapter
 import com.example.messenger_app_android.fragments.ChatFragmentChatroomsView
 import com.example.messenger_app_android.models.Chatroom
 import com.example.messenger_app_android.models.User
+import com.example.messenger_app_android.services.constants.StringConstants
 
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
@@ -28,9 +31,9 @@ class ChatFragmentViewModel() : ViewModel() {
     val dataLoaded = MutableStateFlow(false)
 
 
-    fun attach(chatFragmentChatroomsView: ChatFragmentChatroomsView) {
+    fun attach(chatFragmentChatroomsView: ChatFragmentChatroomsView, context: Context?) {
         chatroomsView = chatFragmentChatroomsView
-        listenForUsersUpdates()
+        listenForUsersUpdates(context)
         listenForChatroomUpdates()
     }
 
@@ -63,7 +66,7 @@ class ChatFragmentViewModel() : ViewModel() {
             }
     }
 
-    private fun listenForUsersUpdates() {
+    private fun listenForUsersUpdates(context: Context?) {
         val auth = Firebase.auth
         db.collection("users").addSnapshotListener { snapshot, _ ->
             snapshot?.let { querySnapshot ->
@@ -72,6 +75,7 @@ class ChatFragmentViewModel() : ViewModel() {
                     for (document in querySnapshot.documents) {
                         val user = document.toObject<User>()
                         if (user?.uid == auth.currentUser?.uid) {
+                            storeProfilePictureUrl(user, context)
                             continue
                         } else {
                             userAdapter.users.add(user ?: return@addSnapshotListener)
@@ -95,6 +99,12 @@ class ChatFragmentViewModel() : ViewModel() {
     }
     fun getUser(userId: String): User? {
         return users.find { it.uid == userId }
+    }
+    private fun storeProfilePictureUrl(user: User?, context: Context?) {
+        val sharedPreferences = context?.getSharedPreferences(R.string.sharedPreferences.toString(), Context.MODE_PRIVATE)
+        val editor = sharedPreferences?.edit()
+        editor?.putString(StringConstants.PROFILE_PICTURE_URL, user?.profilePicture)
+        editor?.apply()
     }
 }
 
