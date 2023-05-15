@@ -82,7 +82,7 @@ class ChatFragment : Fragment(), ChatFragmentChatroomsView {
     ): View? {
         binding = FragmentChatBinding.inflate(layoutInflater, container, false)
         chatFragmentViewModel = ViewModelProvider(this)[ChatFragmentViewModel::class.java]
-        chatFragmentViewModel.attach(this)
+        chatFragmentViewModel.attach(this, requireContext())
 
         return binding.root
 

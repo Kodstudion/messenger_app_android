@@ -83,6 +83,13 @@ class ReplyBroadcastReceiver : BroadcastReceiver() {
 
         val remoteInputResult = getMessageText(intent ?: return)
 
+        val sharedPreferences = context.getSharedPreferences(
+            R.string.sharedPreferences.toString(),Context.MODE_PRIVATE
+        )
+        val storedProfilePictureUrl = sharedPreferences.getString(
+            StringConstants.PROFILE_PICTURE_URL, null
+        )
+
         CoroutineScope(Dispatchers.IO).launch {
             NotificationHelper.showMessage(
                 context,
@@ -92,7 +99,7 @@ class ReplyBroadcastReceiver : BroadcastReceiver() {
                 chatroomTitle,
                 currentUserToken,
                 otherDeviceToken,
-                auth.currentUser?.photoUrl.toString()
+                storedProfilePictureUrl ?: ""
             )
         }
 
@@ -104,7 +111,7 @@ class ReplyBroadcastReceiver : BroadcastReceiver() {
             chatroomTitle,
             remoteInputResult.toString(),
             timestamp,
-            auth.currentUser?.photoUrl.toString()
+            storedProfilePictureUrl
         )
 
         setSentPushNotice(pushNotice, documentId, remoteInputResult.toString())
@@ -119,7 +126,7 @@ class ReplyBroadcastReceiver : BroadcastReceiver() {
                     auth.currentUser?.displayName ?: "",
                     currentUserToken,
                     otherDeviceToken,
-                    auth.currentUser?.photoUrl.toString()
+                    storedProfilePictureUrl ?: ""
                 ), ""
             )
         )
@@ -229,6 +236,21 @@ private fun updatePostIsSeen(documentId: String) {
             )
         }
     }
+}
+
+private fun getProfilePicture(): String {
+    val db = FirebaseFirestore.getInstance()
+    val auth = FirebaseAuth.getInstance()
+    var profilePicture = ""
+    db.collection("users").get().addOnSuccessListener { documents ->
+        documents.forEach { document ->
+            if (document.id == auth.currentUser?.uid) {
+                profilePicture = document.data["profilePicture"].toString()
+            }
+        }
+        Log.d(TAG, "getProfilePicture: $profilePicture")
+    }
+    return profilePicture
 }
 
 private fun getMessageText(intent: Intent): CharSequence? {
